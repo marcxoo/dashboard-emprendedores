@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useData } from '../context/DataContext';
 import { STANDS } from '../data/Database';
+import { Trash2, Users, Calendar, Edit, Sun, Sunset, Search, X, Check, Loader2, CalendarDays, DollarSign } from 'lucide-react';
 
 export default function Dashboard() {
     const {
         getAssignmentsByWeek,
         generateAssignments,
         entrepreneurs,
+        earnings,
         clearAllData,
         setManualAssignment,
         removeAssignment,
@@ -22,6 +24,8 @@ export default function Dashboard() {
     const [assignments, setAssignments] = useState([]);
     const [stats, setStats] = useState({ total: 0, assigned: 0, participationRate: 0 });
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [weeklyEarnings, setWeeklyEarnings] = useState(0);
+    const [monthlyEarnings, setMonthlyEarnings] = useState(0);
 
     const [selectedStandId, setSelectedStandId] = useState(null);
     const [selectedJornada, setSelectedJornada] = useState('completa'); // 'manana', 'tarde', 'completa'
@@ -46,8 +50,28 @@ export default function Dashboard() {
                 assigned: occupiedStands,
                 participationRate: 0 // Not used anymore
             });
+
+            // Calculate Earnings
+            const safeEarnings = Array.isArray(earnings) ? earnings : [];
+
+            const currentWeekEarnings = safeEarnings
+                .filter(e => e.week === currentWeek)
+                .reduce((sum, e) => sum + e.amount, 0);
+            setWeeklyEarnings(currentWeekEarnings);
+
+            if (selectedDate) {
+                const [year, month] = selectedDate.split('-').map(Number);
+                const currentMonthEarnings = safeEarnings
+                    .filter(e => {
+                        if (!e.date) return false;
+                        const eDate = new Date(e.date);
+                        return eDate.getFullYear() === year && (eDate.getMonth() + 1) === month;
+                    })
+                    .reduce((sum, e) => sum + e.amount, 0);
+                setMonthlyEarnings(currentMonthEarnings);
+            }
         }
-    }, [currentWeek, currentBlock, getAssignmentsByWeek]);
+    }, [currentWeek, currentBlock, getAssignmentsByWeek, earnings, selectedDate]);
 
     const handleGenerate = () => {
         setLoading(true);
@@ -73,7 +97,7 @@ export default function Dashboard() {
             id_emprendedor: entrepreneur.id,
             semana: currentWeek,
             estado: 'confirmado',
-            comentarios: 'Asignación manual',
+            comentarios: '',
             jornada: jornada,
             bloque: currentBlock
         });
@@ -102,19 +126,14 @@ export default function Dashboard() {
             {/* Header & Controls */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 lg:gap-0">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Panel de Control</h1>
+                    <h1 className="text-3xl font-bold text-secondary tracking-tight">Panel de Control</h1>
                     <p className="text-slate-500 mt-2 text-lg">Resumen de actividad y gestión de stands</p>
                 </div>
                 <div className="flex flex-col w-full lg:w-auto gap-4">
                     <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 w-full">
                         <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200 w-full lg:w-auto justify-between lg:justify-start">
                             <div className="flex items-center gap-2 text-slate-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
+                                <Calendar size={20} />
                                 <span className="font-medium">Fecha:</span>
                             </div>
                             <input
@@ -135,15 +154,12 @@ export default function Dashboard() {
                         >
                             {loading ? (
                                 <span className="flex items-center gap-2">
-                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
+                                    <Loader2 className="animate-spin h-4 w-4 text-white" />
                                     Generando...
                                 </span>
                             ) : assignments.length > 0 ? (
                                 <span className="flex items-center gap-2">
-                                    <span>✓</span> Asignación Completa
+                                    <Check size={16} /> Asignación Completa
                                 </span>
                             ) : (
                                 'Generar Asignación'
@@ -158,31 +174,49 @@ export default function Dashboard() {
                             }
                         }}
                     >
-                        🗑️ Reiniciar Días
+                        <Trash2 size={18} /> Reiniciar Días
                     </button>
                 </div>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-blue-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 md:col-start-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-blue-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
                     <div className="p-4 rounded-2xl bg-blue-50 text-blue-600 shadow-inner">
-                        <span className="text-3xl">👥</span>
+                        <Users size={32} />
                     </div>
                     <div>
-                        <div className="text-sm text-slate-500 font-semibold uppercase tracking-wider">Emprendedores Beneficiados</div>
-                        <div className="text-3xl font-bold text-slate-900 mt-1">
+                        <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Emprendedores</div>
+                        <div className="text-2xl font-bold text-secondary mt-1">
                             {entrepreneurs.filter(e => e.veces_en_stand > 0).length}
                         </div>
                     </div>
                 </div>
-                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-purple-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="p-4 rounded-2xl bg-purple-50 text-purple-600 shadow-inner">
-                        <span className="text-3xl">📅</span>
+                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-secondary-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                    <div className="p-4 rounded-2xl bg-secondary-50 text-secondary-600 shadow-inner">
+                        <CalendarDays size={32} />
                     </div>
                     <div>
-                        <div className="text-sm text-slate-500 font-semibold uppercase tracking-wider">Stands Asignados</div>
-                        <div className="text-3xl font-bold text-slate-900 mt-1">{stats.assigned} <span className="text-lg text-slate-400 font-normal">/ 6</span></div>
+                        <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Stands Asignados</div>
+                        <div className="text-2xl font-bold text-secondary mt-1">{stats.assigned} <span className="text-lg text-slate-400 font-normal">/ 6</span></div>
+                    </div>
+                </div>
+                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-green-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                    <div className="p-4 rounded-2xl bg-green-50 text-green-600 shadow-inner">
+                        <DollarSign size={32} />
+                    </div>
+                    <div>
+                        <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Ganancia Semanal</div>
+                        <div className="text-2xl font-bold text-secondary mt-1">${weeklyEarnings.toFixed(2)}</div>
+                    </div>
+                </div>
+                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-emerald-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                    <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-600 shadow-inner">
+                        <DollarSign size={32} />
+                    </div>
+                    <div>
+                        <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Ganancia Mensual</div>
+                        <div className="text-2xl font-bold text-secondary mt-1">${monthlyEarnings.toFixed(2)}</div>
                     </div>
                 </div>
             </div>
@@ -229,7 +263,7 @@ export default function Dashboard() {
                                                     className="p-1 rounded hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors"
                                                     title="Eliminar asignación"
                                                 >
-                                                    🗑️
+                                                    <Trash2 size={14} />
                                                 </button>
                                             )}
                                             <button
@@ -237,7 +271,7 @@ export default function Dashboard() {
                                                 className={`p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-primary-600 transition-colors ${isAssigned ? 'opacity-100' : 'opacity-0 group-hover/slot:opacity-100'}`}
                                                 title="Editar asignación"
                                             >
-                                                ✏️
+                                                <Edit size={14} />
                                             </button>
                                         </div>
                                     </div>
@@ -248,7 +282,7 @@ export default function Dashboard() {
                                                 {emp.nombre_emprendimiento.charAt(0)}
                                             </div>
                                             <div className="min-w-0">
-                                                <div className="font-bold text-slate-900 text-sm truncate">{emp.nombre_emprendimiento}</div>
+                                                <div className="font-bold text-secondary text-sm truncate">{emp.nombre_emprendimiento}</div>
                                                 <div className="text-xs text-slate-500 truncate">{emp.categoria_principal}</div>
                                             </div>
                                         </div>
@@ -280,11 +314,11 @@ export default function Dashboard() {
 
                                     <div className="flex flex-col gap-3">
                                         {fullDay ? (
-                                            renderSlot(fullDay, 'Jornada Completa (09:00 - 17:00)', 'completa')
+                                            renderSlot(fullDay, 'Jornada Completa (08:30 - 16:30)', 'completa')
                                         ) : (
                                             <>
-                                                {renderSlot(morning, 'Mañana (09:00 - 13:00)', 'manana')}
-                                                {renderSlot(afternoon, 'Tarde (13:00 - 17:00)', 'tarde')}
+                                                {renderSlot(morning, 'Matutina (08:30 - 12:30)', 'manana')}
+                                                {renderSlot(afternoon, 'Vespertina (13:00 - 16:30)', 'tarde')}
                                             </>
                                         )}
                                     </div>
@@ -328,36 +362,36 @@ function EntrepreneurSelectionModal({ isOpen, onClose, onSelect, entrepreneurs, 
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
                 <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                     <h3 className="font-bold text-lg text-slate-800">Seleccionar Emprendedor</h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 w-8 h-8 rounded-full transition-colors">✕</button>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 w-8 h-8 rounded-full transition-colors flex items-center justify-center"><X size={20} /></button>
                 </div>
                 <div className="p-4 border-b border-slate-100 space-y-3">
                     {/* Shift Selector */}
                     <div className="flex gap-2 bg-slate-100 p-1 rounded-lg">
                         <button
-                            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${jornada === 'manana' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2 ${jornada === 'manana' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                             onClick={() => setJornada('manana')}
                         >
-                            ☀️ Mañana
+                            <Sun size={16} /> Matutina
                         </button>
                         <button
-                            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${jornada === 'tarde' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2 ${jornada === 'tarde' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                             onClick={() => setJornada('tarde')}
                         >
-                            🌅 Tarde
+                            <Sunset size={16} /> Vespertina
                         </button>
                         <button
-                            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${jornada === 'completa' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2 ${jornada === 'completa' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                             onClick={() => setJornada('completa')}
                         >
-                            📅 Completa
+                            <Calendar size={16} /> Completa
                         </button>
                     </div>
 
                     <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Search size={18} /></span>
                         <input
                             autoFocus
-                            className="input w-full pl-9"
+                            className="input w-full pl-10"
                             placeholder="Buscar por nombre o emprendimiento..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
@@ -376,7 +410,7 @@ function EntrepreneurSelectionModal({ isOpen, onClose, onSelect, entrepreneurs, 
                                     {e.nombre_emprendimiento.charAt(0)}
                                 </div>
                                 <div className="min-w-0">
-                                    <div className="font-bold text-slate-900 truncate">{e.nombre_emprendimiento}</div>
+                                    <div className="font-bold text-secondary truncate">{e.nombre_emprendimiento}</div>
                                     <div className="text-xs text-slate-500 truncate">{e.persona_contacto} • {e.categoria_principal}</div>
                                 </div>
                             </button>

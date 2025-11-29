@@ -24,3 +24,17 @@ export function getDateRangeFromWeek(weekString) {
 
     return `${day}/${month}/${yearStr}`;
 }
+
+export function getWeekNumberString(d) {
+    const week = getWeekNumber(d);
+    const year = d.getFullYear();
+    return `${year}-W${week.toString().padStart(2, '0')}`;
+}
+
+export function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return weekNo;
+}

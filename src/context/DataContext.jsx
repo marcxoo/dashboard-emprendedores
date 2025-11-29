@@ -3,6 +3,7 @@ import { Database } from '../data/Database';
 import { csvContent } from '../data/csvData';
 import { generarAsignacionParaSemana } from '../data/AssignmentLogic';
 
+
 const DataContext = createContext();
 
 export function DataProvider({ children }) {
@@ -48,10 +49,13 @@ export function DataProvider({ children }) {
         setCurrentBlock(block);
     }, [selectedDate]);
 
+    const [earnings, setEarnings] = useState([]);
+
     const refreshData = async () => {
         await db.loadData();
         setEntrepreneurs([...db.getEmprendedores()]);
         setAssignments([...db.asignaciones]);
+        setEarnings(Array.isArray(db.earnings) ? [...db.earnings] : []);
     };
 
     const generateAssignments = async (week) => {
@@ -67,8 +71,8 @@ export function DataProvider({ children }) {
         await refreshData();
     };
 
-    const updateAssignmentAttendance = async (id, attended) => {
-        await db.updateAssignmentAttendance(id, attended);
+    const updateAssignmentAttendance = async (id, attended, comments) => {
+        await db.updateAssignmentAttendance(id, attended, comments);
         await refreshData();
     };
 
@@ -126,11 +130,24 @@ export function DataProvider({ children }) {
         return success;
     };
 
+    const addEarning = async (data) => {
+        const newEarning = await db.addEarning(data);
+        if (newEarning) await refreshData();
+        return newEarning;
+    };
+
+    const deleteEarning = async (id) => {
+        const success = await db.deleteEarning(id);
+        if (success) await refreshData();
+        return success;
+    };
+
     const value = {
         db,
         isLoaded,
         entrepreneurs,
         assignments,
+        earnings,
         currentWeek,
         setCurrentWeek,
         selectedDate,
@@ -149,7 +166,9 @@ export function DataProvider({ children }) {
         deleteEntrepreneur,
         updateAssignmentAttendance,
         clearWeekAssignments,
-        clearBlockAssignments
+        clearBlockAssignments,
+        addEarning,
+        deleteEarning
     };
 
     return (
@@ -181,3 +200,5 @@ function getWeekNumber(d) {
     const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     return weekNo;
 }
+
+

@@ -1,11 +1,13 @@
 import { useState } from 'react'
+import Login from './components/Login';
 import { DataProvider, useData } from './context/DataContext'
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Dashboard from './components/Dashboard'
 import EntrepreneursList from './components/EntrepreneursList'
 import AssignmentsHistory from './components/AssignmentsHistory'
-import Login from './components/Login';
+import Statistics from './components/Statistics';
+import { LayoutDashboard, Users, History, LogOut, Menu, X, Shield, DollarSign } from 'lucide-react';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -27,7 +29,7 @@ function AppContent() {
   return (
     <div className="app flex min-h-screen bg-slate-50">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-slate-900 z-50 flex items-center px-4 justify-between shadow-md">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-secondary z-50 flex items-center px-4 justify-between shadow-md">
         <div className="font-bold text-xl text-white tracking-tight">
           <span className="text-primary-400">Emprende</span>
           <span className="text-white">Dashboard</span>
@@ -36,7 +38,7 @@ function AppContent() {
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="p-2 text-slate-300 hover:text-white transition-colors"
         >
-          {isSidebarOpen ? '✕' : '☰'}
+          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
@@ -50,14 +52,14 @@ function AppContent() {
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:fixed left-0 top-0 z-50 h-screen w-72 bg-slate-900 text-white shadow-xl transition-transform duration-300 ease-in-out
+        fixed lg:fixed left-0 top-0 z-50 h-screen w-72 bg-secondary text-white shadow-xl transition-transform duration-300 ease-in-out
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         pt-16 lg:pt-0 flex flex-col
       `}>
         {/* Brand (Desktop) */}
         <div className="hidden lg:block p-6 border-b border-slate-800/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center shadow-lg shadow-primary-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-secondary flex items-center justify-center shadow-lg shadow-primary-500/20">
               <span className="text-xl font-bold text-white">E</span>
             </div>
             <div>
@@ -79,7 +81,7 @@ function AppContent() {
               : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
               }`}
           >
-            <span className={`text-xl transition-transform group-hover:scale-110 ${currentView === 'dashboard' ? 'scale-110' : ''}`}>📊</span>
+            <LayoutDashboard size={20} className={`transition-transform group-hover:scale-110 ${currentView === 'dashboard' ? 'scale-110' : ''}`} />
             <span className="font-medium">Dashboard</span>
             {currentView === 'dashboard' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></span>}
           </button>
@@ -91,7 +93,7 @@ function AppContent() {
               : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
               }`}
           >
-            <span className={`text-xl transition-transform group-hover:scale-110 ${currentView === 'entrepreneurs' ? 'scale-110' : ''}`}>👥</span>
+            <Users size={20} className={`transition-transform group-hover:scale-110 ${currentView === 'entrepreneurs' ? 'scale-110' : ''}`} />
             <span className="font-medium">Emprendedores</span>
             {currentView === 'entrepreneurs' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></span>}
           </button>
@@ -103,17 +105,29 @@ function AppContent() {
               : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
               }`}
           >
-            <span className={`text-xl transition-transform group-hover:scale-110 ${currentView === 'history' ? 'scale-110' : ''}`}>📅</span>
+            <History size={20} className={`transition-transform group-hover:scale-110 ${currentView === 'history' ? 'scale-110' : ''}`} />
             <span className="font-medium">Historial</span>
             {currentView === 'history' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></span>}
+          </button>
+
+          <button
+            onClick={() => handleViewChange('statistics')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${currentView === 'statistics'
+              ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/20'
+              : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+              }`}
+          >
+            <DollarSign size={20} className={`transition-transform group-hover:scale-110 ${currentView === 'statistics' ? 'scale-110' : ''}`} />
+            <span className="font-medium">Estadísticas</span>
+            {currentView === 'statistics' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></span>}
           </button>
         </nav>
 
         {/* User Profile & Logout */}
-        <div className="p-4 border-t border-slate-800/50 bg-slate-900/50">
+        <div className="p-4 border-t border-slate-800/50 bg-secondary/50">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/30 border border-slate-800 mb-3">
             <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center border-2 border-slate-600">
-              <span className="text-sm font-bold text-slate-300">AD</span>
+              <Shield size={16} className="text-slate-300" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">{user?.name || 'Admin'}</p>
@@ -125,7 +139,8 @@ function AppContent() {
             onClick={logout}
             className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-red-500/10 hover:border-red-500/50 border border-transparent transition-all text-sm font-medium group"
           >
-            <span className="group-hover:text-red-400 transition-colors">🚪</span> Cerrar Sesión
+            <LogOut size={18} className="group-hover:text-red-400 transition-colors" />
+            Cerrar Sesión
           </button>
         </div>
       </aside>
@@ -145,6 +160,7 @@ function AppContent() {
               {currentView === 'dashboard' && <Dashboard />}
               {currentView === 'entrepreneurs' && <EntrepreneursList />}
               {currentView === 'history' && <AssignmentsHistory />}
+              {currentView === 'statistics' && <Statistics />}
             </>
           )}
         </div>

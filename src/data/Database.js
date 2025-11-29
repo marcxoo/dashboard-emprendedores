@@ -13,6 +13,7 @@ export class Database {
   constructor() {
     this.emprendedores = [];
     this.asignaciones = [];
+    this.earnings = [];
   }
 
   async loadData() {
@@ -32,12 +33,61 @@ export class Database {
       if (assignError) throw assignError;
       this.asignaciones = assignments || [];
 
+      await this.loadEarnings();
+
       this.normalizeCategories();
       return true;
     } catch (error) {
       console.error('Error loading data:', error);
       return false;
     }
+  }
+
+  async loadEarnings() {
+    try {
+      const { data, error } = await supabase
+        .from('earnings')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+      this.earnings = data || [];
+    } catch (error) {
+      console.error('Error loading earnings:', error);
+      // Don't block main app load if earnings fail, just log it
+      this.earnings = [];
+    }
+  }
+
+  async addEarning(data) {
+    const { data: inserted, error } = await supabase
+      .from('earnings')
+      .insert([data])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding earning:', error);
+      return null;
+    }
+
+    this.earnings.unshift(inserted);
+    return inserted;
+  }
+
+  async deleteEarning(id) {
+    const { error } = await supabase
+      .from('earnings')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting earning:', error);
+      return false;
+    }
+
+    this.earnings = this.earnings.filter(e => e.id !== id);
+    return true;
   }
 
   normalizeString(str) {
@@ -208,7 +258,8 @@ export class Database {
       id_asignacion: crypto.randomUUID(),
       ...assignment,
       jornada: assignment.jornada || 'completa',
-      bloque: assignment.bloque || 'lunes-martes'
+      bloque: assignment.bloque || 'lunes-martes',
+      asistio: null
     };
 
     await this.saveAssignment(newAssignment);
@@ -271,13 +322,18 @@ export class Database {
     }
   }
 
-  async updateAssignmentAttendance(id, attended) {
+  async updateAssignmentAttendance(id, attended, comments = '') {
     const index = this.asignaciones.findIndex(a => a.id_asignacion === id);
     if (index >= 0) {
       this.asignaciones[index].asistio = attended;
+      this.asignaciones[index].comentarios = comments; // Optimistic update
+
+      const updateData = { asistio: attended };
+      if (comments !== undefined) updateData.comentarios = comments;
+
       await supabase
         .from('assignments')
-        .update({ asistio: attended })
+        .update(updateData)
         .eq('id_asignacion', id);
       return true;
     }

@@ -1,10 +1,68 @@
+
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useData } from '../context/DataContext';
 import { STANDS } from '../data/Database';
+import { Trash2, Download, CheckCircle, XCircle, Clock, Calendar, AlertTriangle, FileText, X, Sparkles } from 'lucide-react';
+
+// Modal Component for Attendance Observations
+const AttendanceModal = ({ isOpen, onClose, onConfirm, entrepreneurName }) => {
+    const [observation, setObservation] = useState('');
+
+    if (!isOpen) return null;
+
+    return createPortal(
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+                <div className="bg-gradient-to-r from-red-50 to-white px-6 py-4 border-b border-red-100 flex justify-between items-center">
+                    <h3 className="text-lg font-bold text-red-800 flex items-center gap-2">
+                        <FileText size={20} /> Motivo de Inasistencia
+                    </h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors"><X size={20} /></button>
+                </div>
+
+                <div className="p-6">
+                    <p className="text-slate-600 mb-4 text-sm">
+                        Por favor, indica el motivo por el cual <strong>{entrepreneurName}</strong> no asistió al stand asignado.
+                    </p>
+
+                    <textarea
+                        value={observation}
+                        onChange={(e) => setObservation(e.target.value)}
+                        placeholder="Escribe aquí el motivo (ej: Enfermedad, Calamidad doméstica, Sin aviso...)"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all resize-none text-slate-700 placeholder:text-slate-400 min-h-[120px]"
+                        autoFocus
+                    />
+                </div>
+
+                <div className="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 rounded-lg text-slate-600 font-medium hover:bg-slate-200 transition-colors"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={() => onConfirm(observation)}
+                        className="px-4 py-2 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all transform active:scale-95"
+                    >
+                        Guardar Inasistencia
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
 
 export default function AssignmentsHistory() {
     const { assignments, entrepreneurs, deleteAssignment, updateAssignmentAttendance, clearAllData, isLoaded } = useData();
     const [groupedHistory, setGroupedHistory] = useState({});
+    const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'attended', 'not_attended', 'pending'
+
+    // State for Attendance Modal
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedAssignment, setSelectedAssignment] = useState(null);
 
     if (!isLoaded) {
         return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
@@ -16,8 +74,17 @@ export default function AssignmentsHistory() {
             return;
         }
 
+        // Filter assignments based on status
+        const filteredAssignments = assignments.filter(a => {
+            if (filterStatus === 'all') return true;
+            if (filterStatus === 'attended') return a.asistio === true;
+            if (filterStatus === 'not_attended') return a.asistio === false;
+            if (filterStatus === 'pending') return a.asistio === null || a.asistio === undefined;
+            return true;
+        });
+
         // Group by Week -> Block
-        const grouped = assignments.reduce((acc, curr) => {
+        const grouped = filteredAssignments.reduce((acc, curr) => {
             const week = curr.semana;
             const block = curr.bloque || 'lunes-martes'; // Default for old data
 
@@ -29,7 +96,7 @@ export default function AssignmentsHistory() {
         }, {});
 
         setGroupedHistory(grouped);
-    }, [assignments]);
+    }, [assignments, filterStatus]);
 
     const getEntrepreneurName = (id) => {
         if (!Array.isArray(entrepreneurs)) return 'Desconocido';
@@ -82,7 +149,7 @@ export default function AssignmentsHistory() {
             const startStr = startDate.toLocaleDateString('es-ES', options);
             if (endDate) {
                 const endStr = endDate.toLocaleDateString('es-ES', options);
-                return `${startStr} al ${endStr}`;
+                return `${startStr} al ${endStr} `;
             }
             return startStr;
         } catch (e) { return ''; }
@@ -91,6 +158,40 @@ export default function AssignmentsHistory() {
     const handleDelete = (id) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar esta asignación del historial?')) {
             deleteAssignment(id);
+        }
+    };
+
+    const handleAttendanceClick = (assignment) => {
+        if (assignment.asistio) {
+            // If already attended, toggle to not attended (which opens modal) or just toggle off?
+            // Logic: If currently YES, clicking means toggle to NO -> Open Modal
+            setSelectedAssignment(assignment);
+            setIsModalOpen(true);
+        } else {
+            // If currently NO, clicking means toggle to YES -> No modal needed, clear comments
+            updateAssignmentAttendance(assignment.id_asignacion, true, '');
+        }
+    };
+
+    // Correct logic: The button shows current state. Clicking it flips the state.
+    // If currently "Asistió" (Green), user wants to mark "No Asistió" -> Open Modal.
+    // If currently "No Asistió" (Red), user wants to mark "Asistió" -> Just do it.
+    const handleAttendanceToggle = (assignment) => {
+        if (assignment.asistio) {
+            // Currently YES, switching to NO
+            setSelectedAssignment(assignment);
+            setIsModalOpen(true);
+        } else {
+            // Currently NO, switching to YES
+            updateAssignmentAttendance(assignment.id_asignacion, true, '');
+        }
+    };
+
+    const confirmAttendanceChange = (observation) => {
+        if (selectedAssignment) {
+            updateAssignmentAttendance(selectedAssignment.id_asignacion, false, observation);
+            setIsModalOpen(false);
+            setSelectedAssignment(null);
         }
     };
 
@@ -106,10 +207,12 @@ export default function AssignmentsHistory() {
                 stand?.name,
                 empName,
                 category,
-                record.estado
+                record.estado,
+                record.asistio ? 'SI' : 'NO',
+                record.comentarios || ''
             ].join(',');
         });
-        const headers = ['Semana', 'Bloque', 'Jornada', 'Stand', 'Emprendedor', 'Categoría', 'Estado'];
+        const headers = ['Semana', 'Bloque', 'Jornada', 'Stand', 'Emprendedor', 'Categoría', 'Estado', 'Asistió', 'Observaciones'];
         const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
@@ -130,47 +233,106 @@ export default function AssignmentsHistory() {
     const AssignmentCell = ({ assignment }) => {
         if (!assignment) {
             return (
-                <div className="h-full flex items-center justify-center text-slate-300 text-xs italic border-2 border-dashed border-slate-100 rounded-lg p-2">
-                    Disponible
+                <div className="h-full min-h-[140px] flex flex-col items-center justify-center text-slate-300 border-2 border-dashed border-slate-100 rounded-xl p-4 transition-colors hover:border-slate-200 hover:bg-slate-50/50 group">
+                    <Sparkles size={24} className="mb-2 opacity-50 group-hover:opacity-70 transition-opacity" />
+                    <span className="text-xs font-medium italic">Disponible</span>
                 </div>
             );
         }
 
         return (
-            <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow relative group h-full flex flex-col">
-                <div className="flex justify-between items-start mb-1">
-                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${assignment.estado === 'Confirmado' ? 'bg-green-50 text-green-700' :
-                        assignment.estado === 'Pendiente' ? 'bg-yellow-50 text-yellow-700' :
-                            'bg-red-50 text-red-700'
-                        }`}>
-                        {assignment.estado}
-                    </span>
+            <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 relative group h-full flex flex-col min-h-[140px]">
+                {/* Header: Status & Delete */}
+                <div className="flex justify-between items-start mb-3">
+                    <div className="flex flex-wrap gap-1.5">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${assignment.estado === 'Confirmado' ? 'bg-green-50 text-green-700 border-green-100' :
+                            assignment.estado === 'Pendiente' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                                'bg-red-50 text-red-700 border-red-100'
+                            } `}>
+                            {assignment.estado}
+                        </span>
+
+                        {(assignment.jornada === 'completa' || !assignment.jornada) && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100">
+                                Jornada Completa
+                            </span>
+                        )}
+                        {assignment.jornada === 'manana' && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100">
+                                Matutina
+                            </span>
+                        )}
+                        {assignment.jornada === 'tarde' && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                Vespertina
+                            </span>
+                        )}
+                    </div>
+
                     <button
                         onClick={() => handleDelete(assignment.id_asignacion)}
-                        className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                        title="Eliminar"
+                        className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1 rounded-md transition-all opacity-0 group-hover:opacity-100"
+                        title="Eliminar asignación"
                     >
-                        🗑️
+                        <Trash2 size={16} />
                     </button>
-                </div>
-                <div className="font-bold text-slate-800 text-sm mb-0.5 line-clamp-1" title={getEntrepreneurName(assignment.id_emprendedor)}>
-                    {getEntrepreneurName(assignment.id_emprendedor)}
-                </div>
-                <div className="text-xs text-slate-500 line-clamp-1 mb-2" title={getEntrepreneurCategory(assignment.id_emprendedor)}>
-                    {getEntrepreneurCategory(assignment.id_emprendedor)}
                 </div>
 
-                <div className="mt-auto pt-2 border-t border-slate-50 flex justify-between items-center">
-                    <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Asistencia:</span>
-                    <button
-                        onClick={() => updateAssignmentAttendance(assignment.id_asignacion, !assignment.asistio)}
-                        className={`text-[10px] font-bold px-2 py-1 rounded-full transition-all ${assignment.asistio
-                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                            : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                            }`}
-                    >
-                        {assignment.asistio ? '✅ ASISTIÓ' : '❌ NO ASISTIÓ'}
-                    </button>
+                {/* Content: Name & Category */}
+                <div className="mb-4">
+                    <div className="font-bold text-slate-800 text-base leading-tight mb-1 line-clamp-2" title={getEntrepreneurName(assignment.id_emprendedor)}>
+                        {getEntrepreneurName(assignment.id_emprendedor)}
+                    </div>
+                    <div className="text-xs font-medium text-slate-400 uppercase tracking-wide line-clamp-1" title={getEntrepreneurCategory(assignment.id_emprendedor)}>
+                        {getEntrepreneurCategory(assignment.id_emprendedor)}
+                    </div>
+                </div>
+
+                {/* Comments Warning */}
+                {assignment.comentarios && assignment.comentarios !== 'Asignación manual' && !assignment.asistio && (
+                    <div className="mb-3 px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 italic flex items-start gap-1.5">
+                        <AlertTriangle size={14} className="shrink-0" />
+                        <span className="line-clamp-2" title={assignment.comentarios}>"{assignment.comentarios}"</span>
+                    </div>
+                )}
+
+                {/* Footer: Attendance Controls */}
+                <div className="mt-auto pt-3 border-t border-slate-50 flex justify-between items-center">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Asistencia</span>
+
+                    {assignment.asistio === null || assignment.asistio === undefined ? (
+                        <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-100">
+                            <button
+                                onClick={() => updateAssignmentAttendance(assignment.id_asignacion, true, '')}
+                                className="w-8 h-8 flex items-center justify-center rounded-md bg-white text-slate-400 hover:text-green-600 hover:bg-green-50 hover:border-green-200 border border-transparent transition-all shadow-sm"
+                                title="Marcar como Asistió"
+                            >
+                                <CheckCircle size={16} />
+                            </button>
+                            <div className="w-px h-4 bg-slate-200"></div>
+                            <button
+                                onClick={() => handleAttendanceToggle({ ...assignment, asistio: true })}
+                                className="w-8 h-8 flex items-center justify-center rounded-md bg-white text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 border border-transparent transition-all shadow-sm"
+                                title="Marcar como No Asistió"
+                            >
+                                <XCircle size={16} />
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => handleAttendanceToggle(assignment)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border ${assignment.asistio
+                                ? 'bg-green-50 text-green-700 border-green-100 hover:bg-green-100'
+                                : 'bg-red-50 text-red-700 border-red-100 hover:bg-red-100'
+                                }`}
+                        >
+                            {assignment.asistio ? (
+                                <><CheckCircle size={14} /> Asistió</>
+                            ) : (
+                                <><XCircle size={14} /> No Asistió</>
+                            )}
+                        </button>
+                    )}
                 </div>
             </div>
         );
@@ -181,35 +343,75 @@ export default function AssignmentsHistory() {
         if (!assignment) return null;
 
         return (
-            <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">{label}</span>
-                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${assignment.estado === 'Confirmado' ? 'bg-green-100 text-green-700' :
-                        assignment.estado === 'Pendiente' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-red-100 text-red-700'
-                        }`}>
-                        {assignment.estado}
-                    </span>
+            <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+                {/* Header */}
+                <div className="flex justify-between items-start mb-3">
+                    <div className="flex flex-col gap-1">
+                        <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">{label}</span>
+                        <div className="flex gap-2">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${assignment.estado === 'Confirmado' ? 'bg-green-50 text-green-700 border-green-100' :
+                                assignment.estado === 'Pendiente' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                                    'bg-red-50 text-red-700 border-red-100'
+                                } `}>
+                                {assignment.estado}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div className="font-bold text-slate-900 text-sm mb-0.5">{getEntrepreneurName(assignment.id_emprendedor)}</div>
-                <div className="text-xs text-slate-500 mb-2">{getEntrepreneurCategory(assignment.id_emprendedor)}</div>
 
-                <div className="flex justify-between items-center pt-2 border-t border-slate-200/50">
-                    <button
-                        onClick={() => updateAssignmentAttendance(assignment.id_asignacion, !assignment.asistio)}
-                        className={`text-xs font-bold px-2 py-1 rounded-md transition-all flex items-center gap-1 ${assignment.asistio
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-white border border-slate-200 text-slate-500'
-                            }`}
-                    >
-                        {assignment.asistio ? '✅ Asistió' : '❌ No Asistió'}
-                    </button>
+                {/* Content */}
+                <div className="mb-4">
+                    <div className="font-bold text-slate-900 text-base mb-1">{getEntrepreneurName(assignment.id_emprendedor)}</div>
+                    <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">{getEntrepreneurCategory(assignment.id_emprendedor)}</div>
+                </div>
+
+                {/* Warning */}
+                {assignment.comentarios && assignment.comentarios !== 'Asignación manual' && !assignment.asistio && (
+                    <div className="mb-4 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 italic flex items-start gap-2">
+                        <AlertTriangle size={16} className="shrink-0" />
+                        <span>"{assignment.comentarios}"</span>
+                    </div>
+                )}
+
+                {/* Footer */}
+                <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+                    {assignment.asistio === null || assignment.asistio === undefined ? (
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => updateAssignmentAttendance(assignment.id_asignacion, true, '')}
+                                className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition-all text-sm flex items-center gap-2 shadow-sm"
+                            >
+                                <CheckCircle size={16} /> Asistió
+                            </button>
+                            <button
+                                onClick={() => handleAttendanceToggle({ ...assignment, asistio: true })}
+                                className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all text-sm flex items-center gap-2 shadow-sm"
+                            >
+                                <XCircle size={16} /> No Asistió
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => handleAttendanceToggle(assignment)}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-sm border ${assignment.asistio
+                                ? 'bg-green-50 text-green-700 border-green-100'
+                                : 'bg-red-50 text-red-700 border-red-100'
+                                }`}
+                        >
+                            {assignment.asistio ? (
+                                <><CheckCircle size={16} /> Asistió</>
+                            ) : (
+                                <><XCircle size={16} /> No Asistió</>
+                            )}
+                        </button>
+                    )}
 
                     <button
                         onClick={() => handleDelete(assignment.id_asignacion)}
-                        className="text-red-400 hover:text-red-600 text-xs font-medium flex items-center gap-1"
+                        className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all"
+                        title="Eliminar"
                     >
-                        🗑️ Eliminar
+                        <Trash2 size={20} />
                     </button>
                 </div>
             </div>
@@ -218,6 +420,13 @@ export default function AssignmentsHistory() {
 
     return (
         <div className="flex flex-col gap-8 animate-fade-in pb-20">
+            <AttendanceModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={confirmAttendanceChange}
+                entrepreneurName={selectedAssignment ? getEntrepreneurName(selectedAssignment.id_emprendedor) : ''}
+            />
+
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-0">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Historial de Asignaciones</h1>
@@ -232,21 +441,49 @@ export default function AssignmentsHistory() {
                         }}
                         className="btn bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 shadow-sm transition-all flex items-center gap-2 px-4 py-2.5 rounded-xl"
                     >
-                        <span>🗑️</span> Borrar Historial
+                        <Trash2 size={18} /> Borrar Historial
                     </button>
                     <button
                         onClick={exportToCSV}
                         className="btn bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 hover:border-primary-200 shadow-sm transition-all flex items-center gap-2 px-4 py-2.5 rounded-xl"
                     >
-                        <span className="text-lg">📥</span> Exportar CSV
+                        <Download size={18} /> Exportar CSV
                     </button>
                 </div>
+            </div>
+
+            {/* Filter Controls */}
+            <div className="flex flex-wrap gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200 w-fit">
+                <button
+                    onClick={() => setFilterStatus('all')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filterStatus === 'all' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
+                >
+                    Todos
+                </button>
+                <button
+                    onClick={() => setFilterStatus('attended')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'attended' ? 'bg-white text-green-700 shadow-sm' : 'text-slate-500 hover:text-green-600 hover:bg-slate-100'}`}
+                >
+                    <CheckCircle size={16} /> Asistieron
+                </button>
+                <button
+                    onClick={() => setFilterStatus('not_attended')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'not_attended' ? 'bg-white text-red-700 shadow-sm' : 'text-slate-500 hover:text-red-600 hover:bg-slate-100'}`}
+                >
+                    <XCircle size={16} /> No Asistieron
+                </button>
+                <button
+                    onClick={() => setFilterStatus('pending')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'pending' ? 'bg-white text-yellow-700 shadow-sm' : 'text-slate-500 hover:text-yellow-600 hover:bg-slate-100'}`}
+                >
+                    <Clock size={16} /> Pendientes
+                </button>
             </div>
 
             {sortedWeeks.length === 0 ? (
                 <div className="text-center py-20 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
                     <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                        <span className="text-4xl opacity-50">📅</span>
+                        <Calendar size={48} className="text-slate-300" />
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 mb-2">No hay historial disponible</h3>
                     <p className="text-slate-500 max-w-md mx-auto">
@@ -283,8 +520,8 @@ export default function AssignmentsHistory() {
                                                 <thead>
                                                     <tr className="bg-white border-b border-slate-100">
                                                         <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-24">Stand</th>
-                                                        <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-1/2">Mañana (09:00 - 13:00)</th>
-                                                        <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-1/2">Tarde (13:00 - 17:00)</th>
+                                                        <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-1/2">Matutina (08:30 - 12:30)</th>
+                                                        <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-1/2">Vespertina (13:00 - 16:30)</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-50">
@@ -345,8 +582,8 @@ export default function AssignmentsHistory() {
                                                                 <MobileAssignmentItem assignment={fullDay} label="Jornada Completa" />
                                                             ) : (
                                                                 <>
-                                                                    <MobileAssignmentItem assignment={morning} label="Mañana" />
-                                                                    <MobileAssignmentItem assignment={afternoon} label="Tarde" />
+                                                                    <MobileAssignmentItem assignment={morning} label="Matutina" />
+                                                                    <MobileAssignmentItem assignment={afternoon} label="Vespertina" />
                                                                 </>
                                                             )}
                                                         </div>

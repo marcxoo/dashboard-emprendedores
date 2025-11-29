@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -29,17 +30,17 @@ export default function Login() {
             <div className="max-w-md w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
                 <div className="p-8">
                     <div className="text-center mb-8">
-                        <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/20">
+                        <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-secondary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/20">
                             <span className="text-3xl font-bold text-white">E</span>
                         </div>
-                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Bienvenido de nuevo</h1>
+                        <h1 className="text-2xl font-bold text-secondary tracking-tight">Bienvenido de nuevo</h1>
                         <p className="text-slate-500 mt-2">Ingresa tus credenciales para acceder</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {error && (
                             <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100 flex items-center gap-2 animate-fade-in">
-                                <span>⚠️</span> {error}
+                                <AlertCircle size={16} /> {error}
                             </div>
                         )}
 
@@ -70,12 +71,12 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className={`w-full py-3.5 px-4 bg-gradient-to-r from-primary-600 to-purple-600 text-white font-bold rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all transform active:scale-[0.98] ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-0.5'
+                            className={`w-full py-3.5 px-4 bg-gradient-to-r from-primary-600 to-secondary text-white font-bold rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all transform active:scale-[0.98] ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-0.5'
                                 }`}
                         >
                             {isLoading ? (
                                 <div className="flex items-center justify-center gap-2">
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    <Loader2 className="animate-spin h-5 w-5" />
                                     <span>Ingresando...</span>
                                 </div>
                             ) : (

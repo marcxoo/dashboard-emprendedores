@@ -2,6 +2,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import EntrepreneurDetail from './EntrepreneurDetail';
 import { getDateRangeFromWeek } from '../utils/dateUtils';
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, Phone, Mail, User, Edit, Sparkles, X, Building2, Tag, ChevronDown, FileText, Save, Plus, MessageCircle } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 export default function EntrepreneursList() {
     const { entrepreneurs, addEntrepreneur, updateEntrepreneur, deleteEntrepreneur } = useData();
@@ -63,8 +65,31 @@ export default function EntrepreneursList() {
     };
 
     const getSortIcon = (key) => {
-        if (sortConfig.key !== key) return '↕';
-        return sortConfig.direction === 'asc' ? '↑' : '↓';
+        if (sortConfig.key !== key) return <ArrowUpDown size={14} />;
+        return sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />;
+    };
+
+    const handleWhatsApp = (phone, e) => {
+        e.stopPropagation();
+        if (!phone) return;
+
+        // Remove non-numeric characters
+        let cleanPhone = phone.replace(/\D/g, '');
+
+        // Add Ecuador country code if missing (assuming 09... format)
+        if (cleanPhone.startsWith('09')) {
+            cleanPhone = '593' + cleanPhone.substring(1);
+        } else if (cleanPhone.startsWith('9')) {
+            cleanPhone = '593' + cleanPhone;
+        }
+
+        window.open(`https://wa.me/${cleanPhone}`, '_blank');
+    };
+
+    const handleEmail = (email, e) => {
+        e.stopPropagation();
+        if (!email) return;
+        window.location.href = `mailto:${email}`;
     };
 
     const [selectedEntrepreneur, setSelectedEntrepreneur] = useState(null);
@@ -88,7 +113,7 @@ export default function EntrepreneursList() {
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-0">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Emprendedores</h1>
+                    <h1 className="text-3xl font-bold text-secondary tracking-tight">Emprendedores</h1>
                     <p className="text-slate-500 mt-2 text-lg">Gestión y listado general ({filteredData.length} registros)</p>
                 </div>
                 <button
@@ -96,92 +121,107 @@ export default function EntrepreneursList() {
                         setEditingEntrepreneur(null);
                         setIsModalOpen(true);
                     }}
-                    className="btn btn-primary px-4 py-2 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all active:scale-95 flex items-center gap-2"
+                    className="btn btn-primary px-5 py-2.5 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all active:scale-95 flex items-center gap-2 rounded-xl font-semibold"
                 >
-                    <span className="text-xl">+</span> Agregar Emprendedor
+                    <Plus size={20} /> Agregar Emprendedor
                 </button>
             </div>
 
-            <div className="card bg-white shadow-xl shadow-slate-200/50 border-0 ring-1 ring-slate-100">
+            <div className="card bg-white shadow-xl shadow-slate-200/50 border-0 ring-1 ring-slate-100 rounded-2xl overflow-hidden">
                 {/* Filters */}
-                <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row gap-4">
-                    <div className="flex-1 min-w-[250px] relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                <div className="p-6 border-b border-slate-100 bg-white flex flex-col md:flex-row gap-4">
+                    <div className="flex-1 min-w-[250px] relative group">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Search size={20} /></span>
                         <input
-                            className="input pl-10 py-2.5 border-slate-200 focus:border-primary-500 focus:ring-primary-500/20 shadow-sm"
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all placeholder:text-slate-400 font-medium"
                             placeholder="Buscar por nombre o contacto..."
                             value={searchTerm}
                             onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                         />
                     </div>
-                    <select
-                        className="input w-auto py-2.5 border-slate-200 focus:border-primary-500 focus:ring-primary-500/20 shadow-sm cursor-pointer"
-                        value={filterCategory}
-                        onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }}
-                    >
-                        <option value="">Todas las Categorías</option>
-                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    <div className="relative min-w-[200px]">
+                        <select
+                            className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium cursor-pointer text-slate-700"
+                            value={filterCategory}
+                            onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }}
+                        >
+                            <option value="">Todas las Categorías</option>
+                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><ChevronDown size={16} /></span>
+                    </div>
                 </div>
 
                 {/* Table (Desktop) */}
-                <div className="hidden md:block table-container">
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-slate-50 border-b border-slate-200">
-                                <th onClick={() => requestSort('id')} className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors group">
-                                    <div className="flex items-center gap-1">ID <span className="text-slate-300 group-hover:text-slate-500">{getSortIcon('id')}</span></div>
+                            <tr className="bg-slate-50/50 border-b border-slate-100">
+                                <th onClick={() => requestSort('id')} className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors group">
+                                    <div className="flex items-center gap-2">ID <span className="text-slate-300 group-hover:text-slate-500 transition-colors">{getSortIcon('id')}</span></div>
                                 </th>
-                                <th onClick={() => requestSort('nombre_emprendimiento')} className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors group">
-                                    <div className="flex items-center gap-1">Emprendimiento <span className="text-slate-300 group-hover:text-slate-500">{getSortIcon('nombre_emprendimiento')}</span></div>
+                                <th onClick={() => requestSort('nombre_emprendimiento')} className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors group">
+                                    <div className="flex items-center gap-2">Emprendimiento <span className="text-slate-300 group-hover:text-slate-500 transition-colors">{getSortIcon('nombre_emprendimiento')}</span></div>
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Contacto</th>
-                                <th onClick={() => requestSort('categoria_principal')} className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors group">
-                                    <div className="flex items-center gap-1">Categoría <span className="text-slate-300 group-hover:text-slate-500">{getSortIcon('categoria_principal')}</span></div>
+                                <th className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Contacto</th>
+                                <th onClick={() => requestSort('categoria_principal')} className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors group">
+                                    <div className="flex items-center gap-2">Categoría <span className="text-slate-300 group-hover:text-slate-500 transition-colors">{getSortIcon('categoria_principal')}</span></div>
                                 </th>
-                                <th onClick={() => requestSort('veces_en_stand')} className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors group">
-                                    <div className="flex items-center justify-center gap-1">Part. <span className="text-slate-300 group-hover:text-slate-500">{getSortIcon('veces_en_stand')}</span></div>
+                                <th onClick={() => requestSort('veces_en_stand')} className="px-8 py-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors group">
+                                    <div className="flex items-center justify-center gap-2">Part. <span className="text-slate-300 group-hover:text-slate-500 transition-colors">{getSortIcon('veces_en_stand')}</span></div>
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Última Part.</th>
+                                <th className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Última Part.</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-50">
                             {paginatedData.map((e, idx) => (
                                 <tr
                                     key={e.id}
-                                    className={`hover:bg-slate-50/80 transition-colors cursor-pointer ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}
+                                    className={`group hover:bg-slate-50 transition-all cursor-pointer ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/20'}`}
                                     onClick={() => setSelectedEntrepreneur(e)}
                                 >
-                                    <td className="px-6 py-4 font-mono text-xs text-slate-400">#{e.id}</td>
-                                    <td className="px-6 py-4">
-                                        <div className="font-bold text-slate-900 text-base">{e.nombre_emprendimiento}</div>
-                                        <div className="text-xs text-slate-500 mt-0.5">{e.actividad_economica}</div>
+                                    <td className="px-8 py-6 font-mono text-xs font-medium text-slate-400 group-hover:text-slate-500">#{e.id}</td>
+                                    <td className="px-8 py-6">
+                                        <div className="font-bold text-slate-800 text-base group-hover:text-primary-700 transition-colors">{e.nombre_emprendimiento}</div>
+                                        <div className="text-xs text-slate-500 mt-1 font-medium">{e.actividad_economica}</div>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="text-sm font-medium text-slate-700">{e.persona_contacto}</div>
-                                        <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
-                                            <span>📞</span> {e.telefono}
+                                    <td className="px-8 py-6">
+                                        <div className="text-sm font-semibold text-slate-700 mb-1.5">{e.persona_contacto}</div>
+                                        <div className="flex flex-col gap-1">
+                                            <button
+                                                onClick={(ev) => handleWhatsApp(e.telefono, ev)}
+                                                className="text-xs text-slate-500 hover:text-green-600 hover:bg-green-50 w-fit px-2 py-1 -ml-2 rounded-md transition-all flex items-center gap-1.5 group/btn"
+                                                title="Enviar WhatsApp"
+                                            >
+                                                <Phone size={12} className="text-slate-400 group-hover/btn:text-green-500" />
+                                                <span className="font-medium">{e.telefono}</span>
+                                            </button>
+                                            {e.correo && (
+                                                <button
+                                                    onClick={(ev) => handleEmail(e.correo, ev)}
+                                                    className="text-xs text-slate-500 hover:text-blue-600 hover:bg-blue-50 w-fit px-2 py-1 -ml-2 rounded-md transition-all flex items-center gap-1.5 group/btn max-w-full"
+                                                    title="Enviar Correo"
+                                                >
+                                                    <Mail size={12} className="text-slate-400 group-hover/btn:text-blue-500 shrink-0" />
+                                                    <span className="truncate font-medium">{e.correo}</span>
+                                                </button>
+                                            )}
                                         </div>
-                                        {e.correo && (
-                                            <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1 overflow-hidden text-ellipsis" title={e.correo}>
-                                                <span>✉️</span> {e.correo}
-                                            </div>
-                                        )}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                    <td className="px-8 py-6">
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 group-hover:border-slate-300 transition-colors">
                                             {e.categoria_principal}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-center">
-                                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 font-bold text-slate-700 text-sm">
+                                    <td className="px-8 py-6 text-center">
+                                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${e.veces_en_stand > 0 ? 'bg-primary-50 text-primary-700' : 'bg-slate-100 text-slate-400'}`}>
                                             {e.veces_en_stand}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-slate-500">
+                                    <td className="px-8 py-6 text-sm">
                                         <div className="flex flex-col">
-                                            <span className="font-medium text-slate-700">{getDateRangeFromWeek(e.ultima_semana_participacion)}</span>
-                                            <span className="text-xs text-slate-400">{e.ultima_semana_participacion || '-'}</span>
+                                            <span className="font-semibold text-slate-700">{getDateRangeFromWeek(e.ultima_semana_participacion)}</span>
+                                            <span className="text-xs text-slate-400 mt-0.5 font-mono">{e.ultima_semana_participacion || '-'}</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -195,44 +235,50 @@ export default function EntrepreneursList() {
                     {paginatedData.map((e) => (
                         <div
                             key={e.id}
-                            className="p-4 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
+                            className="p-5 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
                             onClick={() => setSelectedEntrepreneur(e)}
                         >
-                            <div className="flex justify-between items-start mb-2">
+                            <div className="flex justify-between items-start mb-3">
                                 <div>
-                                    <div className="font-bold text-slate-900 text-lg">{e.nombre_emprendimiento}</div>
-                                    <div className="text-sm text-slate-500">{e.actividad_economica}</div>
+                                    <div className="font-bold text-secondary text-lg">{e.nombre_emprendimiento}</div>
+                                    <div className="text-sm text-slate-500 mt-0.5">{e.actividad_economica}</div>
                                 </div>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
                                     {e.categoria_principal}
                                 </span>
                             </div>
 
-                            <div className="flex flex-col gap-2 mt-3">
-                                <div className="flex items-center gap-2 text-sm text-slate-600">
-                                    <span>👤</span>
-                                    <span className="font-medium">{e.persona_contacto}</span>
+                            <div className="flex flex-col gap-2 mt-4 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                                <div className="flex items-center gap-2 text-sm text-slate-700">
+                                    <User size={14} className="text-slate-400" />
+                                    <span className="font-semibold">{e.persona_contacto}</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-slate-600">
-                                    <span>📞</span>
-                                    <span>{e.telefono}</span>
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={(ev) => handleWhatsApp(e.telefono, ev)}
+                                        className="w-full flex items-center justify-center gap-2 text-xs font-medium bg-white border border-slate-200 py-2.5 rounded-lg text-slate-600 active:scale-95 transition-all"
+                                    >
+                                        <MessageCircle size={14} className="text-green-500" /> {e.telefono}
+                                    </button>
+                                    {e.correo && (
+                                        <button
+                                            onClick={(ev) => handleEmail(e.correo, ev)}
+                                            className="w-full flex items-center justify-center gap-2 text-xs font-medium bg-white border border-slate-200 py-2.5 rounded-lg text-slate-600 active:scale-95 transition-all"
+                                        >
+                                            <Mail size={14} className="text-blue-500" /> <span className="break-all">{e.correo}</span>
+                                        </button>
+                                    )}
                                 </div>
-                                {e.correo && (
-                                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                                        <span>✉️</span>
-                                        <span className="truncate">{e.correo}</span>
-                                    </div>
-                                )}
                             </div>
 
                             <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-50">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs text-slate-400">Participaciones:</span>
-                                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 font-bold text-slate-700 text-xs">
+                                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Participaciones</span>
+                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full font-bold text-xs ${e.veces_en_stand > 0 ? 'bg-primary-50 text-primary-700' : 'bg-slate-100 text-slate-400'}`}>
                                         {e.veces_en_stand}
                                     </span>
                                 </div>
-                                <div className="text-xs text-slate-400">
+                                <div className="text-xs text-slate-400 font-mono">
                                     Última: {e.ultima_semana_participacion || '-'}
                                 </div>
                             </div>
@@ -241,23 +287,23 @@ export default function EntrepreneursList() {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex justify-between items-center p-6 border-t border-slate-100 bg-slate-50/50">
+                <div className="flex justify-between items-center p-6 border-t border-slate-100 bg-white">
                     <div className="text-sm text-slate-500 font-medium">
-                        Mostrando <span className="font-bold text-slate-900">{((currentPage - 1) * itemsPerPage) + 1}</span> a <span className="font-bold text-slate-900">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> de <span className="font-bold text-slate-900">{filteredData.length}</span> resultados
+                        Mostrando <span className="font-bold text-secondary">{((currentPage - 1) * itemsPerPage) + 1}</span> a <span className="font-bold text-secondary">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> de <span className="font-bold text-secondary">{filteredData.length}</span> resultados
                     </div>
                     <div className="flex gap-2">
                         <button
-                            className="btn btn-outline py-2 px-4 text-sm hover:bg-white hover:border-slate-300 shadow-sm disabled:opacity-50 disabled:shadow-none"
+                            className="btn btn-outline py-2 px-4 text-sm hover:bg-slate-50 hover:border-slate-300 shadow-sm disabled:opacity-50 disabled:shadow-none rounded-lg transition-all"
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
                         >
                             ← Anterior
                         </button>
-                        <div className="flex items-center px-4 font-bold text-slate-700 bg-white rounded-md border border-slate-200 shadow-sm">
+                        <div className="flex items-center px-4 font-bold text-slate-700 bg-slate-50 rounded-lg border border-slate-200">
                             {currentPage} / {totalPages}
                         </div>
                         <button
-                            className="btn btn-outline py-2 px-4 text-sm hover:bg-white hover:border-slate-300 shadow-sm disabled:opacity-50 disabled:shadow-none"
+                            className="btn btn-outline py-2 px-4 text-sm hover:bg-slate-50 hover:border-slate-300 shadow-sm disabled:opacity-50 disabled:shadow-none rounded-lg transition-all"
                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
                         >
@@ -283,8 +329,6 @@ export default function EntrepreneursList() {
         </div>
     );
 }
-
-import { createPortal } from 'react-dom';
 
 function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData }) {
     const [formData, setFormData] = useState({
@@ -351,7 +395,7 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                 <div className="flex-none bg-gradient-to-r from-primary-600 to-primary-800 px-6 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner border border-white/30">
-                            {initialData ? <span className="text-xl">✏️</span> : <span className="text-xl">✨</span>}
+                            {initialData ? <Edit size={20} /> : <Sparkles size={20} />}
                         </div>
                         <div>
                             <h3 className="text-xl font-bold text-white tracking-tight">
@@ -366,7 +410,7 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                         onClick={onClose}
                         className="text-white/70 hover:text-white hover:bg-white/20 w-8 h-8 rounded-full transition-all flex items-center justify-center backdrop-blur-sm"
                     >
-                        ✕
+                        <X size={20} />
                     </button>
                 </div>
 
@@ -379,7 +423,7 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                                     Nombre del Emprendimiento <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative group">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">🏢</span>
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Building2 size={18} /></span>
                                     <input
                                         className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
                                         value={formData.nombre_emprendimiento}
@@ -395,7 +439,7 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                                     Persona de Contacto <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative group">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">👤</span>
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><User size={18} /></span>
                                     <input
                                         className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
                                         value={formData.persona_contacto}
@@ -411,7 +455,7 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                                     Categoría <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative group">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">🏷️</span>
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Tag size={18} /></span>
                                     <select
                                         className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm appearance-none"
                                         value={isCustomCategory ? 'NEW' : formData.categoria_principal}
@@ -431,7 +475,7 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                                         {categories.map(c => <option key={c} value={c}>{c}</option>)}
                                         <option value="NEW">➕ NUEVA CATEGORÍA...</option>
                                     </select>
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">▼</span>
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><ChevronDown size={16} /></span>
                                 </div>
 
                                 {/* Custom Category Input */}
@@ -451,7 +495,7 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-2">Teléfono</label>
                                 <div className="relative group">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">📞</span>
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Phone size={18} /></span>
                                     <input
                                         className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
                                         value={formData.telefono}
@@ -464,7 +508,7 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-2">Email</label>
                                 <div className="relative group">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">✉️</span>
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Mail size={18} /></span>
                                     <input
                                         className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
                                         type="email"
@@ -478,7 +522,7 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                             <div className="col-span-1 md:col-span-2">
                                 <label className="block text-sm font-bold text-slate-700 mb-2">Actividad Económica / Detalles</label>
                                 <div className="relative group">
-                                    <span className="absolute left-3 top-3 text-slate-400 group-focus-within:text-primary-500 transition-colors">📝</span>
+                                    <span className="absolute left-3 top-3 text-slate-400 group-focus-within:text-primary-500 transition-colors"><FileText size={18} /></span>
                                     <textarea
                                         className="input w-full min-h-[100px] pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
                                         value={formData.actividad_economica}
@@ -505,7 +549,7 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                         form="entrepreneur-form"
                         className="px-8 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold shadow-lg shadow-primary-600/30 hover:shadow-primary-600/50 hover:scale-[1.02] transition-all active:scale-95 flex items-center gap-2"
                     >
-                        <span>{initialData ? '💾 Guardar Cambios' : '✨ Crear Emprendedor'}</span>
+                        {initialData ? <><Save size={20} /> Guardar Cambios</> : <><Sparkles size={20} /> Crear Emprendedor</>}
                     </button>
                 </div>
             </div>

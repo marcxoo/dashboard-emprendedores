@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-
 import { createPortal } from 'react-dom';
+import { X, User, Phone, Trash2, Edit } from 'lucide-react';
 
 export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDelete }) {
     const [isVisible, setIsVisible] = useState(false);
@@ -41,7 +41,7 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                     {/* Header */}
                     <div className="p-6 bg-slate-50 border-b border-slate-100 flex justify-between items-start">
                         <div>
-                            <h2 className="text-2xl font-bold text-slate-900">{entrepreneur.nombre_emprendimiento}</h2>
+                            <h2 className="text-2xl font-bold text-secondary">{entrepreneur.nombre_emprendimiento}</h2>
                             <span className="inline-block mt-2 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium border border-primary-100">
                                 {entrepreneur.categoria_principal}
                             </span>
@@ -50,7 +50,7 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                             onClick={handleClose}
                             className="p-2 hover:bg-slate-200 rounded-full transition-colors"
                         >
-                            ✕
+                            <X size={24} />
                         </button>
                     </div>
 
@@ -61,17 +61,17 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                             <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Información de Contacto</h3>
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">👤</div>
+                                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500"><User size={18} /></div>
                                     <div>
                                         <div className="text-sm text-slate-500">Persona de Contacto</div>
-                                        <div className="font-medium text-slate-900">{entrepreneur.persona_contacto}</div>
+                                        <div className="font-medium text-secondary">{entrepreneur.persona_contacto}</div>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">📞</div>
+                                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500"><Phone size={18} /></div>
                                     <div>
                                         <div className="text-sm text-slate-500">Teléfono</div>
-                                        <div className="font-medium text-slate-900">{entrepreneur.telefono}</div>
+                                        <div className="font-medium text-secondary">{entrepreneur.telefono}</div>
                                     </div>
                                 </div>
 
@@ -84,7 +84,7 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                                 <div className="mb-4">
                                     <div className="text-sm text-slate-500 mb-1">Actividad Económica</div>
-                                    <div className="font-medium text-slate-900">{entrepreneur.actividad_economica}</div>
+                                    <div className="font-medium text-secondary">{entrepreneur.actividad_economica}</div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
@@ -106,7 +106,7 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                             <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Estado y Participación</h3>
                             <div className="flex gap-4">
                                 <div className="flex-1 p-4 bg-white border border-slate-200 rounded-xl shadow-sm text-center">
-                                    <div className="text-3xl font-bold text-slate-900 mb-1">{entrepreneur.veces_en_stand}</div>
+                                    <div className="text-3xl font-bold text-secondary mb-1">{entrepreneur.veces_en_stand}</div>
                                     <div className="text-xs text-slate-500 font-medium">Participaciones</div>
                                 </div>
 
@@ -117,19 +117,19 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                     {/* Footer Actions */}
                     <div className="p-6 border-t border-slate-100 bg-slate-50 flex flex-col gap-3">
                         <button
-                            className="btn w-full btn-primary py-3 shadow-lg shadow-primary-500/20"
+                            className="btn w-full btn-primary py-3 shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2"
                             onClick={() => {
                                 handleClose();
                                 if (onEdit) onEdit(entrepreneur);
                             }}
                         >
-                            Editar Información
+                            <Edit size={18} /> Editar Información
                         </button>
                         <button
-                            className="btn w-full bg-white border border-red-200 text-red-600 hover:bg-red-50 py-3 transition-colors"
+                            className="btn w-full bg-white border border-red-200 text-red-600 hover:bg-red-50 py-3 transition-colors flex items-center justify-center gap-2"
                             onClick={handleDelete}
                         >
-                            Eliminar Emprendedor
+                            <Trash2 size={18} /> Eliminar Emprendedor
                         </button>
                     </div>
                 </div>
