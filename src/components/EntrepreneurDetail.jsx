@@ -105,6 +105,12 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                             <span className="inline-block mt-2 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium border border-primary-100">
                                 {entrepreneur.categoria_principal}
                             </span>
+                            <span className={`inline-block mt-2 ml-2 px-3 py-1 rounded-full text-sm font-medium border ${entrepreneur.semaforizacion === 'Estudiante / Graduado UNEMI'
+                                ? 'bg-blue-50 text-blue-700 border-blue-100'
+                                : 'bg-slate-100 text-slate-600 border-slate-200'
+                                }`}>
+                                {entrepreneur.semaforizacion || 'Externo'}
+                            </span>
                         </div>
                         <button
                             onClick={handleClose}

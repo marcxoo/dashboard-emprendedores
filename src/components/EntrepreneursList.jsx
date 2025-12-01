@@ -335,7 +335,8 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
         ciudad: '',
         categoria_principal: '',
         actividad_economica: '',
-        red_social: ''
+        red_social: '',
+        tipo_emprendedor: 'Externo'
     });
     const [isCustomCategory, setIsCustomCategory] = useState(false);
 
@@ -349,7 +350,8 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                 ciudad: initialData.ciudad || '',
                 categoria_principal: initialData.categoria_principal || '',
                 actividad_economica: initialData.actividad_economica || '',
-                red_social: initialData.red_social || ''
+                red_social: initialData.red_social || '',
+                tipo_emprendedor: initialData.semaforizacion || 'Externo'
             });
             setIsCustomCategory(!categories.includes(initialData.categoria_principal) && initialData.categoria_principal !== '');
         } else {
@@ -361,7 +363,8 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                 ciudad: '',
                 categoria_principal: '',
                 actividad_economica: '',
-                red_social: ''
+                red_social: '',
+                tipo_emprendedor: 'Externo'
             });
             setIsCustomCategory(false);
         }
@@ -492,6 +495,25 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                                         />
                                     </div>
                                 )}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">
+                                    Tipo de Emprendedor <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative group">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><User size={18} /></span>
+                                    <select
+                                        className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm appearance-none"
+                                        value={formData.tipo_emprendedor}
+                                        onChange={e => setFormData({ ...formData, tipo_emprendedor: e.target.value })}
+                                        required
+                                    >
+                                        <option value="Externo">Emprendedor Externo</option>
+                                        <option value="Estudiante / Graduado UNEMI">Estudiante / Graduado UNEMI</option>
+                                    </select>
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><ChevronDown size={16} /></span>
+                                </div>
                             </div>
 
                             <div>

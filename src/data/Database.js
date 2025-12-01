@@ -426,7 +426,7 @@ export class Database {
       red_social: data.red_social || '',
       subcategoria_interna: data.categoria_principal,
       categoria_principal: data.categoria_principal,
-      semaforizacion: null,
+      semaforizacion: data.tipo_emprendedor || 'Externo',
       veces_en_stand: 0,
       ultima_semana_participacion: null,
       notas: ''
@@ -459,7 +459,8 @@ export class Database {
         actividad_economica: data.actividad_economica,
         ciudad: data.ciudad,
         red_social: data.red_social,
-        subcategoria_interna: data.categoria_principal
+        subcategoria_interna: data.categoria_principal,
+        semaforizacion: data.tipo_emprendedor
       };
 
       this.emprendedores[index] = { ...this.emprendedores[index], ...updates };

@@ -58,7 +58,7 @@ const AttendanceModal = ({ isOpen, onClose, onConfirm, entrepreneurName }) => {
 };
 
 export default function AssignmentsHistory() {
-    const { assignments, entrepreneurs, deleteAssignment, updateAssignmentAttendance, clearAllData, isLoaded } = useData();
+    const { assignments, entrepreneurs, deleteAssignment, updateAssignmentAttendance, clearAllData, isLoaded, updateEntrepreneur } = useData();
     const [groupedHistory, setGroupedHistory] = useState({});
     const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'attended', 'not_attended', 'pending'
 
@@ -284,6 +284,35 @@ export default function AssignmentsHistory() {
                                 Vespertina
                             </span>
                         )}
+
+                        {/* Interactive Entrepreneur Type Tag */}
+                        {(() => {
+                            const emp = entrepreneurs.find(e => e.id === assignment.id_emprendedor);
+                            if (!emp) return null;
+                            const type = emp.semaforizacion || 'Externo';
+                            const isStudent = type === 'Estudiante / Graduado UNEMI';
+
+                            return (
+                                <div className="relative inline-block group/tag">
+                                    <select
+                                        value={type}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onChange={(e) => {
+                                            e.stopPropagation();
+                                            updateEntrepreneur(emp.id, { ...emp, tipo_emprendedor: e.target.value });
+                                        }}
+                                        className={`appearance-none cursor-pointer inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border outline-none transition-all ${isStudent
+                                            ? 'bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100'
+                                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                                            }`}
+                                        style={{ textAlignLast: 'center' }}
+                                    >
+                                        <option value="Externo">EXTERNO</option>
+                                        <option value="Estudiante / Graduado UNEMI">ESTUDIANTE / GRADUADO</option>
+                                    </select>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     <button
@@ -368,13 +397,38 @@ export default function AssignmentsHistory() {
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-col gap-1">
                         <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">{label}</span>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${assignment.estado === 'Confirmado' ? 'bg-green-50 text-green-700 border-green-100' :
                                 assignment.estado === 'Pendiente' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
                                     'bg-red-50 text-red-700 border-red-100'
                                 } `}>
                                 {assignment.estado}
                             </span>
+
+                            {(() => {
+                                const emp = entrepreneurs.find(e => e.id === assignment.id_emprendedor);
+                                if (!emp) return null;
+                                const type = emp.semaforizacion || 'Externo';
+                                const isStudent = type === 'Estudiante / Graduado UNEMI';
+
+                                return (
+                                    <select
+                                        value={type}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onChange={(e) => {
+                                            e.stopPropagation();
+                                            updateEntrepreneur(emp.id, { ...emp, tipo_emprendedor: e.target.value });
+                                        }}
+                                        className={`appearance-none cursor-pointer inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border outline-none transition-all ${isStudent
+                                            ? 'bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100'
+                                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                                            }`}
+                                    >
+                                        <option value="Externo">EXTERNO</option>
+                                        <option value="Estudiante / Graduado UNEMI">ESTUDIANTE / GRADUADO</option>
+                                    </select>
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>
