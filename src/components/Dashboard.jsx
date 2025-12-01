@@ -121,6 +121,57 @@ export default function Dashboard() {
         return 'cat-libre';
     };
 
+    const formatDateRange = (weekString, block) => {
+        if (!weekString || !block) return '';
+        try {
+            // Support both new 'S' and old 'W' formats
+            const parts = weekString.split(/-[SW]/);
+            if (parts.length !== 2) return '';
+            const [yearStr, weekStr] = parts;
+            const year = parseInt(yearStr);
+            const week = parseInt(weekStr);
+            if (isNaN(year) || isNaN(week)) return '';
+
+            // Calculate Monday of the ISO week
+            const simple = new Date(year, 0, 1 + (week - 1) * 7);
+            const dow = simple.getDay();
+            const isoWeekStart = simple;
+            if (dow <= 4)
+                isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
+            else
+                isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
+
+            let startDate = new Date(isoWeekStart);
+            let endDate = null;
+
+            if (block === 'lunes-martes') {
+                endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 1);
+            } else if (block === 'miercoles-jueves') {
+                startDate.setDate(startDate.getDate() + 2);
+                endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 1);
+            } else if (block === 'viernes') {
+                startDate.setDate(startDate.getDate() + 4);
+            }
+
+            const options = { day: 'numeric', month: 'long' };
+            const startStr = startDate.toLocaleDateString('es-ES', options);
+
+            if (endDate) {
+                const endStr = endDate.toLocaleDateString('es-ES', options);
+                // Check if same month to shorten? e.g. 1 al 2 de diciembre
+                return `${startStr} al ${endStr}`;
+            }
+            return startStr;
+        } catch (e) { return ''; }
+    };
+
+    const formatBlockName = (block) => {
+        if (!block) return '';
+        return block.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' - ');
+    };
+
     return (
         <div className="flex flex-col gap-8 animate-fade-in">
             {/* Header & Controls */}
@@ -223,10 +274,17 @@ export default function Dashboard() {
 
             {/* Stands Grid */}
             <div>
-                <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <span className="w-2 h-8 bg-primary-500 rounded-full"></span>
-                    Distribución de Stands
-                </h2>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <span className="w-2 h-8 bg-primary-500 rounded-full"></span>
+                        Distribución de Stands
+                    </h2>
+                    <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3">
+                        <span className="font-bold text-slate-700 text-lg">{formatBlockName(currentBlock)}</span>
+                        <div className="h-4 w-px bg-slate-200"></div>
+                        <span className="text-slate-500 font-medium">{formatDateRange(currentWeek, currentBlock)}</span>
+                    </div>
+                </div>
                 <div className="grid gap-6 grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(340px,1fr))]">
                     {STANDS.map((stand, index) => {
                         const standAssignments = assignments.filter(a =>

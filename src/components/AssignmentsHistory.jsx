@@ -1,6 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import EntrepreneurDetail from './EntrepreneurDetail';
+import { getDateRangeFromWeek, sortWeeksDesc } from '../utils/dateUtils';
 import { useData } from '../context/DataContext';
 import { STANDS } from '../data/Database';
 import { Trash2, Download, CheckCircle, XCircle, Clock, Calendar, AlertTriangle, FileText, X, Sparkles } from 'lucide-react';
@@ -63,6 +65,7 @@ export default function AssignmentsHistory() {
     // State for Attendance Modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedAssignment, setSelectedAssignment] = useState(null);
+    const [viewingEntrepreneur, setViewingEntrepreneur] = useState(null);
 
     if (!isLoaded) {
         return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
@@ -118,20 +121,24 @@ export default function AssignmentsHistory() {
     const formatDateRange = (weekString, block) => {
         if (!weekString || !block) return '';
         try {
-            const parts = weekString.split('-W');
+            // Support both new 'S' and old 'W' formats
+            const parts = weekString.split(/-[SW]/);
             if (parts.length !== 2) return '';
             const [yearStr, weekStr] = parts;
             const year = parseInt(yearStr);
             const week = parseInt(weekStr);
             if (isNaN(year) || isNaN(week)) return '';
 
-            const jan4 = new Date(year, 0, 4);
-            const dayOfJan4 = jan4.getDay() || 7;
-            const mondayWeek1 = new Date(year, 0, 4 - dayOfJan4 + 1);
-            const mondayCurrentWeek = new Date(mondayWeek1);
-            mondayCurrentWeek.setDate(mondayWeek1.getDate() + (week - 1) * 7);
+            // Calculate Monday of the ISO week
+            const simple = new Date(year, 0, 1 + (week - 1) * 7);
+            const dow = simple.getDay();
+            const isoWeekStart = simple;
+            if (dow <= 4)
+                isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
+            else
+                isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
 
-            let startDate = new Date(mondayCurrentWeek);
+            let startDate = new Date(isoWeekStart);
             let endDate = null;
 
             if (block === 'lunes-martes') {
@@ -195,6 +202,13 @@ export default function AssignmentsHistory() {
         }
     };
 
+    const handleCardClick = (entrepreneurId) => {
+        const emp = entrepreneurs.find(e => e.id === entrepreneurId);
+        if (emp) {
+            setViewingEntrepreneur(emp);
+        }
+    };
+
     const exportToCSV = () => {
         const rows = assignments.map(record => {
             const stand = STANDS.find(s => s.id === record.id_stand);
@@ -223,8 +237,8 @@ export default function AssignmentsHistory() {
         document.body.removeChild(link);
     };
 
-    // Sort weeks descending
-    const sortedWeeks = Object.keys(groupedHistory).sort().reverse();
+    // Sort weeks descending using robust comparator
+    const sortedWeeks = sortWeeksDesc(Object.keys(groupedHistory));
 
     // Block order
     const blockOrder = ['lunes-martes', 'miercoles-jueves', 'viernes'];
@@ -241,7 +255,10 @@ export default function AssignmentsHistory() {
         }
 
         return (
-            <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 relative group h-full flex flex-col min-h-[140px]">
+            <div
+                onClick={() => handleCardClick(assignment.id_emprendedor)}
+                className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 relative group h-full flex flex-col min-h-[140px] cursor-pointer hover:border-primary-200"
+            >
                 {/* Header: Status & Delete */}
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-wrap gap-1.5">
@@ -270,7 +287,7 @@ export default function AssignmentsHistory() {
                     </div>
 
                     <button
-                        onClick={() => handleDelete(assignment.id_asignacion)}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(assignment.id_asignacion); }}
                         className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1 rounded-md transition-all opacity-0 group-hover:opacity-100"
                         title="Eliminar asignación"
                     >
@@ -303,7 +320,7 @@ export default function AssignmentsHistory() {
                     {assignment.asistio === null || assignment.asistio === undefined ? (
                         <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-100">
                             <button
-                                onClick={() => updateAssignmentAttendance(assignment.id_asignacion, true, '')}
+                                onClick={(e) => { e.stopPropagation(); updateAssignmentAttendance(assignment.id_asignacion, true, ''); }}
                                 className="w-8 h-8 flex items-center justify-center rounded-md bg-white text-slate-400 hover:text-green-600 hover:bg-green-50 hover:border-green-200 border border-transparent transition-all shadow-sm"
                                 title="Marcar como Asistió"
                             >
@@ -311,7 +328,7 @@ export default function AssignmentsHistory() {
                             </button>
                             <div className="w-px h-4 bg-slate-200"></div>
                             <button
-                                onClick={() => handleAttendanceToggle({ ...assignment, asistio: true })}
+                                onClick={(e) => { e.stopPropagation(); handleAttendanceToggle({ ...assignment, asistio: true }); }}
                                 className="w-8 h-8 flex items-center justify-center rounded-md bg-white text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 border border-transparent transition-all shadow-sm"
                                 title="Marcar como No Asistió"
                             >
@@ -320,7 +337,7 @@ export default function AssignmentsHistory() {
                         </div>
                     ) : (
                         <button
-                            onClick={() => handleAttendanceToggle(assignment)}
+                            onClick={(e) => { e.stopPropagation(); handleAttendanceToggle(assignment); }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border ${assignment.asistio
                                 ? 'bg-green-50 text-green-700 border-green-100 hover:bg-green-100'
                                 : 'bg-red-50 text-red-700 border-red-100 hover:bg-red-100'
@@ -343,7 +360,10 @@ export default function AssignmentsHistory() {
         if (!assignment) return null;
 
         return (
-            <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+            <div
+                onClick={() => handleCardClick(assignment.id_emprendedor)}
+                className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm active:scale-[0.99] transition-transform"
+            >
                 {/* Header */}
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-col gap-1">
@@ -378,13 +398,13 @@ export default function AssignmentsHistory() {
                     {assignment.asistio === null || assignment.asistio === undefined ? (
                         <div className="flex gap-2">
                             <button
-                                onClick={() => updateAssignmentAttendance(assignment.id_asignacion, true, '')}
+                                onClick={(e) => { e.stopPropagation(); updateAssignmentAttendance(assignment.id_asignacion, true, ''); }}
                                 className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition-all text-sm flex items-center gap-2 shadow-sm"
                             >
                                 <CheckCircle size={16} /> Asistió
                             </button>
                             <button
-                                onClick={() => handleAttendanceToggle({ ...assignment, asistio: true })}
+                                onClick={(e) => { e.stopPropagation(); handleAttendanceToggle({ ...assignment, asistio: true }); }}
                                 className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all text-sm flex items-center gap-2 shadow-sm"
                             >
                                 <XCircle size={16} /> No Asistió
@@ -392,7 +412,7 @@ export default function AssignmentsHistory() {
                         </div>
                     ) : (
                         <button
-                            onClick={() => handleAttendanceToggle(assignment)}
+                            onClick={(e) => { e.stopPropagation(); handleAttendanceToggle(assignment); }}
                             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-sm border ${assignment.asistio
                                 ? 'bg-green-50 text-green-700 border-green-100'
                                 : 'bg-red-50 text-red-700 border-red-100'
@@ -407,7 +427,7 @@ export default function AssignmentsHistory() {
                     )}
 
                     <button
-                        onClick={() => handleDelete(assignment.id_asignacion)}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(assignment.id_asignacion); }}
                         className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all"
                         title="Eliminar"
                     >
@@ -425,6 +445,11 @@ export default function AssignmentsHistory() {
                 onClose={() => setIsModalOpen(false)}
                 onConfirm={confirmAttendanceChange}
                 entrepreneurName={selectedAssignment ? getEntrepreneurName(selectedAssignment.id_emprendedor) : ''}
+            />
+
+            <EntrepreneurDetail
+                entrepreneur={viewingEntrepreneur}
+                onClose={() => setViewingEntrepreneur(null)}
             />
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-0">

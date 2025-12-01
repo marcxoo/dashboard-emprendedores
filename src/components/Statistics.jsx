@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { Plus, Trash2, Search, DollarSign, Calendar, Filter } from 'lucide-react';
+import { sortWeeksDesc } from '../utils/dateUtils';
 
 export default function Statistics() {
     const { entrepreneurs, earnings, addEarning, deleteEarning, getAssignmentsByWeek } = useData();
@@ -12,7 +13,10 @@ export default function Statistics() {
     const [formData, setFormData] = useState({
         entrepreneur_id: '',
         amount: '',
-        date: new Date().toISOString().split('T')[0],
+        date: (() => {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        })(),
         notes: ''
     });
 
@@ -52,7 +56,10 @@ export default function Statistics() {
         setFormData({
             entrepreneur_id: '',
             amount: '',
-            date: new Date().toISOString().split('T')[0],
+            date: (() => {
+                const now = new Date();
+                return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            })(),
             notes: ''
         });
     };
@@ -72,7 +79,7 @@ export default function Statistics() {
     }, [filteredEarnings]);
 
     const uniqueWeeks = useMemo(() => {
-        return [...new Set(earnings.map(e => e.week))].sort().reverse();
+        return sortWeeksDesc([...new Set(earnings.map(e => e.week))]);
     }, [earnings]);
 
     return (
@@ -188,7 +195,55 @@ export default function Statistics() {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                {/* Mobile Card View */}
+                <div className="block md:hidden divide-y divide-slate-100">
+                    {filteredEarnings.length > 0 ? (
+                        filteredEarnings.map((e) => {
+                            const emp = entrepreneurs.find(emp => emp.id === e.entrepreneur_id);
+                            return (
+                                <div key={e.id} className="p-4 hover:bg-slate-50 transition-colors">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-secondary text-lg">{emp?.nombre_emprendimiento || 'Desconocido'}</div>
+                                            <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
+                                                <Calendar size={14} />
+                                                {e.date}
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="font-bold text-green-600 text-lg">${e.amount.toFixed(2)}</div>
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mt-1">
+                                                {e.week}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {e.notes && (
+                                        <div className="text-sm text-slate-500 bg-slate-50 p-2 rounded-lg mb-3">
+                                            {e.notes}
+                                        </div>
+                                    )}
+                                    <div className="flex justify-end pt-2 border-t border-slate-100">
+                                        <button
+                                            onClick={() => {
+                                                if (window.confirm('¿Eliminar este registro?')) deleteEarning(e.id);
+                                            }}
+                                            className="flex items-center gap-1 text-sm text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-all"
+                                        >
+                                            <Trash2 size={16} /> Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <div className="p-8 text-center text-slate-400">
+                            No se encontraron registros
+                        </div>
+                    )}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full">
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-slate-100">
@@ -257,7 +312,7 @@ export default function Statistics() {
 function getWeekNumberString(d) {
     const week = getWeekNumber(d);
     const year = d.getFullYear();
-    return `${year}-W${week.toString().padStart(2, '0')}`;
+    return `${year}-S${week.toString().padStart(2, '0')}`;
 }
 
 function getWeekNumber(d) {

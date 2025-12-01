@@ -1,8 +1,8 @@
 export function getDateRangeFromWeek(weekString) {
     if (!weekString) return '-';
 
-    // Format expected: YYYY-Wnn
-    const parts = weekString.split('-W');
+    // Format expected: YYYY-Wnn or YYYY-Snn
+    const parts = weekString.split(/-[WS]/);
     if (parts.length !== 2) return weekString;
 
     const year = parseInt(parts[0], 10);
@@ -28,7 +28,7 @@ export function getDateRangeFromWeek(weekString) {
 export function getWeekNumberString(d) {
     const week = getWeekNumber(d);
     const year = d.getFullYear();
-    return `${year}-W${week.toString().padStart(2, '0')}`;
+    return `${year}-S${week.toString().padStart(2, '0')}`;
 }
 
 export function getWeekNumber(d) {
@@ -37,4 +37,25 @@ export function getWeekNumber(d) {
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     return weekNo;
+}
+
+export function compareWeeks(w1, w2) {
+    if (!w1 || !w2) return 0;
+    // Normalize to S format for comparison if needed, or just parse year/week
+    // Format: YYYY-[SW]XX
+    const parseWeek = (w) => {
+        const parts = w.split(/-[SW]/);
+        if (parts.length !== 2) return { year: 0, week: 0 };
+        return { year: parseInt(parts[0]), week: parseInt(parts[1]) };
+    };
+
+    const p1 = parseWeek(w1);
+    const p2 = parseWeek(w2);
+
+    if (p1.year !== p2.year) return p1.year - p2.year;
+    return p1.week - p2.week;
+}
+
+export function sortWeeksDesc(weeks) {
+    return [...weeks].sort((a, b) => compareWeeks(b, a));
 }

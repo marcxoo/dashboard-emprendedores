@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { compareWeeks } from '../utils/dateUtils';
 
 export const STANDS = [
   { id: 1, name: "Stand 1", category: "Libre / Mixto" },
@@ -236,6 +237,76 @@ export class Database {
     }
   }
 
+  async saveAssignmentsBatch(assignments) {
+    if (!assignments || assignments.length === 0) return;
+
+    // 1. Optimistic update for assignments
+    this.asignaciones.push(...assignments);
+
+    // 2. Bulk insert assignments
+    const { error } = await supabase
+      .from('assignments')
+      .insert(assignments);
+
+    if (error) {
+      console.error('Error saving assignments batch:', error);
+      // In a real app we might want to revert optimistic updates here
+    }
+
+    // 3. Update entrepreneur stats (Optimistic + DB)
+    // We need to aggregate updates per entrepreneur to avoid race conditions or multiple writes
+    const entrepreneurUpdates = new Map();
+
+    for (const assignment of assignments) {
+      const empId = assignment.id_emprendedor;
+      if (!entrepreneurUpdates.has(empId)) {
+        const emp = this.emprendedores.find(e => e.id === empId);
+        if (emp) {
+          entrepreneurUpdates.set(empId, {
+            original: emp,
+            countIncrease: 0,
+            lastWeek: assignment.semana // Assume the batch is for the same week or later
+          });
+        }
+      }
+
+      const update = entrepreneurUpdates.get(empId);
+      if (update) {
+        update.countIncrease += 1;
+        // If batch has mixed weeks, ensure we take the latest (lexicographically for YYYY-SXX works)
+        if (compareWeeks(assignment.semana, update.lastWeek) > 0) {
+          update.lastWeek = assignment.semana;
+        }
+      }
+    }
+
+    // Apply updates
+    const updatePromises = [];
+    for (const [empId, update] of entrepreneurUpdates) {
+      const empIndex = this.emprendedores.findIndex(e => e.id === empId);
+      if (empIndex >= 0) {
+        const newCount = (this.emprendedores[empIndex].veces_en_stand || 0) + update.countIncrease;
+
+        // Optimistic
+        this.emprendedores[empIndex].veces_en_stand = newCount;
+        this.emprendedores[empIndex].ultima_semana_participacion = update.lastWeek;
+
+        // DB Update
+        updatePromises.push(
+          supabase
+            .from('entrepreneurs')
+            .update({
+              veces_en_stand: newCount,
+              ultima_semana_participacion: update.lastWeek
+            })
+            .eq('id', empId)
+        );
+      }
+    }
+
+    await Promise.all(updatePromises);
+  }
+
   async setManualAssignment(assignment) {
     // 1. Remove conflicting assignments
     const conflicting = this.asignaciones.filter(a =>
@@ -350,8 +421,9 @@ export class Database {
       persona_contacto: data.persona_contacto,
       telefono: data.telefono,
       correo: data.correo,
-      ciudad: null,
+      ciudad: data.ciudad || '',
       actividad_economica: data.actividad_economica || '',
+      red_social: data.red_social || '',
       subcategoria_interna: data.categoria_principal,
       categoria_principal: data.categoria_principal,
       semaforizacion: null,
@@ -385,6 +457,8 @@ export class Database {
         correo: data.correo,
         categoria_principal: data.categoria_principal,
         actividad_economica: data.actividad_economica,
+        ciudad: data.ciudad,
+        red_social: data.red_social,
         subcategoria_interna: data.categoria_principal
       };
 

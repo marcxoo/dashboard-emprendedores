@@ -13,7 +13,11 @@ export function DataProvider({ children }) {
     const [assignments, setAssignments] = useState([]);
 
     // Date State
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    // Date State
+    const [selectedDate, setSelectedDate] = useState(() => {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    });
     const [currentWeek, setCurrentWeek] = useState(getCurrentWeek());
     const [currentBlock, setCurrentBlock] = useState('lunes-martes');
 
@@ -37,7 +41,7 @@ export function DataProvider({ children }) {
         const date = new Date(year, month - 1, day);
 
         const week = getWeekNumber(date);
-        const weekString = `${year}-W${week.toString().padStart(2, '0')}`;
+        const weekString = `${year}-S${week.toString().padStart(2, '0')}`;
 
         setCurrentWeek(weekString);
 
@@ -60,9 +64,7 @@ export function DataProvider({ children }) {
 
     const generateAssignments = async (week) => {
         const newAssignments = generarAsignacionParaSemana(week, db);
-        for (const a of newAssignments) {
-            await db.saveAssignment(a);
-        }
+        await db.saveAssignmentsBatch(newAssignments);
         await refreshData();
     };
 
@@ -92,6 +94,15 @@ export function DataProvider({ children }) {
     };
 
     const getAssignmentsByWeek = (week) => {
+        if (!week) return [];
+        // Handle both S and W formats for backward compatibility
+        const parts = week.split(/-[SW]/);
+        if (parts.length === 2) {
+            const [y, w] = parts;
+            const sVariant = `${y}-S${w}`;
+            const wVariant = `${y}-W${w}`;
+            return assignments.filter(a => a.semana === sVariant || a.semana === wVariant);
+        }
         return assignments.filter(a => a.semana === week);
     };
 
@@ -190,7 +201,7 @@ function getCurrentWeek() {
 function getWeekNumberString(d) {
     const week = getWeekNumber(d);
     const year = d.getFullYear();
-    return `${year}-W${week.toString().padStart(2, '0')}`;
+    return `${year}-S${week.toString().padStart(2, '0')}`;
 }
 
 function getWeekNumber(d) {

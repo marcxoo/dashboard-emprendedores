@@ -1,4 +1,5 @@
 import { STANDS } from './Database.js';
+import { compareWeeks } from '../utils/dateUtils.js';
 
 export function generarAsignacionParaSemana(semana, db) {
     const assignments = [];
@@ -86,9 +87,9 @@ export function generarAsignacionParaSemana(semana, db) {
 
 function isWithinLast3Weeks(currentWeek, lastWeek) {
     if (!lastWeek) return false;
-    // Format: YYYY-Wnn
-    const [y1, w1] = currentWeek.split('-W').map(Number);
-    const [y2, w2] = lastWeek.split('-W').map(Number);
+    // Format: YYYY-Snn (or legacy YYYY-Wnn)
+    const [y1, w1] = currentWeek.split(/-[SW]/).map(Number);
+    const [y2, w2] = lastWeek.split(/-[SW]/).map(Number);
 
     // Convert to absolute week number (approx)
     const abs1 = y1 * 52 + w1;
@@ -105,7 +106,7 @@ function hasRejectedTwice(emprendedorId, db) {
 
     const history = db.asignaciones
         .filter(a => a.id_emprendedor === emprendedorId)
-        .sort((a, b) => b.semana.localeCompare(a.semana)); // Descending
+        .sort((a, b) => compareWeeks(b.semana, a.semana)); // Descending
 
     if (history.length < 2) return false;
 

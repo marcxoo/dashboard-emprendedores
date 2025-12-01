@@ -9,6 +9,7 @@ export default function EntrepreneursList() {
     const { entrepreneurs, addEntrepreneur, updateEntrepreneur, deleteEntrepreneur } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEntrepreneur, setEditingEntrepreneur] = useState(null);
+    const [contactSelection, setContactSelection] = useState(null);
 
     const [filterCategory, setFilterCategory] = useState('');
 
@@ -69,21 +70,10 @@ export default function EntrepreneursList() {
         return sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />;
     };
 
-    const handleWhatsApp = (phone, e) => {
+    const handleContactClick = (phone, e) => {
         e.stopPropagation();
         if (!phone) return;
-
-        // Remove non-numeric characters
-        let cleanPhone = phone.replace(/\D/g, '');
-
-        // Add Ecuador country code if missing (assuming 09... format)
-        if (cleanPhone.startsWith('09')) {
-            cleanPhone = '593' + cleanPhone.substring(1);
-        } else if (cleanPhone.startsWith('9')) {
-            cleanPhone = '593' + cleanPhone;
-        }
-
-        window.open(`https://wa.me/${cleanPhone}`, '_blank');
+        setContactSelection(phone);
     };
 
     const handleEmail = (email, e) => {
@@ -109,6 +99,12 @@ export default function EntrepreneursList() {
                     setEditingEntrepreneur(entrepreneur);
                     setIsModalOpen(true);
                 }}
+            />
+
+            <ContactSelectionModal
+                isOpen={!!contactSelection}
+                onClose={() => setContactSelection(null)}
+                phoneNumber={contactSelection}
             />
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-0">
@@ -189,7 +185,7 @@ export default function EntrepreneursList() {
                                         <div className="text-sm font-semibold text-slate-700 mb-1.5">{e.persona_contacto}</div>
                                         <div className="flex flex-col gap-1">
                                             <button
-                                                onClick={(ev) => handleWhatsApp(e.telefono, ev)}
+                                                onClick={(ev) => handleContactClick(e.telefono, ev)}
                                                 className="text-xs text-slate-500 hover:text-green-600 hover:bg-green-50 w-fit px-2 py-1 -ml-2 rounded-md transition-all flex items-center gap-1.5 group/btn"
                                                 title="Enviar WhatsApp"
                                             >
@@ -255,7 +251,7 @@ export default function EntrepreneursList() {
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <button
-                                        onClick={(ev) => handleWhatsApp(e.telefono, ev)}
+                                        onClick={(ev) => handleContactClick(e.telefono, ev)}
                                         className="w-full flex items-center justify-center gap-2 text-xs font-medium bg-white border border-slate-200 py-2.5 rounded-lg text-slate-600 active:scale-95 transition-all"
                                     >
                                         <MessageCircle size={14} className="text-green-500" /> {e.telefono}
@@ -336,8 +332,10 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
         persona_contacto: '',
         telefono: '',
         correo: '',
+        ciudad: '',
         categoria_principal: '',
-        actividad_economica: ''
+        actividad_economica: '',
+        red_social: ''
     });
     const [isCustomCategory, setIsCustomCategory] = useState(false);
 
@@ -348,8 +346,10 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                 persona_contacto: initialData.persona_contacto || '',
                 telefono: initialData.telefono || '',
                 correo: initialData.correo || '',
+                ciudad: initialData.ciudad || '',
                 categoria_principal: initialData.categoria_principal || '',
-                actividad_economica: initialData.actividad_economica || ''
+                actividad_economica: initialData.actividad_economica || '',
+                red_social: initialData.red_social || ''
             });
             setIsCustomCategory(!categories.includes(initialData.categoria_principal) && initialData.categoria_principal !== '');
         } else {
@@ -358,8 +358,10 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                 persona_contacto: '',
                 telefono: '',
                 correo: '',
+                ciudad: '',
                 categoria_principal: '',
-                actividad_economica: ''
+                actividad_economica: '',
+                red_social: ''
             });
             setIsCustomCategory(false);
         }
@@ -519,6 +521,68 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                                 </div>
                             </div>
 
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Ciudad</label>
+                                <div className="relative group">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Building2 size={18} /></span>
+                                    <input
+                                        className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
+                                        value={formData.ciudad}
+                                        onChange={e => setFormData({ ...formData, ciudad: e.target.value })}
+                                        placeholder="Ej. Milagro"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Red Social</label>
+                                <div className="flex gap-2">
+                                    <div className="relative w-1/3 min-w-[120px]">
+                                        <select
+                                            className="input w-full pl-3 pr-8 py-3 bg-slate-50 border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm appearance-none text-sm font-medium"
+                                            value={(() => {
+                                                const val = formData.red_social || '';
+                                                if (val.includes('instagram.com')) return 'instagram';
+                                                if (val.includes('tiktok.com')) return 'tiktok';
+                                                if (val.includes('facebook.com')) return 'facebook';
+                                                return 'web';
+                                            })()}
+                                            onChange={(e) => {
+                                                const type = e.target.value;
+                                                let currentVal = formData.red_social || '';
+                                                // Strip existing domain and @ if present to keep just handle/path
+                                                currentVal = currentVal.replace(/^https?:\/\/(www\.)?(instagram\.com\/|tiktok\.com\/@?|facebook\.com\/)/, '').replace(/^@/, '');
+
+                                                let newUrl = currentVal;
+                                                if (type === 'instagram') newUrl = `https://instagram.com/${currentVal}`;
+                                                else if (type === 'tiktok') newUrl = `https://tiktok.com/@${currentVal}`;
+                                                else if (type === 'facebook') newUrl = `https://facebook.com/${currentVal}`;
+
+                                                setFormData({ ...formData, red_social: newUrl });
+                                            }}
+                                        >
+                                            <option value="web">Web / Otro</option>
+                                            <option value="instagram">Instagram</option>
+                                            <option value="tiktok">TikTok</option>
+                                            <option value="facebook">Facebook</option>
+                                        </select>
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><ChevronDown size={14} /></span>
+                                    </div>
+                                    <div className="relative group flex-1">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><MessageCircle size={18} /></span>
+                                        <input
+                                            className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
+                                            value={formData.red_social}
+                                            onChange={e => setFormData({ ...formData, red_social: e.target.value })}
+                                            placeholder="URL completa o @usuario"
+                                        />
+                                    </div>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-1 ml-1">
+                                    Selecciona la red para autocompletar el enlace, o pega la URL completa.
+                                </p>
+                            </div>
+
                             <div className="col-span-1 md:col-span-2">
                                 <label className="block text-sm font-bold text-slate-700 mb-2">Actividad Económica / Detalles</label>
                                 <div className="relative group">
@@ -551,6 +615,66 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                     >
                         {initialData ? <><Save size={20} /> Guardar Cambios</> : <><Sparkles size={20} /> Crear Emprendedor</>}
                     </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+}
+
+function ContactSelectionModal({ isOpen, onClose, phoneNumber }) {
+    if (!isOpen) return null;
+
+    const handleAction = (type) => {
+        if (!phoneNumber) return;
+
+        // Remove non-numeric characters
+        let cleanPhone = phoneNumber.replace(/\D/g, '');
+
+        if (type === 'whatsapp') {
+            // Add Ecuador country code if missing (assuming 09... format)
+            if (cleanPhone.startsWith('09')) {
+                cleanPhone = '593' + cleanPhone.substring(1);
+            } else if (cleanPhone.startsWith('9')) {
+                cleanPhone = '593' + cleanPhone;
+            }
+            window.open(`https://wa.me/${cleanPhone}`, '_blank');
+        } else if (type === 'call') {
+            window.location.href = `tel:${cleanPhone}`;
+        }
+        onClose();
+    };
+
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-scale-in" onClick={e => e.stopPropagation()}>
+                <div className="p-6 text-center">
+                    <div className="w-16 h-16 bg-primary-50 text-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Phone size={32} />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-800 mb-2">Contactar Emprendedor</h3>
+                    <p className="text-slate-500 mb-6 font-medium text-lg">{phoneNumber}</p>
+
+                    <div className="flex flex-col gap-3">
+                        <button
+                            onClick={() => handleAction('whatsapp')}
+                            className="btn bg-[#25D366] hover:bg-[#128C7E] text-white border-none w-full py-3.5 rounded-xl flex items-center justify-center gap-3 font-bold text-lg shadow-lg shadow-green-500/20 active:scale-95 transition-all"
+                        >
+                            <MessageCircle size={24} /> WhatsApp
+                        </button>
+                        <button
+                            onClick={() => handleAction('call')}
+                            className="btn bg-slate-800 hover:bg-slate-900 text-white border-none w-full py-3.5 rounded-xl flex items-center justify-center gap-3 font-bold text-lg shadow-lg shadow-slate-500/20 active:scale-95 transition-all"
+                        >
+                            <Phone size={24} /> Llamar
+                        </button>
+                        <button
+                            onClick={onClose}
+                            className="btn btn-ghost w-full py-3 rounded-xl font-medium text-slate-500 hover:bg-slate-50"
+                        >
+                            Cancelar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>,
