@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import { DataProvider, useData } from './context/DataContext'
 import { ToastProvider } from './context/ToastContext';
@@ -7,9 +8,11 @@ import Dashboard from './components/Dashboard'
 import EntrepreneursList from './components/EntrepreneursList'
 import AssignmentsHistory from './components/AssignmentsHistory'
 import Statistics from './components/Statistics';
-import { LayoutDashboard, Users, History, LogOut, Menu, X, Shield, DollarSign } from 'lucide-react';
+import SurveyPage from './components/SurveyPage';
+import SurveysDashboard from './components/SurveysDashboard';
+import { LayoutDashboard, Users, History, LogOut, Menu, X, Shield, DollarSign, MessageSquare } from 'lucide-react';
 
-function AppContent() {
+function AdminPanel() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { isLoaded } = useData();
@@ -121,6 +124,18 @@ function AppContent() {
             <span className="font-medium">Estadísticas</span>
             {currentView === 'statistics' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></span>}
           </button>
+
+          <button
+            onClick={() => handleViewChange('surveys')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${currentView === 'surveys'
+              ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/20'
+              : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+              }`}
+          >
+            <MessageSquare size={20} className={`transition-transform group-hover:scale-110 ${currentView === 'surveys' ? 'scale-110' : ''}`} />
+            <span className="font-medium">Encuestas</span>
+            {currentView === 'surveys' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></span>}
+          </button>
         </nav>
 
         {/* User Profile & Logout */}
@@ -161,6 +176,7 @@ function AppContent() {
               {currentView === 'entrepreneurs' && <EntrepreneursList />}
               {currentView === 'history' && <AssignmentsHistory />}
               {currentView === 'statistics' && <Statistics />}
+              {currentView === 'surveys' && <SurveysDashboard />}
             </>
           )}
         </div>
@@ -174,7 +190,12 @@ function App() {
     <AuthProvider>
       <ToastProvider>
         <DataProvider>
-          <AppContent />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/encuesta/:id" element={<SurveyPage />} />
+              <Route path="/*" element={<AdminPanel />} />
+            </Routes>
+          </BrowserRouter>
         </DataProvider>
       </ToastProvider>
     </AuthProvider>

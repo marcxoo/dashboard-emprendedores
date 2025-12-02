@@ -5,7 +5,7 @@ import EntrepreneurDetail from './EntrepreneurDetail';
 import { getDateRangeFromWeek, sortWeeksDesc } from '../utils/dateUtils';
 import { useData } from '../context/DataContext';
 import { STANDS } from '../data/Database';
-import { Trash2, Download, CheckCircle, XCircle, Clock, Calendar, AlertTriangle, FileText, X, Sparkles } from 'lucide-react';
+import { Trash2, Download, CheckCircle, XCircle, Clock, Calendar, AlertTriangle, FileText, X, Sparkles, Link } from 'lucide-react';
 
 // Modal Component for Attendance Observations
 const AttendanceModal = ({ isOpen, onClose, onConfirm, entrepreneurName }) => {
@@ -290,7 +290,17 @@ export default function AssignmentsHistory() {
                             const emp = entrepreneurs.find(e => e.id === assignment.id_emprendedor);
                             if (!emp) return null;
                             const type = emp.semaforizacion || 'Externo';
-                            const isStudent = type === 'Estudiante / Graduado UNEMI';
+
+                            // Determine style based on type
+                            let styleClass = 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'; // Default Externo
+                            if (type === 'Estudiante') {
+                                styleClass = 'bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100';
+                            } else if (type === 'Graduado') {
+                                styleClass = 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100';
+                            } else if (type === 'Estudiante / Graduado UNEMI') {
+                                // Legacy support - map to Estudiante style or generic
+                                styleClass = 'bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100';
+                            }
 
                             return (
                                 <div className="relative inline-block group/tag">
@@ -301,18 +311,36 @@ export default function AssignmentsHistory() {
                                             e.stopPropagation();
                                             updateEntrepreneur(emp.id, { ...emp, tipo_emprendedor: e.target.value });
                                         }}
-                                        className={`appearance-none cursor-pointer inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border outline-none transition-all ${isStudent
-                                            ? 'bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100'
-                                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-                                            }`}
+                                        className={`appearance-none cursor-pointer inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border outline-none transition-all ${styleClass}`}
                                         style={{ textAlignLast: 'center' }}
                                     >
                                         <option value="Externo">EXTERNO</option>
-                                        <option value="Estudiante / Graduado UNEMI">ESTUDIANTE / GRADUADO</option>
+                                        <option value="Estudiante">ESTUDIANTE</option>
+                                        <option value="Graduado">GRADUADO</option>
                                     </select>
                                 </div>
                             );
                         })()}
+                        {/* Survey Completed Badge */}
+                        {assignment.comentarios && assignment.comentarios.startsWith('[SURVEY]') && (
+                            <div className="flex items-center gap-1">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-100 gap-1">
+                                    <CheckCircle size={10} /> Encuesta OK
+                                </span>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm('¿Eliminar respuestas de la encuesta?')) {
+                                            updateAssignmentAttendance(assignment.id_asignacion, assignment.asistio, '');
+                                        }
+                                    }}
+                                    className="p-0.5 rounded-full hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors"
+                                    title="Eliminar encuesta"
+                                >
+                                    <X size={12} />
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     <button
@@ -379,6 +407,29 @@ export default function AssignmentsHistory() {
                             )}
                         </button>
                     )}
+
+                    <div className="flex gap-2">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                const link = `${window.location.origin}/encuesta/${assignment.id_asignacion}`;
+                                navigator.clipboard.writeText(link);
+                                alert('Enlace de encuesta copiado');
+                            }}
+                            className="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm"
+                            title="Copiar Enlace"
+                        >
+                            <Link size={20} />
+                        </button>
+
+                        <button
+                            onClick={(e) => { e.stopPropagation(); handleDelete(assignment.id_asignacion); }}
+                            className="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all shadow-sm"
+                            title="Eliminar"
+                        >
+                            <Trash2 size={20} />
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -409,7 +460,17 @@ export default function AssignmentsHistory() {
                                 const emp = entrepreneurs.find(e => e.id === assignment.id_emprendedor);
                                 if (!emp) return null;
                                 const type = emp.semaforizacion || 'Externo';
-                                const isStudent = type === 'Estudiante / Graduado UNEMI';
+
+                                // Determine style based on type
+                                let styleClass = 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'; // Default Externo
+                                if (type === 'Estudiante') {
+                                    styleClass = 'bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100';
+                                } else if (type === 'Graduado') {
+                                    styleClass = 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100';
+                                } else if (type === 'Estudiante / Graduado UNEMI') {
+                                    // Legacy support
+                                    styleClass = 'bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100';
+                                }
 
                                 return (
                                     <select
@@ -419,16 +480,35 @@ export default function AssignmentsHistory() {
                                             e.stopPropagation();
                                             updateEntrepreneur(emp.id, { ...emp, tipo_emprendedor: e.target.value });
                                         }}
-                                        className={`appearance-none cursor-pointer inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border outline-none transition-all ${isStudent
-                                            ? 'bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100'
-                                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-                                            }`}
+                                        className={`appearance-none cursor-pointer inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border outline-none transition-all ${styleClass}`}
                                     >
                                         <option value="Externo">EXTERNO</option>
-                                        <option value="Estudiante / Graduado UNEMI">ESTUDIANTE / GRADUADO</option>
+                                        <option value="Estudiante">ESTUDIANTE</option>
+                                        <option value="Graduado">GRADUADO</option>
                                     </select>
                                 );
                             })()}
+
+                            {/* Survey Completed Badge */}
+                            {assignment.comentarios && assignment.comentarios.startsWith('[SURVEY]') && (
+                                <div className="flex items-center gap-1">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-100 gap-1">
+                                        <CheckCircle size={10} /> Encuesta OK
+                                    </span>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (window.confirm('¿Eliminar respuestas de la encuesta?')) {
+                                                updateAssignmentAttendance(assignment.id_asignacion, assignment.asistio, '');
+                                            }
+                                        }}
+                                        className="p-0.5 rounded-full hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors"
+                                        title="Eliminar encuesta"
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -479,6 +559,20 @@ export default function AssignmentsHistory() {
                             )}
                         </button>
                     )}
+
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            const link = `${window.location.origin}/encuesta/${assignment.id_asignacion}`;
+                            navigator.clipboard.writeText(link);
+                            // Simple alert or toast could be better, but alert is quick
+                            alert('Enlace de encuesta copiado');
+                        }}
+                        className="text-slate-400 hover:text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-all"
+                        title="Copiar enlace de encuesta"
+                    >
+                        <Link size={20} />
+                    </button>
 
                     <button
                         onClick={(e) => { e.stopPropagation(); handleDelete(assignment.id_asignacion); }}

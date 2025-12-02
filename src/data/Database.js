@@ -422,6 +422,28 @@ export class Database {
     return false;
   }
 
+  async submitSurvey(id, surveyData) {
+    const index = this.asignaciones.findIndex(a => a.id_asignacion === id);
+    if (index >= 0) {
+      // Format: [SURVEY] JSON_STRING
+      const commentString = `[SURVEY] ${JSON.stringify(surveyData)}`;
+
+      this.asignaciones[index].comentarios = commentString; // Optimistic
+
+      const { error } = await supabase
+        .from('assignments')
+        .update({ comentarios: commentString })
+        .eq('id_asignacion', id);
+
+      if (error) {
+        console.error('Error submitting survey:', error);
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
   getAsignaciones(semana) {
     return this.asignaciones.filter(a => a.semana === semana);
   }
