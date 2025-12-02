@@ -130,7 +130,13 @@ export function DataProvider({ children }) {
     };
 
     const updateEntrepreneur = async (id, data) => {
+        // Optimistic update
+        setEntrepreneurs(prev => prev.map(e =>
+            e.id === id ? { ...e, ...data } : e
+        ));
+
         const updatedEmp = await db.updateEntrepreneur(id, data);
+        // We still refresh to ensure consistency, but the UI has already updated
         await refreshData();
         return updatedEmp;
     };

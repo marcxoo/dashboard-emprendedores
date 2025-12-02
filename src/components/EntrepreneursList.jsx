@@ -163,6 +163,9 @@ export default function EntrepreneursList() {
                                 <th onClick={() => requestSort('categoria_principal')} className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors group">
                                     <div className="flex items-center gap-2">Categoría <span className="text-slate-300 group-hover:text-slate-500 transition-colors">{getSortIcon('categoria_principal')}</span></div>
                                 </th>
+                                <th className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                    Seguimiento
+                                </th>
                                 <th onClick={() => requestSort('veces_en_stand')} className="px-8 py-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors group">
                                     <div className="flex items-center justify-center gap-2">Part. <span className="text-slate-300 group-hover:text-slate-500 transition-colors">{getSortIcon('veces_en_stand')}</span></div>
                                 </th>
@@ -182,7 +185,14 @@ export default function EntrepreneursList() {
                                         <div className="text-xs text-slate-500 mt-1 font-medium">{e.actividad_economica}</div>
                                     </td>
                                     <td className="px-8 py-6">
-                                        <div className="text-sm font-semibold text-slate-700 mb-1.5">{e.persona_contacto}</div>
+                                        <div className="text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-2">
+                                            {e.persona_contacto}
+                                            {e.no_contesto && (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 border border-red-200">
+                                                    No contestó
+                                                </span>
+                                            )}
+                                        </div>
                                         <div className="flex flex-col gap-1">
                                             <button
                                                 onClick={(ev) => handleContactClick(e.telefono, ev)}
@@ -208,6 +218,34 @@ export default function EntrepreneursList() {
                                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 group-hover:border-slate-300 transition-colors">
                                             {e.categoria_principal}
                                         </span>
+                                    </td>
+                                    <td className="px-8 py-6" onClick={e => e.stopPropagation()}>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 text-red-600 rounded focus:ring-red-500 border-gray-300"
+                                                    checked={e.no_contesto || false}
+                                                    onChange={(ev) => updateEntrepreneur(e.id, { no_contesto: ev.target.checked })}
+                                                />
+                                                <span className="text-xs font-medium text-slate-600">No contestó</span>
+                                            </label>
+                                            <input
+                                                className="w-full text-xs px-2 py-1.5 bg-slate-50 border border-slate-200 rounded focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 transition-all"
+                                                placeholder="Observaciones..."
+                                                defaultValue={e.notas || ''}
+                                                onBlur={(ev) => {
+                                                    if (ev.target.value !== (e.notas || '')) {
+                                                        updateEntrepreneur(e.id, { notas: ev.target.value });
+                                                    }
+                                                }}
+                                                onKeyDown={(ev) => {
+                                                    if (ev.key === 'Enter') {
+                                                        ev.target.blur();
+                                                    }
+                                                }}
+                                            />
+                                        </div>
                                     </td>
                                     <td className="px-8 py-6 text-center">
                                         <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${e.veces_en_stand > 0 ? 'bg-primary-50 text-primary-700' : 'bg-slate-100 text-slate-400'}`}>
@@ -244,10 +282,39 @@ export default function EntrepreneursList() {
                                 </span>
                             </div>
 
+                            <div className="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-100" onClick={e => e.stopPropagation()}>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 text-red-600 rounded focus:ring-red-500 border-gray-300"
+                                            checked={e.no_contesto || false}
+                                            onChange={(ev) => updateEntrepreneur(e.id, { no_contesto: ev.target.checked })}
+                                        />
+                                        <span className="text-xs font-bold text-slate-700">Llamado y no contestó</span>
+                                    </label>
+                                </div>
+                                <input
+                                    className="w-full text-xs px-3 py-2 bg-white border border-slate-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 transition-all"
+                                    placeholder="Agregar observaciones..."
+                                    defaultValue={e.notas || ''}
+                                    onBlur={(ev) => {
+                                        if (ev.target.value !== (e.notas || '')) {
+                                            updateEntrepreneur(e.id, { notas: ev.target.value });
+                                        }
+                                    }}
+                                />
+                            </div>
+
                             <div className="flex flex-col gap-2 mt-4 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                                <div className="flex items-center gap-2 text-sm text-slate-700">
+                                <div className="flex items-center gap-2 mb-3">
                                     <User size={14} className="text-slate-400" />
                                     <span className="font-semibold">{e.persona_contacto}</span>
+                                    {e.no_contesto && (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 border border-red-200">
+                                            No contestó
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <button
@@ -336,7 +403,9 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
         categoria_principal: '',
         actividad_economica: '',
         red_social: '',
-        tipo_emprendedor: 'Externo'
+        tipo_emprendedor: 'Externo',
+        notas: '',
+        no_contesto: false
     });
     const [isCustomCategory, setIsCustomCategory] = useState(false);
 
@@ -351,7 +420,9 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                 categoria_principal: initialData.categoria_principal || '',
                 actividad_economica: initialData.actividad_economica || '',
                 red_social: initialData.red_social || '',
-                tipo_emprendedor: initialData.semaforizacion || 'Externo'
+                tipo_emprendedor: initialData.semaforizacion || 'Externo',
+                notas: initialData.notas || '',
+                no_contesto: initialData.no_contesto || false
             });
             setIsCustomCategory(!categories.includes(initialData.categoria_principal) && initialData.categoria_principal !== '');
         } else {
@@ -364,7 +435,9 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                 categoria_principal: '',
                 actividad_economica: '',
                 red_social: '',
-                tipo_emprendedor: 'Externo'
+                tipo_emprendedor: 'Externo',
+                notas: '',
+                no_contesto: false
             });
             setIsCustomCategory(false);
         }
@@ -516,6 +589,31 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                                 </div>
                             </div>
 
+
+
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Observaciones</label>
+                                <textarea
+                                    className="input w-full py-3 px-4 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
+                                    rows="3"
+                                    placeholder="Notas adicionales..."
+                                    value={formData.notas}
+                                    onChange={e => setFormData({ ...formData, notas: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
+                                    <input
+                                        type="checkbox"
+                                        className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500 border-gray-300"
+                                        checked={formData.no_contesto}
+                                        onChange={e => setFormData({ ...formData, no_contesto: e.target.checked })}
+                                    />
+                                    <span className="font-medium text-slate-700">Llamado y no contestó</span>
+                                </label>
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-2">Teléfono</label>
                                 <div className="relative group">
@@ -588,7 +686,6 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                                             <option value="tiktok">TikTok</option>
                                             <option value="facebook">Facebook</option>
                                         </select>
-                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><ChevronDown size={14} /></span>
                                     </div>
                                     <div className="relative group flex-1">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><MessageCircle size={18} /></span>
@@ -637,9 +734,9 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                     >
                         {initialData ? <><Save size={20} /> Guardar Cambios</> : <><Sparkles size={20} /> Crear Emprendedor</>}
                     </button>
-                </div>
-            </div>
-        </div>,
+                </div >
+            </div >
+        </div >,
         document.body
     );
 }

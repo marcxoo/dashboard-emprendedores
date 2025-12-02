@@ -25,7 +25,18 @@ export class Database {
         .order('id', { ascending: true });
 
       if (empError) throw empError;
-      this.emprendedores = entrepreneurs || [];
+      if (empError) throw empError;
+
+      // Parse 'no_contesto' from 'notas' using {{NC}} tag
+      this.emprendedores = (entrepreneurs || []).map(e => {
+        const notes = e.notas || '';
+        const noContesto = notes.includes('{{NC}}');
+        return {
+          ...e,
+          no_contesto: noContesto,
+          notas: notes.replace('{{NC}}', '').trim()
+        };
+      });
 
       const { data: assignments, error: assignError } = await supabase
         .from('assignments')
@@ -429,12 +440,24 @@ export class Database {
       semaforizacion: data.tipo_emprendedor || 'Externo',
       veces_en_stand: 0,
       ultima_semana_participacion: null,
-      notas: ''
+      notas: data.notas || '',
+      no_contesto: data.no_contesto || false
     };
+
+    // Prepare data for Supabase
+    const notesToSave = newEntrepreneur.no_contesto
+      ? (newEntrepreneur.notas ? `${newEntrepreneur.notas} {{NC}}` : '{{NC}}')
+      : newEntrepreneur.notas;
+
+    const supabaseData = {
+      ...newEntrepreneur,
+      notas: notesToSave
+    };
+    delete supabaseData.no_contesto;
 
     const { data: inserted, error } = await supabase
       .from('entrepreneurs')
-      .insert([newEntrepreneur])
+      .insert([supabaseData])
       .select()
       .single();
 
@@ -450,24 +473,39 @@ export class Database {
   async updateEntrepreneur(id, data) {
     const index = this.emprendedores.findIndex(e => e.id === id);
     if (index >= 0) {
+      const current = this.emprendedores[index];
       const updates = {
-        nombre_emprendimiento: data.nombre_emprendimiento,
-        persona_contacto: data.persona_contacto,
-        telefono: data.telefono,
-        correo: data.correo,
-        categoria_principal: data.categoria_principal,
-        actividad_economica: data.actividad_economica,
-        ciudad: data.ciudad,
-        red_social: data.red_social,
-        subcategoria_interna: data.categoria_principal,
-        semaforizacion: data.tipo_emprendedor
+        nombre_emprendimiento: data.nombre_emprendimiento ?? current.nombre_emprendimiento,
+        persona_contacto: data.persona_contacto ?? current.persona_contacto,
+        telefono: data.telefono ?? current.telefono,
+        correo: data.correo ?? current.correo,
+        categoria_principal: data.categoria_principal ?? current.categoria_principal,
+        actividad_economica: data.actividad_economica ?? current.actividad_economica,
+        ciudad: data.ciudad ?? current.ciudad,
+        red_social: data.red_social ?? current.red_social,
+        subcategoria_interna: data.categoria_principal ?? current.subcategoria_interna,
+        semaforizacion: data.tipo_emprendedor ?? current.semaforizacion,
+        notas: data.notas ?? current.notas,
+        no_contesto: data.no_contesto ?? current.no_contesto
       };
 
       this.emprendedores[index] = { ...this.emprendedores[index], ...updates };
 
+      // Prepare data for Supabase
+      const notesToSave = updates.no_contesto
+        ? (updates.notas ? `${updates.notas} {{NC}}` : '{{NC}}')
+        : updates.notas;
+
+      const supabaseUpdates = {
+        ...updates,
+        notas: notesToSave
+      };
+      // Remove virtual field before sending to Supabase
+      delete supabaseUpdates.no_contesto;
+
       const { error } = await supabase
         .from('entrepreneurs')
-        .update(updates)
+        .update(supabaseUpdates)
         .eq('id', id);
 
       if (error) console.error('Error updating entrepreneur:', error);
