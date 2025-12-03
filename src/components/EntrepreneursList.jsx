@@ -2,14 +2,19 @@ import { useState, useMemo, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import EntrepreneurDetail from './EntrepreneurDetail';
 import { getDateRangeFromWeek } from '../utils/dateUtils';
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, Phone, Mail, User, Edit, Sparkles, X, Building2, Tag, ChevronDown, FileText, Save, Plus, MessageCircle } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, Phone, Mail, User, Edit, Sparkles, X, Building2, Tag, ChevronDown, FileText, Save, Plus, MessageCircle, Clock, Calendar, CheckCircle, XCircle, List, History, Trash2 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 export default function EntrepreneursList() {
-    const { entrepreneurs, addEntrepreneur, updateEntrepreneur, deleteEntrepreneur } = useData();
+    const { entrepreneurs, assignments, currentWeek, currentBlock, addEntrepreneur, updateEntrepreneur, deleteEntrepreneur } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEntrepreneur, setEditingEntrepreneur] = useState(null);
     const [contactSelection, setContactSelection] = useState(null);
+
+    // Follow-up Modals State
+    const [followUpModalOpen, setFollowUpModalOpen] = useState(false);
+    const [historyModalOpen, setHistoryModalOpen] = useState(false);
+    const [selectedEntrepreneurForFollowUp, setSelectedEntrepreneurForFollowUp] = useState(null);
 
     const [filterCategory, setFilterCategory] = useState('');
 
@@ -82,6 +87,196 @@ export default function EntrepreneursList() {
         window.location.href = `mailto:${email}`;
     };
 
+    const handleStandOfferEmail = async (entrepreneur, e) => {
+        e.stopPropagation();
+        const email = entrepreneur.correo;
+        if (!email) return;
+
+        const name = entrepreneur.nombre_emprendimiento || entrepreneur.persona_contacto || 'Emprendedor';
+        const eventDates = "lunes 08 y martes 09 de diciembre";
+        const deadline = "28 de noviembre a las 13:00pm";
+
+        const subject = "Invitación PROGRAMA UNEMI EMPRENDE CONTIGO";
+
+        // Plain text for URL (fallback)
+        const plainBody = `Estimado/a Emprendedor/a ${name},
+
+Es un placer para nosotros contactarte en nombre de Coordinación de Emprendimiento de la Universidad Estatal de Milagro. Le hemos contactado debido a que se encuentra en nuestros registros de Red de Emprendedores UNEMI, hemos querido contactar con usted pero no hemos tenido respuesta.
+
+Por ello, nos complace extenderle una invitación formal y exclusiva por este medio para participar del PROGRAMA UNEMI EMPRENDE CONTIGO que se llevará a cabo el ${eventDates}, en Universidad Estatal de Milagro sector de Las Palmeras diagonal al Bloque E, en uno de los siguientes horarios:
+
+• Jornada completa: 09h00 a 13h00 y 13h00 a 17h00
+• Jornada mañana: 09h00 a 13h00
+• Jornada tarde: 13h00 a 17h00
+
+🌟 Beneficio Principal: Stand de Exposición Gratuito
+Como parte de nuestro compromiso con el fomento del emprendimiento local, deseamos ofrecerle la oportunidad de contar con un stand de exposición totalmente gratuito en una zona de alto tráfico de visitantes.
+
+Esta es una excelente ocasión para:
+• Dar a conocer sus productos a un público amplio y segmentado.<br>
+• Generar ventas directas en el evento.<br>
+• Establecer contactos con otros emprendedores y potenciales socios.<br>
+• Reforzar la imagen de su marca.
+
+📝 Detalles Logísticos del Stand
+• Costo: $0.00 (Totalmente gratuito).
+• Incluye: Espacio y stand
+
+⚠️⚠️Requisitos Importantes⚠️⚠️ :
+• Asistencia puntual
+• Cuidar de los enseres prestados
+• Hacerse responsable de sus productos
+• Respetar los tiempos establecidos.
+
+Si está interesado/a en aprovechar esta oportunidad, le solicitamos que confirme su participación a más tardar el ${deadline}.
+
+Se solicita confirmar su asistencia y horario, por favor, responda a este correo electrónico y nos contactaremos.`;
+
+        // HTML for Clipboard
+        const htmlBody = `
+            <div style="font-family: sans-serif; color: #000;">
+                <p>Estimado/a Emprendedor/a <strong>${name}</strong>,</p>
+                <p>Es un placer para nosotros contactarte en nombre de <strong>Coordinación de Emprendimiento</strong> de la Universidad Estatal de Milagro. Le hemos contactado debido a que se encuentra en nuestros registros de <strong>Red de Emprendedores UNEMI</strong>, hemos querido contactar con usted pero no hemos tenido respuesta.</p>
+                <p>Por ello, nos complace extenderle una invitación formal y exclusiva por este medio para participar del <strong>PROGRAMA UNEMI EMPRENDE CONTIGO</strong> que se llevará a cabo el <strong>${eventDates}</strong>, en Universidad Estatal de Milagro sector de Las Palmeras diagonal al Bloque E, en <u>uno de los siguientes horarios</u>:</p>
+                <ul>
+                    <li><strong>Jornada completa:</strong> 09h00 a 13h00 y 13h00 a 17h00</li>
+                    <li><strong>Jornada mañana:</strong> 09h00 a 13h00</li>
+                    <li><strong>Jornada tarde:</strong> 13h00 a 17h00</li>
+                </ul>
+                <p>🌟 <strong>Beneficio Principal: Stand de Exposición Gratuito</strong><br>
+                Como parte de nuestro compromiso con el fomento del emprendimiento local, deseamos ofrecerle la oportunidad de contar con un stand de exposición totalmente gratuito en una zona de alto tráfico de visitantes.</p>
+                <p>Esta es una excelente ocasión para:<br>
+                • Dar a conocer sus productos a un público amplio y segmentado.<br>
+                • Generar ventas directas en el evento.<br>
+                • Establecer contactos con otros emprendedores y potenciales socios.<br>
+                • Reforzar la imagen de su marca.</p>
+                <p>📝 <strong>Detalles Logísticos del Stand</strong><br>
+                • Costo: $0.00 (Totalmente gratuito).<br>
+                • Incluye: Espacio y stand</p>
+                <p>⚠️⚠️<strong>Requisitos Importantes</strong>⚠️⚠️ :<br>
+                • Asistencia puntual<br>
+                • Cuidar de los enseres prestados<br>
+                • Hacerse responsable de sus productos<br>
+                • Respetar los tiempos establecidos.</p>
+                <p>Si está interesado/a en aprovechar esta oportunidad, le solicitamos que confirme su participación a más tardar el <strong>${deadline}</strong>.</p>
+                <p><strong>Se solicita confirmar su asistencia y horario, por favor, responda a este correo electrónico y nos contactaremos.</strong></p>
+            </div>
+        `;
+
+        try {
+            const blobHtml = new Blob([htmlBody], { type: "text/html" });
+            const blobText = new Blob([plainBody], { type: "text/plain" });
+            const data = [new ClipboardItem({
+                ["text/html"]: blobHtml,
+                ["text/plain"]: blobText
+            })];
+            await navigator.clipboard.write(data);
+            alert("El contenido del correo ha sido copiado al portapapeles con el formato correcto. Por favor, pégalo (Ctrl+V) en la ventana de Gmail que se abrirá.");
+        } catch (err) {
+            console.error("Error copying to clipboard:", err);
+            // Fallback to just opening URL if clipboard fails
+        }
+
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}`;
+        const gmailUrlWithBody = `${gmailUrl}&body=${encodeURIComponent(plainBody)}`;
+        window.open(gmailUrlWithBody, '_blank');
+    };
+
+    const handleBulkConfirmationEmail = async () => {
+        // Use currentWeek from context to filter assignments
+        const targetWeek = currentWeek;
+
+        console.log('Debug Bulk Email:', {
+            targetWeek,
+            currentBlock,
+            assignmentsCount: assignments.length,
+            firstAssignment: assignments[0],
+            filteredDataCount: filteredData.length
+        });
+
+        const assignedEntrepreneurIds = new Set(
+            assignments
+                .filter(a => a.semana === targetWeek && a.bloque === currentBlock)
+                .map(a => a.id_emprendedor) // Changed from emprendedor_id to id_emprendedor based on AssignmentLogic.js
+        );
+
+        console.log('Assigned IDs for week and block:', [...assignedEntrepreneurIds]);
+
+        const emails = filteredData
+            .filter(e => assignedEntrepreneurIds.has(e.id)) // Only include those with assignments in the target week
+            .map(e => e.correo)
+            .filter(email => email && email.includes('@')); // Basic validation
+
+        if (emails.length === 0) {
+            alert(`No hay emprendedores con asignación para la semana ${targetWeek} y bloque ${currentBlock} en la lista filtrada.`);
+            return;
+        }
+
+        const to = "emprendimiento_innovacion@unemi.edu.ec";
+        const cc = "jzambranom@unemi.edu.ec, aholguinb@unemi.edu.ec, mlojas@unemi.edu.ec";
+        const bcc = emails.join(',');
+        const subject = "CONFIRMACIÓN DE ASISTENCIA A UNEMI-EMPRENDE";
+        const deadline = "jueves, 4 de diciembre a las 12:00pm";
+        const eventDates = "Lunes 8 y Martes 9 de diciembre";
+
+        const plainBody = `Estimado/a Emprendedor/a,
+
+Es un placer para nosotros invitarle a formalizar su participación en UNEMI EMPRENDE CONTIGO, nuestro espacio dedicado a impulsar y visibilizar tu emprendimiento.
+
+Para asegurar tu lugar y mantener el stand asignado, es imprescindible que confirmes tu asistencia, la asistencia para el stand es el día ${eventDates}. Una vez recibida tu confirmación, nuestro equipo se comunicará contigo para continuar con la coordinación correspondiente.
+
+Por favor, responde a este correo electrónico a más tardar el [${deadline}] indicando claramente:
+
+1. 📝 Nombre del Emprendimiento:
+2. 📝 Nombre Completo del Responsable:
+3. 📝 Numero de celular:
+4. ✅ Confirmación: "Confirmo mi participación en UNEMI EMPRENDE CONTIGO."
+
+⚠️⚠️ IMPORTANTE ⚠️⚠️ : Tu respuesta es crucial. Si no recibimos tu confirmación antes de la fecha límite, entenderemos que has desistido de participar y el stand podrá ser reasignado a otro emprendedor.
+
+Estamos muy emocionados de contar contigo y tu proyecto en este evento. Si tienes alguna pregunta sobre logística o el montaje de tu stand, no dudes en contactarnos.
+
+¡Te esperamos!
+
+Atentamente,`;
+
+        const htmlBody = `
+            <div style="font-family: sans-serif; color: #000;">
+                <p>Estimado/a Emprendedor/a,</p>
+                <p>Es un placer para nosotros invitarle a formalizar su participación en <strong>UNEMI EMPRENDE CONTIGO</strong>, nuestro espacio dedicado a impulsar y visibilizar tu emprendimiento.</p>
+                <p>Para asegurar tu lugar y mantener el stand asignado, es imprescindible que confirmes tu asistencia, la asistencia para el stand es el día <strong>${eventDates}</strong>. Una vez recibida tu confirmación, nuestro equipo se comunicará contigo para continuar con la coordinación correspondiente.</p>
+                <p>Por favor, responde a este correo electrónico <strong>a más tardar el [${deadline}]</strong> indicando claramente:</p>
+                <ol>
+                    <li>📝 <strong>Nombre del Emprendimiento:</strong></li>
+                    <li>📝 <strong>Nombre Completo del Responsable:</strong></li>
+                    <li>📝 <strong>Numero de celular:</strong></li>
+                    <li>✅ <strong>Confirmación:</strong> "Confirmo mi participación en UNEMI EMPRENDE CONTIGO."</li>
+                </ol>
+                <p>⚠️⚠️ <strong>IMPORTANTE</strong> ⚠️⚠️ : <strong>Tu respuesta es crucial.</strong> Si no recibimos tu confirmación antes de la fecha límite, entenderemos que has desistido de participar y el stand podrá ser reasignado a otro emprendedor.</p>
+                <p>Estamos muy emocionados de contar contigo y tu proyecto en este evento. Si tienes alguna pregunta sobre logística o el montaje de tu stand, no dudes en contactarnos.</p>
+                <p>¡Te esperamos!</p>
+                <p>Atentamente,</p>
+            </div>
+        `;
+
+        try {
+            const blobHtml = new Blob([htmlBody], { type: "text/html" });
+            const blobText = new Blob([plainBody], { type: "text/plain" });
+            const data = [new ClipboardItem({
+                ["text/html"]: blobHtml,
+                ["text/plain"]: blobText
+            })];
+            await navigator.clipboard.write(data);
+            alert(`Se han copiado ${emails.length} correos al campo BCC y el contenido del mensaje al portapapeles. Por favor pega el contenido en Gmail.`);
+        } catch (err) {
+            console.error("Error copying to clipboard:", err);
+        }
+
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&cc=${encodeURIComponent(cc)}&bcc=${encodeURIComponent(bcc)}&su=${encodeURIComponent(subject)}`;
+        const gmailUrlWithBody = `${gmailUrl}&body=${encodeURIComponent(plainBody)}`;
+        window.open(gmailUrlWithBody, '_blank');
+    };
+
     const [selectedEntrepreneur, setSelectedEntrepreneur] = useState(null);
 
     return (
@@ -112,16 +307,38 @@ export default function EntrepreneursList() {
                     <h1 className="text-3xl font-bold text-secondary tracking-tight">Emprendedores</h1>
                     <p className="text-slate-500 mt-2 text-lg">Gestión y listado general ({filteredData.length} registros)</p>
                 </div>
-                <button
-                    onClick={() => {
-                        setEditingEntrepreneur(null);
-                        setIsModalOpen(true);
-                    }}
-                    className="btn btn-primary px-5 py-2.5 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all active:scale-95 flex items-center gap-2 rounded-xl font-semibold"
-                >
-                    <Plus size={20} /> Agregar Emprendedor
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        onClick={handleBulkConfirmationEmail}
+                        className="btn bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 shadow-sm px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2"
+                        title="Enviar correo de confirmación a la lista filtrada"
+                    >
+                        <Mail size={20} />
+                        <span className="hidden sm:inline">Enviar Confirmación Masiva</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            setEditingEntrepreneur(null);
+                            setIsModalOpen(true);
+                        }}
+                        className="btn btn-primary px-5 py-2.5 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all active:scale-95 flex items-center gap-2 rounded-xl font-semibold"
+                    >
+                        <Plus size={20} /> Agregar Emprendedor
+                    </button>
+                </div>
             </div>
+
+            {/* Modals */}
+            <FollowUpModal
+                isOpen={followUpModalOpen}
+                onClose={() => setFollowUpModalOpen(false)}
+                entrepreneur={selectedEntrepreneurForFollowUp}
+            />
+            <HistoryModal
+                isOpen={historyModalOpen}
+                onClose={() => setHistoryModalOpen(false)}
+                entrepreneur={selectedEntrepreneurForFollowUp}
+            />
 
             <div className="card bg-white shadow-xl shadow-slate-200/50 border-0 ring-1 ring-slate-100 rounded-2xl overflow-hidden">
                 {/* Filters */}
@@ -164,7 +381,7 @@ export default function EntrepreneursList() {
                                     <div className="flex items-center gap-2">Categoría <span className="text-slate-300 group-hover:text-slate-500 transition-colors">{getSortIcon('categoria_principal')}</span></div>
                                 </th>
                                 <th className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                    Seguimiento
+                                    Estado Seguimiento
                                 </th>
                                 <th onClick={() => requestSort('veces_en_stand')} className="px-8 py-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors group">
                                     <div className="flex items-center justify-center gap-2">Part. <span className="text-slate-300 group-hover:text-slate-500 transition-colors">{getSortIcon('veces_en_stand')}</span></div>
@@ -203,14 +420,24 @@ export default function EntrepreneursList() {
                                                 <span className="font-medium">{e.telefono}</span>
                                             </button>
                                             {e.correo && (
-                                                <button
-                                                    onClick={(ev) => handleEmail(e.correo, ev)}
-                                                    className="text-xs text-slate-500 hover:text-blue-600 hover:bg-blue-50 w-fit px-2 py-1 -ml-2 rounded-md transition-all flex items-center gap-1.5 group/btn max-w-full"
-                                                    title="Enviar Correo"
-                                                >
-                                                    <Mail size={12} className="text-slate-400 group-hover/btn:text-blue-500 shrink-0" />
-                                                    <span className="truncate font-medium">{e.correo}</span>
-                                                </button>
+                                                <>
+                                                    <button
+                                                        onClick={(ev) => handleEmail(e.correo, ev)}
+                                                        className="text-xs text-slate-500 hover:text-blue-600 hover:bg-blue-50 w-fit px-2 py-1 -ml-2 rounded-md transition-all flex items-center gap-1.5 group/btn max-w-full"
+                                                        title="Enviar Correo"
+                                                    >
+                                                        <Mail size={12} className="text-slate-400 group-hover/btn:text-blue-500 shrink-0" />
+                                                        <span className="truncate font-medium">{e.correo}</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={(ev) => handleStandOfferEmail(e, ev)}
+                                                        className="text-[10px] text-white bg-green-600 hover:bg-green-700 w-fit px-2 py-1 rounded-md transition-all flex items-center gap-1.5 shadow-sm"
+                                                        title="Enviar Oferta de Stand"
+                                                    >
+                                                        <Sparkles size={10} />
+                                                        <span className="font-medium">Correo oferta de stand</span>
+                                                    </button>
+                                                </>
                                             )}
                                         </div>
                                     </td>
@@ -220,31 +447,33 @@ export default function EntrepreneursList() {
                                         </span>
                                     </td>
                                     <td className="px-8 py-6" onClick={e => e.stopPropagation()}>
-                                        <div className="flex flex-col gap-2">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 text-red-600 rounded focus:ring-red-500 border-gray-300"
-                                                    checked={e.no_contesto || false}
-                                                    onChange={(ev) => updateEntrepreneur(e.id, { no_contesto: ev.target.checked })}
-                                                />
-                                                <span className="text-xs font-medium text-slate-600">No contestó</span>
-                                            </label>
-                                            <input
-                                                className="w-full text-xs px-2 py-1.5 bg-slate-50 border border-slate-200 rounded focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 transition-all"
-                                                placeholder="Observaciones..."
-                                                defaultValue={e.notas || ''}
-                                                onBlur={(ev) => {
-                                                    if (ev.target.value !== (e.notas || '')) {
-                                                        updateEntrepreneur(e.id, { notas: ev.target.value });
-                                                    }
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedEntrepreneurForFollowUp(e);
+                                                    setFollowUpModalOpen(true);
                                                 }}
-                                                onKeyDown={(ev) => {
-                                                    if (ev.key === 'Enter') {
-                                                        ev.target.blur();
-                                                    }
+                                                className="w-10 h-10 rounded-xl bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center shadow-lg shadow-primary-500/20 transition-all active:scale-95 group/btn relative"
+                                                title="Añadir Seguimiento"
+                                            >
+                                                <Phone size={20} />
+                                                <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                    Añadir Seguimiento
+                                                </span>
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedEntrepreneurForFollowUp(e);
+                                                    setHistoryModalOpen(true);
                                                 }}
-                                            />
+                                                className="w-10 h-10 rounded-xl bg-secondary hover:bg-slate-800 text-white flex items-center justify-center shadow-lg shadow-slate-900/10 transition-all active:scale-95 group/btn relative"
+                                                title="Ver Observaciones"
+                                            >
+                                                <List size={20} />
+                                                <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                                    Ver Observaciones
+                                                </span>
+                                            </button>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-center">
@@ -282,28 +511,25 @@ export default function EntrepreneursList() {
                                 </span>
                             </div>
 
-                            <div className="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-100" onClick={e => e.stopPropagation()}>
-                                <div className="flex items-center gap-3 mb-2">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            className="w-4 h-4 text-red-600 rounded focus:ring-red-500 border-gray-300"
-                                            checked={e.no_contesto || false}
-                                            onChange={(ev) => updateEntrepreneur(e.id, { no_contesto: ev.target.checked })}
-                                        />
-                                        <span className="text-xs font-bold text-slate-700">Llamado y no contestó</span>
-                                    </label>
-                                </div>
-                                <input
-                                    className="w-full text-xs px-3 py-2 bg-white border border-slate-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 transition-all"
-                                    placeholder="Agregar observaciones..."
-                                    defaultValue={e.notas || ''}
-                                    onBlur={(ev) => {
-                                        if (ev.target.value !== (e.notas || '')) {
-                                            updateEntrepreneur(e.id, { notas: ev.target.value });
-                                        }
+                            <div className="mb-4 flex gap-3" onClick={e => e.stopPropagation()}>
+                                <button
+                                    onClick={() => {
+                                        setSelectedEntrepreneurForFollowUp(e);
+                                        setFollowUpModalOpen(true);
                                     }}
-                                />
+                                    className="flex-1 py-3 rounded-xl bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center gap-2 shadow-sm font-bold text-sm"
+                                >
+                                    <Phone size={18} /> Añadir Seguimiento
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setSelectedEntrepreneurForFollowUp(e);
+                                        setHistoryModalOpen(true);
+                                    }}
+                                    className="flex-1 py-3 rounded-xl bg-secondary hover:bg-slate-800 text-white flex items-center justify-center gap-2 shadow-sm font-bold text-sm"
+                                >
+                                    <List size={18} /> Ver Historial
+                                </button>
                             </div>
 
                             <div className="flex flex-col gap-2 mt-4 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
@@ -324,12 +550,20 @@ export default function EntrepreneursList() {
                                         <MessageCircle size={14} className="text-green-500" /> {e.telefono}
                                     </button>
                                     {e.correo && (
-                                        <button
-                                            onClick={(ev) => handleEmail(e.correo, ev)}
-                                            className="w-full flex items-center justify-center gap-2 text-xs font-medium bg-white border border-slate-200 py-2.5 rounded-lg text-slate-600 active:scale-95 transition-all"
-                                        >
-                                            <Mail size={14} className="text-blue-500" /> <span className="break-all">{e.correo}</span>
-                                        </button>
+                                        <>
+                                            <button
+                                                onClick={(ev) => handleEmail(e.correo, ev)}
+                                                className="w-full flex items-center justify-center gap-2 text-xs font-medium bg-white border border-slate-200 py-2.5 rounded-lg text-slate-600 active:scale-95 transition-all"
+                                            >
+                                                <Mail size={14} className="text-blue-500" /> <span className="break-all">{e.correo}</span>
+                                            </button>
+                                            <button
+                                                onClick={(ev) => handleStandOfferEmail(e, ev)}
+                                                className="w-full flex items-center justify-center gap-2 text-xs font-medium bg-green-50 border border-green-200 py-2.5 rounded-lg text-green-700 active:scale-95 transition-all"
+                                            >
+                                                <Sparkles size={14} /> Correo oferta de stand
+                                            </button>
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -592,26 +826,14 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
 
 
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Observaciones</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Notas Generales</label>
                                 <textarea
                                     className="input w-full py-3 px-4 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
                                     rows="3"
-                                    placeholder="Notas adicionales..."
+                                    placeholder="Notas internas..."
                                     value={formData.notas}
                                     onChange={e => setFormData({ ...formData, notas: e.target.value })}
                                 />
-                            </div>
-
-                            <div className="md:col-span-2">
-                                <label className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
-                                    <input
-                                        type="checkbox"
-                                        className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500 border-gray-300"
-                                        checked={formData.no_contesto}
-                                        onChange={e => setFormData({ ...formData, no_contesto: e.target.checked })}
-                                    />
-                                    <span className="font-medium text-slate-700">Llamado y no contestó</span>
-                                </label>
                             </div>
 
                             <div>
@@ -794,6 +1016,232 @@ function ContactSelectionModal({ isOpen, onClose, phoneNumber }) {
                             Cancelar
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+}
+
+function FollowUpModal({ isOpen, onClose, entrepreneur }) {
+    const { addFollowUp } = useData();
+    const [formData, setFormData] = useState({
+        date: '',
+        time: '',
+        status: 'answered',
+        observation: ''
+    });
+
+    useEffect(() => {
+        if (isOpen) {
+            const now = new Date();
+            setFormData({
+                date: now.toISOString().split('T')[0],
+                time: now.toTimeString().split(' ')[0].substring(0, 5),
+                status: 'answered',
+                observation: ''
+            });
+        }
+    }, [isOpen]);
+
+    if (!isOpen || !entrepreneur) return null;
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await addFollowUp(entrepreneur.id, formData);
+            onClose();
+        } catch (error) {
+            console.error(error);
+            alert('Error al guardar el seguimiento');
+        }
+    };
+
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-in" onClick={e => e.stopPropagation()}>
+                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center">
+                            <List size={20} />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800">Añadir Observación</h3>
+                            <p className="text-sm text-slate-500">{entrepreneur.nombre_emprendimiento}</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Fecha :</label>
+                            <input
+                                type="date"
+                                className="input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-medium"
+                                value={formData.date}
+                                onChange={e => setFormData({ ...formData, date: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Hora :</label>
+                            <input
+                                type="time"
+                                className="input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-medium"
+                                value={formData.time}
+                                onChange={e => setFormData({ ...formData, time: e.target.value })}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Acción :</label>
+                        <div className="relative">
+                            <select
+                                className="input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all appearance-none font-medium"
+                                value={formData.status}
+                                onChange={e => setFormData({ ...formData, status: e.target.value })}
+                            >
+                                <option value="answered">EL EMPRENDEDOR CONTESTÓ</option>
+                                <option value="no_answer">NO CONTESTÓ</option>
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Detalle :</label>
+                        <textarea
+                            className="input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all min-h-[100px]"
+                            value={formData.observation}
+                            onChange={e => setFormData({ ...formData, observation: e.target.value })}
+                            placeholder="Ingrese los detalles..."
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="btn bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-lg font-bold shadow-lg shadow-red-500/20 active:scale-95 transition-all flex items-center gap-2"
+                        >
+                            <XCircle size={18} /> Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn bg-green-500 hover:bg-green-600 text-white px-6 py-2.5 rounded-lg font-bold shadow-lg shadow-green-500/20 active:scale-95 transition-all flex items-center gap-2"
+                        >
+                            <Save size={18} /> Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>,
+        document.body
+    );
+}
+
+function HistoryModal({ isOpen, onClose, entrepreneur }) {
+    const { deleteFollowUp } = useData();
+
+    if (!isOpen || !entrepreneur) return null;
+
+    const history = entrepreneur.followUpHistory || [];
+
+    const handleDelete = async (index) => {
+        if (window.confirm('¿Estás seguro de que deseas eliminar este registro?')) {
+            await deleteFollowUp(entrepreneur.id, index);
+        }
+    };
+
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col animate-scale-in" onClick={e => e.stopPropagation()}>
+                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 flex-none">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <History size={20} />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800">Ver Observaciones</h3>
+                            <p className="text-sm text-slate-500">{entrepreneur.nombre_emprendimiento}</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+                </div>
+
+                <div className="flex-1 overflow-auto p-6">
+                    {history.length === 0 ? (
+                        <div className="text-center py-12 text-slate-400">
+                            <History size={48} className="mx-auto mb-4 opacity-20" />
+                            <p>No hay observaciones registradas</p>
+                        </div>
+                    ) : (
+                        <div className="overflow-hidden rounded-xl border border-slate-200">
+                            <table className="w-full">
+                                <thead className="bg-slate-50 border-b border-slate-200">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Hora Llamada</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Observación</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Registrado Por</th>
+                                        <th className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {history.map((item, idx) => (
+                                        <tr key={idx} className="hover:bg-slate-50 transition-colors group">
+                                            <td className="px-6 py-4 text-sm font-medium text-slate-700 whitespace-nowrap">
+                                                {item.date}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">
+                                                {item.time}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-600">
+                                                {item.observation || '-'}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {item.status === 'answered' ? (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
+                                                        Contestó
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+                                                        No Contestó
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-500">
+                                                Admin
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <button
+                                                    onClick={() => handleDelete(idx)}
+                                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                    title="Eliminar registro"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+
+                <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end flex-none">
+                    <button
+                        onClick={onClose}
+                        className="btn bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 px-6 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2"
+                    >
+                        <X size={18} /> Cerrar
+                    </button>
                 </div>
             </div>
         </div>,

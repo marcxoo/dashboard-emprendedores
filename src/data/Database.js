@@ -25,16 +25,35 @@ export class Database {
         .order('id', { ascending: true });
 
       if (empError) throw empError;
-      if (empError) throw empError;
 
-      // Parse 'no_contesto' from 'notas' using {{NC}} tag
+      // Parse 'notas' to extract history or legacy notes
       this.emprendedores = (entrepreneurs || []).map(e => {
-        const notes = e.notas || '';
-        const noContesto = notes.includes('{{NC}}');
+        let notes = e.notas || '';
+        let history = [];
+        let generalNotes = '';
+        let noContesto = false;
+
+        // Check if notes is a JSON string containing our structure
+        if (notes.trim().startsWith('{') && notes.includes('"history":')) {
+          try {
+            const parsed = JSON.parse(notes);
+            history = parsed.history || [];
+            generalNotes = parsed.general_notes || '';
+          } catch {
+            // Fallback if parse fails
+            generalNotes = notes;
+          }
+        } else {
+          // Legacy format
+          noContesto = notes.includes('{{NC}}');
+          generalNotes = notes.replace('{{NC}}', '').trim();
+        }
+
         return {
           ...e,
-          no_contesto: noContesto,
-          notas: notes.replace('{{NC}}', '').trim()
+          no_contesto: noContesto, // Keep for legacy compatibility if needed
+          notas: generalNotes,
+          followUpHistory: history
         };
       });
 
@@ -449,7 +468,15 @@ export class Database {
   }
 
   async addEntrepreneur(data) {
-    const newEntrepreneur = {
+    // Prepare data for Supabase
+    // New format: { general_notes: "...", history: [] }
+    // But for new entrepreneur, history is empty.
+    const notesObject = {
+      general_notes: data.notas || '',
+      history: []
+    };
+
+    const supabaseData = {
       nombre_emprendimiento: data.nombre_emprendimiento,
       persona_contacto: data.persona_contacto,
       telefono: data.telefono,
@@ -462,20 +489,8 @@ export class Database {
       semaforizacion: data.tipo_emprendedor || 'Externo',
       veces_en_stand: 0,
       ultima_semana_participacion: null,
-      notas: data.notas || '',
-      no_contesto: data.no_contesto || false
+      notas: JSON.stringify(notesObject)
     };
-
-    // Prepare data for Supabase
-    const notesToSave = newEntrepreneur.no_contesto
-      ? (newEntrepreneur.notas ? `${newEntrepreneur.notas} {{NC}}` : '{{NC}}')
-      : newEntrepreneur.notas;
-
-    const supabaseData = {
-      ...newEntrepreneur,
-      notas: notesToSave
-    };
-    delete supabaseData.no_contesto;
 
     const { data: inserted, error } = await supabase
       .from('entrepreneurs')
@@ -488,42 +503,62 @@ export class Database {
       return null;
     }
 
-    this.emprendedores.push(inserted);
-    return inserted;
+    // Transform back for local state
+    const newEmp = {
+      ...inserted,
+      notas: data.notas || '',
+      followUpHistory: [],
+      no_contesto: false
+    };
+
+    this.emprendedores.push(newEmp);
+    return newEmp;
   }
 
   async updateEntrepreneur(id, data) {
     const index = this.emprendedores.findIndex(e => e.id === id);
     if (index >= 0) {
       const current = this.emprendedores[index];
-      const updates = {
-        nombre_emprendimiento: data.nombre_emprendimiento ?? current.nombre_emprendimiento,
-        persona_contacto: data.persona_contacto ?? current.persona_contacto,
-        telefono: data.telefono ?? current.telefono,
-        correo: data.correo ?? current.correo,
-        categoria_principal: data.categoria_principal ?? current.categoria_principal,
-        actividad_economica: data.actividad_economica ?? current.actividad_economica,
-        ciudad: data.ciudad ?? current.ciudad,
-        red_social: data.red_social ?? current.red_social,
-        subcategoria_interna: data.categoria_principal ?? current.subcategoria_interna,
-        semaforizacion: data.tipo_emprendedor ?? current.semaforizacion,
-        notas: data.notas ?? current.notas,
-        no_contesto: data.no_contesto ?? current.no_contesto
+
+      // Merge updates
+      const updates = { ...data };
+
+      // Handle notes/history
+      // If 'notas' is updated via this method, it updates 'general_notes'
+      // 'followUpHistory' should be preserved unless explicitly updated (which we won't do here usually)
+
+      const currentHistory = current.followUpHistory || [];
+      const currentGeneralNotes = current.notas || '';
+
+      const newGeneralNotes = updates.notas !== undefined ? updates.notas : currentGeneralNotes;
+
+      // Construct JSON for DB
+      const notesObject = {
+        general_notes: newGeneralNotes,
+        history: currentHistory
       };
-
-      this.emprendedores[index] = { ...this.emprendedores[index], ...updates };
-
-      // Prepare data for Supabase
-      const notesToSave = updates.no_contesto
-        ? (updates.notas ? `${updates.notas} {{NC}}` : '{{NC}}')
-        : updates.notas;
 
       const supabaseUpdates = {
-        ...updates,
-        notas: notesToSave
+        nombre_emprendimiento: updates.nombre_emprendimiento ?? current.nombre_emprendimiento,
+        persona_contacto: updates.persona_contacto ?? current.persona_contacto,
+        telefono: updates.telefono ?? current.telefono,
+        correo: updates.correo ?? current.correo,
+        categoria_principal: updates.categoria_principal ?? current.categoria_principal,
+        actividad_economica: updates.actividad_economica ?? current.actividad_economica,
+        ciudad: updates.ciudad ?? current.ciudad,
+        red_social: updates.red_social ?? current.red_social,
+        subcategoria_interna: updates.categoria_principal ?? current.subcategoria_interna,
+        semaforizacion: updates.tipo_emprendedor ?? current.semaforizacion,
+        notas: JSON.stringify(notesObject)
       };
-      // Remove virtual field before sending to Supabase
-      delete supabaseUpdates.no_contesto;
+
+      // Optimistic update
+      this.emprendedores[index] = {
+        ...current,
+        ...updates,
+        notas: newGeneralNotes,
+        followUpHistory: currentHistory
+      };
 
       const { error } = await supabase
         .from('entrepreneurs')
@@ -534,6 +569,78 @@ export class Database {
       return this.emprendedores[index];
     }
     return null;
+  }
+
+  async addFollowUp(id, followUpData) {
+    const index = this.emprendedores.findIndex(e => e.id === id);
+    if (index >= 0) {
+      const current = this.emprendedores[index];
+      const currentHistory = current.followUpHistory || [];
+      const currentGeneralNotes = current.notas || '';
+
+      const newHistory = [followUpData, ...currentHistory];
+
+      // Optimistic update
+      this.emprendedores[index] = {
+        ...current,
+        followUpHistory: newHistory
+      };
+
+      // DB Update
+      const notesObject = {
+        general_notes: currentGeneralNotes,
+        history: newHistory
+      };
+
+      const { error } = await supabase
+        .from('entrepreneurs')
+        .update({ notas: JSON.stringify(notesObject) })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error adding follow-up:', error);
+        // Revert optimistic?
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  async deleteFollowUp(id, followUpIndex) {
+    const index = this.emprendedores.findIndex(e => e.id === id);
+    if (index >= 0) {
+      const current = this.emprendedores[index];
+      const currentHistory = current.followUpHistory || [];
+      const currentGeneralNotes = current.notas || '';
+
+      // Remove item at specific index
+      const newHistory = currentHistory.filter((_, idx) => idx !== followUpIndex);
+
+      // Optimistic update
+      this.emprendedores[index] = {
+        ...current,
+        followUpHistory: newHistory
+      };
+
+      // DB Update
+      const notesObject = {
+        general_notes: currentGeneralNotes,
+        history: newHistory
+      };
+
+      const { error } = await supabase
+        .from('entrepreneurs')
+        .update({ notas: JSON.stringify(notesObject) })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting follow-up:', error);
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 
   async deleteEntrepreneur(id) {
@@ -576,10 +683,11 @@ export class Database {
     this.emprendedores = this.emprendedores.map(e => ({
       ...e,
       veces_en_stand: 0,
-      ultima_semana_participacion: null
+      ultima_semana_participacion: null,
+      followUpHistory: []
     }));
 
     await supabase.from('assignments').delete().neq('id_asignacion', '0'); // Delete all
-    await supabase.from('entrepreneurs').update({ veces_en_stand: 0, ultima_semana_participacion: null }).neq('id', 0);
+    await supabase.from('entrepreneurs').update({ veces_en_stand: 0, ultima_semana_participacion: null, notas: '' }).neq('id', 0);
   }
 }

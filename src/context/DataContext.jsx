@@ -23,6 +23,13 @@ export function DataProvider({ children }) {
 
     const initialLoadStarted = useRef(false);
 
+    const refreshData = async () => {
+        await db.loadData();
+        setEntrepreneurs([...db.getEmprendedores()]);
+        setAssignments([...db.asignaciones]);
+        setEarnings(Array.isArray(db.earnings) ? [...db.earnings] : []);
+    };
+
     useEffect(() => {
         const initData = async () => {
             if (initialLoadStarted.current) return;
@@ -55,12 +62,7 @@ export function DataProvider({ children }) {
 
     const [earnings, setEarnings] = useState([]);
 
-    const refreshData = async () => {
-        await db.loadData();
-        setEntrepreneurs([...db.getEmprendedores()]);
-        setAssignments([...db.asignaciones]);
-        setEarnings(Array.isArray(db.earnings) ? [...db.earnings] : []);
-    };
+
 
     const generateAssignments = async (week) => {
         const newAssignments = generarAsignacionParaSemana(week, db);
@@ -185,7 +187,17 @@ export function DataProvider({ children }) {
         clearWeekAssignments,
         clearBlockAssignments,
         addEarning,
-        deleteEarning
+        deleteEarning,
+        addFollowUp: async (id, data) => {
+            const result = await db.addFollowUp(id, data);
+            if (result) await refreshData();
+            return result;
+        },
+        deleteFollowUp: async (id, index) => {
+            const result = await db.deleteFollowUp(id, index);
+            if (result) await refreshData();
+            return result;
+        }
     };
 
     return (

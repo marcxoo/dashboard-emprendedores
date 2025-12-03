@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, User, Phone, Trash2, Edit, Building2, Instagram, Facebook, Globe, Link as LinkIcon } from 'lucide-react';
+import { X, User, Phone, Trash2, Edit, Building2, Instagram, Facebook, Globe, Link as LinkIcon, Mail } from 'lucide-react';
 
 // Helper to parse social media
 const getSocialMediaInfo = (input) => {
@@ -58,12 +58,7 @@ const getSocialMediaInfo = (input) => {
 export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDelete }) {
     const [isVisible, setIsVisible] = useState(false);
 
-    // ... (rest of the component)
-
     const socialInfo = getSocialMediaInfo(entrepreneur?.red_social);
-
-
-
 
     useEffect(() => {
         if (entrepreneur) {
@@ -138,6 +133,13 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                                     <div>
                                         <div className="text-sm text-slate-500">Teléfono</div>
                                         <div className="font-medium text-secondary">{entrepreneur.telefono}</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500"><Mail size={18} /></div>
+                                    <div>
+                                        <div className="text-sm text-slate-500">Correo Electrónico</div>
+                                        <div className="font-medium text-secondary break-all">{entrepreneur.correo || 'No registrado'}</div>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
