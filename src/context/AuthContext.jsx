@@ -7,20 +7,18 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+        try {
+            const storedUser = localStorage.getItem('user_session');
+            return storedUser ? JSON.parse(storedUser) : null;
+        } catch (e) {
+            console.warn('Unable to access storage for session', e);
+            return null;
+        }
+    });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Check for stored user on mount
-        const storedUser = localStorage.getItem('user_session');
-        if (storedUser) {
-            try {
-                setUser(JSON.parse(storedUser));
-            } catch (e) {
-                console.error("Failed to parse user session", e);
-                localStorage.removeItem('user_session');
-            }
-        }
         setLoading(false);
     }, []);
 
@@ -34,7 +32,11 @@ export function AuthProvider({ children }) {
                 role: 'admin'
             };
             setUser(userData);
-            localStorage.setItem('user_session', JSON.stringify(userData));
+            try {
+                localStorage.setItem('user_session', JSON.stringify(userData));
+            } catch (e) {
+                console.warn('Unable to save session', e);
+            }
             return { success: true };
         } else {
             return { success: false, error: 'Credenciales incorrectas' };
@@ -43,7 +45,9 @@ export function AuthProvider({ children }) {
 
     const logout = () => {
         setUser(null);
-        localStorage.removeItem('user_session');
+        try {
+            localStorage.removeItem('user_session');
+        } catch (e) { }
     };
 
     const value = {

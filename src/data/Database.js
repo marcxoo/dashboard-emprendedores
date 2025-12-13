@@ -64,6 +64,23 @@ export class Database {
       if (assignError) throw assignError;
       this.asignaciones = assignments || [];
 
+      // Recalculate stats based on confirmed assignments (asistio === true)
+      // This ensures 'veces_en_stand' reflects actual participation, not just scheduling
+      this.emprendedores = this.emprendedores.map(e => {
+        const confirmedAssignments = this.asignaciones.filter(a =>
+          a.id_emprendedor === e.id && a.asistio === true
+        );
+
+        // Sort to find latest week
+        confirmedAssignments.sort((a, b) => compareWeeks(b.semana, a.semana));
+
+        return {
+          ...e,
+          veces_en_stand: confirmedAssignments.length,
+          ultima_semana_participacion: confirmedAssignments.length > 0 ? confirmedAssignments[0].semana : null
+        };
+      });
+
       await this.loadEarnings();
 
       this.normalizeCategories();
@@ -247,24 +264,8 @@ export class Database {
       // Revert optimistic update? For now, we assume success or reload on error
     }
 
-    // Update entrepreneur stats
-    const empIndex = this.emprendedores.findIndex(e => e.id === assignment.id_emprendedor);
-    if (empIndex >= 0) {
-      const emp = this.emprendedores[empIndex];
-      const newCount = (emp.veces_en_stand || 0) + 1;
-
-      // Optimistic
-      this.emprendedores[empIndex].veces_en_stand = newCount;
-      this.emprendedores[empIndex].ultima_semana_participacion = assignment.semana;
-
-      await supabase
-        .from('entrepreneurs')
-        .update({
-          veces_en_stand: newCount,
-          ultima_semana_participacion: assignment.semana
-        })
-        .eq('id', emp.id);
-    }
+    // Entrepreneur stats are now recalculated in loadData() based on confirmed attendance.
+    // We do not manually increment here to avoid counting unconfirmed assignments.
   }
 
   async saveAssignmentsBatch(assignments) {
@@ -283,58 +284,9 @@ export class Database {
       // In a real app we might want to revert optimistic updates here
     }
 
-    // 3. Update entrepreneur stats (Optimistic + DB)
-    // We need to aggregate updates per entrepreneur to avoid race conditions or multiple writes
-    const entrepreneurUpdates = new Map();
+    // Entrepreneur stats are now recalculated in loadData() based on confirmed attendance.
+    // We do not manually increment here.
 
-    for (const assignment of assignments) {
-      const empId = assignment.id_emprendedor;
-      if (!entrepreneurUpdates.has(empId)) {
-        const emp = this.emprendedores.find(e => e.id === empId);
-        if (emp) {
-          entrepreneurUpdates.set(empId, {
-            original: emp,
-            countIncrease: 0,
-            lastWeek: assignment.semana // Assume the batch is for the same week or later
-          });
-        }
-      }
-
-      const update = entrepreneurUpdates.get(empId);
-      if (update) {
-        update.countIncrease += 1;
-        // If batch has mixed weeks, ensure we take the latest (lexicographically for YYYY-SXX works)
-        if (compareWeeks(assignment.semana, update.lastWeek) > 0) {
-          update.lastWeek = assignment.semana;
-        }
-      }
-    }
-
-    // Apply updates
-    const updatePromises = [];
-    for (const [empId, update] of entrepreneurUpdates) {
-      const empIndex = this.emprendedores.findIndex(e => e.id === empId);
-      if (empIndex >= 0) {
-        const newCount = (this.emprendedores[empIndex].veces_en_stand || 0) + update.countIncrease;
-
-        // Optimistic
-        this.emprendedores[empIndex].veces_en_stand = newCount;
-        this.emprendedores[empIndex].ultima_semana_participacion = update.lastWeek;
-
-        // DB Update
-        updatePromises.push(
-          supabase
-            .from('entrepreneurs')
-            .update({
-              veces_en_stand: newCount,
-              ultima_semana_participacion: update.lastWeek
-            })
-            .eq('id', empId)
-        );
-      }
-    }
-
-    await Promise.all(updatePromises);
   }
 
   async setManualAssignment(assignment) {
@@ -396,19 +348,7 @@ export class Database {
       return false;
     }
 
-    // Decrement stats
-    const empIndex = this.emprendedores.findIndex(e => e.id === assignment.id_emprendedor);
-    if (empIndex >= 0) {
-      const emp = this.emprendedores[empIndex];
-      const newCount = Math.max(0, (emp.veces_en_stand || 0) - 1);
-
-      this.emprendedores[empIndex].veces_en_stand = newCount;
-
-      await supabase
-        .from('entrepreneurs')
-        .update({ veces_en_stand: newCount })
-        .eq('id', emp.id);
-    }
+    // Stats are recalculated in loadData
     return true;
   }
 

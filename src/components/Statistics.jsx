@@ -86,8 +86,8 @@ export default function Statistics() {
         <div className="flex flex-col gap-8 animate-fade-in">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-0">
                 <div>
-                    <h1 className="text-3xl font-bold text-secondary tracking-tight">Estadísticas y Ganancias</h1>
-                    <p className="text-slate-500 mt-2 text-lg">Control de ingresos por emprendedor</p>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Estadísticas y Ganancias</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">Control de ingresos por emprendedor</p>
                 </div>
                 <button
                     onClick={() => setIsAdding(!isAdding)}
@@ -99,28 +99,28 @@ export default function Statistics() {
 
             {/* Stats Overview Card */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-green-500 hover:shadow-lg transition-all">
-                    <div className="p-4 rounded-2xl bg-green-50 text-green-600 shadow-inner">
+                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-green-500 hover:shadow-lg transition-all bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div className="p-4 rounded-2xl bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 shadow-inner">
                         <DollarSign size={32} />
                     </div>
                     <div>
-                        <div className="text-sm text-slate-500 font-semibold uppercase tracking-wider">Total Registrado</div>
-                        <div className="text-3xl font-bold text-secondary mt-1">${totalEarnings.toFixed(2)}</div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Total Registrado</div>
+                        <div className="text-3xl font-bold text-green-600 dark:text-white mt-1">${totalEarnings.toFixed(2)}</div>
                     </div>
                 </div>
             </div>
 
             {/* Add Earning Form */}
             {isAdding && (
-                <div className="card p-6 bg-slate-50 border border-slate-200 animate-fade-in">
-                    <h3 className="font-bold text-lg text-secondary mb-4 flex items-center gap-2">
+                <div className="card p-6 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 animate-fade-in">
+                    <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                         <DollarSign size={20} className="text-primary-500" /> Nuevo Registro
                     </h3>
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                         <div className="col-span-1 md:col-span-2 lg:col-span-1">
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Emprendedor</label>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Emprendedor</label>
                             <select
-                                className="input"
+                                className="input bg-white dark:bg-slate-700 dark:text-white dark:border-slate-600"
                                 value={formData.entrepreneur_id}
                                 onChange={e => setFormData({ ...formData, entrepreneur_id: parseInt(e.target.value) })}
                                 required
@@ -132,11 +132,11 @@ export default function Statistics() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Monto ($)</label>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Monto ($)</label>
                             <input
                                 type="number"
                                 step="0.01"
-                                className="input"
+                                className="input bg-white dark:bg-slate-700 dark:text-white dark:border-slate-600"
                                 value={formData.amount}
                                 onChange={e => setFormData({ ...formData, amount: e.target.value })}
                                 placeholder="0.00"
@@ -144,10 +144,10 @@ export default function Statistics() {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha</label>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Fecha</label>
                             <input
                                 type="date"
-                                className="input"
+                                className="input bg-white dark:bg-slate-700 dark:text-white dark:border-slate-600"
                                 value={formData.date}
                                 onChange={e => setFormData({ ...formData, date: e.target.value })}
                                 required
@@ -155,12 +155,12 @@ export default function Statistics() {
                         </div>
                         <div className="col-span-1 md:col-span-2 lg:col-span-1 flex gap-2">
                             <button type="submit" className="btn btn-primary flex-1 justify-center">Guardar</button>
-                            <button type="button" onClick={() => setIsAdding(false)} className="btn btn-ghost">Cancelar</button>
+                            <button type="button" onClick={() => setIsAdding(false)} className="btn btn-ghost dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700">Cancelar</button>
                         </div>
                         <div className="col-span-full">
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Notas (Opcional)</label>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Notas (Opcional)</label>
                             <input
-                                className="input"
+                                className="input bg-white dark:bg-slate-700 dark:text-white dark:border-slate-600"
                                 value={formData.notes}
                                 onChange={e => setFormData({ ...formData, notes: e.target.value })}
                                 placeholder="Detalles adicionales..."
@@ -171,12 +171,12 @@ export default function Statistics() {
             )}
 
             {/* Filters & Table */}
-            <div className="card bg-white shadow-xl shadow-slate-200/50 border-0 ring-1 ring-slate-100 rounded-2xl overflow-hidden">
-                <div className="p-6 border-b border-slate-100 bg-white flex flex-col md:flex-row gap-4">
+            <div className="card bg-white dark:bg-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 border-0 ring-1 ring-slate-100 dark:ring-slate-700 rounded-2xl overflow-hidden">
+                <div className="p-6 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col md:flex-row gap-4">
                     <div className="flex-1 min-w-[250px] relative group">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Search size={20} /></span>
                         <input
-                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-primary-500 outline-none transition-all"
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all dark:text-white dark:placeholder-slate-400"
                             placeholder="Buscar emprendedor..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
@@ -185,7 +185,7 @@ export default function Statistics() {
                     <div className="relative min-w-[200px]">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Filter size={18} /></span>
                         <select
-                            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-primary-500 outline-none appearance-none cursor-pointer"
+                            className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none appearance-none cursor-pointer dark:text-white"
                             value={filterWeek}
                             onChange={e => setFilterWeek(e.target.value)}
                         >
@@ -196,38 +196,38 @@ export default function Statistics() {
                 </div>
 
                 {/* Mobile Card View */}
-                <div className="block md:hidden divide-y divide-slate-100">
+                <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-700">
                     {filteredEarnings.length > 0 ? (
                         filteredEarnings.map((e) => {
                             const emp = entrepreneurs.find(emp => emp.id === e.entrepreneur_id);
                             return (
-                                <div key={e.id} className="p-4 hover:bg-slate-50 transition-colors">
+                                <div key={e.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
-                                            <div className="font-bold text-secondary text-lg">{emp?.nombre_emprendimiento || 'Desconocido'}</div>
-                                            <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
+                                            <div className="font-bold text-slate-900 dark:text-white text-lg">{emp?.nombre_emprendimiento || 'Desconocido'}</div>
+                                            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
                                                 <Calendar size={14} />
                                                 {e.date}
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="font-bold text-green-600 text-lg">${e.amount.toFixed(2)}</div>
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mt-1">
+                                            <div className="font-bold text-green-600 dark:text-green-400 text-lg">${e.amount.toFixed(2)}</div>
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 mt-1">
                                                 {e.week}
                                             </span>
                                         </div>
                                     </div>
                                     {e.notes && (
-                                        <div className="text-sm text-slate-500 bg-slate-50 p-2 rounded-lg mb-3">
+                                        <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 p-2 rounded-lg mb-3">
                                             {e.notes}
                                         </div>
                                     )}
-                                    <div className="flex justify-end pt-2 border-t border-slate-100">
+                                    <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-700">
                                         <button
                                             onClick={() => {
                                                 if (window.confirm('¿Eliminar este registro?')) deleteEarning(e.id);
                                             }}
-                                            className="flex items-center gap-1 text-sm text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-all"
+                                            className="flex items-center gap-1 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 px-3 py-1.5 rounded-lg transition-all"
                                         >
                                             <Trash2 size={16} /> Eliminar
                                         </button>
@@ -236,7 +236,7 @@ export default function Statistics() {
                             );
                         })
                     ) : (
-                        <div className="p-8 text-center text-slate-400">
+                        <div className="p-8 text-center text-slate-400 dark:text-slate-500">
                             No se encontraron registros
                         </div>
                     )}
@@ -246,39 +246,39 @@ export default function Statistics() {
                 <div className="hidden md:block overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-100">
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Fecha</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Emprendedor</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Semana</th>
-                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Monto</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Notas</th>
-                                <th className="px-6 py-4 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Acciones</th>
+                            <tr className="bg-slate-50/50 dark:bg-slate-700/30 border-b border-slate-100 dark:border-slate-700">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Fecha</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Emprendedor</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Semana</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Monto</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Notas</th>
+                                <th className="px-6 py-4 text-center text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
                             {filteredEarnings.length > 0 ? (
                                 filteredEarnings.map((e) => {
                                     const emp = entrepreneurs.find(emp => emp.id === e.entrepreneur_id);
                                     return (
-                                        <tr key={e.id} className="hover:bg-slate-50 transition-colors">
-                                            <td className="px-6 py-4 text-sm text-slate-600 font-mono">
+                                        <tr key={e.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                            <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono">
                                                 <div className="flex items-center gap-2">
                                                     <Calendar size={14} className="text-slate-400" />
                                                     {e.date}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="font-bold text-secondary">{emp?.nombre_emprendimiento || 'Desconocido'}</div>
+                                                <div className="font-bold text-secondary dark:text-white">{emp?.nombre_emprendimiento || 'Desconocido'}</div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
                                                     {e.week}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-right font-bold text-green-600">
+                                            <td className="px-6 py-4 text-right font-bold text-green-600 dark:text-green-400">
                                                 ${e.amount.toFixed(2)}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-500 max-w-xs truncate">
+                                            <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 max-w-xs truncate">
                                                 {e.notes || '-'}
                                             </td>
                                             <td className="px-6 py-4 text-center">
@@ -286,7 +286,7 @@ export default function Statistics() {
                                                     onClick={() => {
                                                         if (window.confirm('¿Eliminar este registro?')) deleteEarning(e.id);
                                                     }}
-                                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -296,7 +296,7 @@ export default function Statistics() {
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-12 text-center text-slate-400">
+                                    <td colSpan="6" className="px-6 py-12 text-center text-slate-400 dark:text-slate-500">
                                         No se encontraron registros
                                     </td>
                                 </tr>

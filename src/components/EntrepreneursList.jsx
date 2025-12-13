@@ -2,8 +2,125 @@ import { useState, useMemo, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import EntrepreneurDetail from './EntrepreneurDetail';
 import { getDateRangeFromWeek } from '../utils/dateUtils';
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, Phone, Mail, User, Edit, Sparkles, X, Building2, Tag, ChevronDown, FileText, Save, Plus, MessageCircle, Clock, Calendar, CheckCircle, XCircle, List, History, Trash2 } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, Phone, Mail, User, Users, Edit, Sparkles, X, Building2, Tag, ChevronDown, FileText, Save, Plus, MessageCircle, Clock, Calendar, CheckCircle, XCircle, List, History, Trash2, Store, Eye, Globe, Instagram, Facebook, Video } from 'lucide-react';
 import { createPortal } from 'react-dom';
+
+const MobileEntrepreneurCard = ({
+    e,
+    onSelect,
+    onContact,
+    onFollowUp,
+    onEmail,
+    onOffer,
+    onHistory
+}) => {
+    const [expanded, setExpanded] = useState(false);
+
+    return (
+        <div
+            className="glass-panel p-6 flex flex-col gap-5 active:scale-[0.99] transition-transform bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+            onClick={() => onSelect(e)}
+        >
+            <div className="flex justify-between items-start">
+                <div className="flex gap-4 min-w-0">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-xl shrink-0 mt-0.5 border border-slate-100 dark:border-slate-600">
+                        {e.nombre_emprendimiento.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex flex-col">
+                        <h3 className="font-bold text-slate-800 dark:text-white text-lg leading-snug break-words">{e.nombre_emprendimiento}</h3>
+                        <p className="text-slate-500 dark:text-slate-300 text-sm mt-0.5 truncate">{e.persona_contacto}</p>
+                        <div>
+                            <span className="inline-flex mt-3 px-3 py-1 rounded-lg text-xs font-bold bg-slate-50 dark:bg-orange-900/20 text-slate-600 dark:text-orange-200 border border-slate-200 dark:border-orange-900/30 tracking-wide">
+                                {e.categoria_principal}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Activity Snippet - Expandable */}
+            {e.actividad_economica && (
+                <div
+                    onClick={(ev) => {
+                        ev.stopPropagation();
+                        setExpanded(!expanded);
+                    }}
+                    className="text-[15px] text-slate-600 dark:text-slate-200 bg-slate-50/50 dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-600 leading-relaxed transition-all cursor-pointer active:bg-slate-100 dark:active:bg-slate-700 hover:border-slate-200 dark:hover:border-slate-500"
+                >
+                    <p className={expanded ? '' : 'line-clamp-3'}>
+                        {e.actividad_economica}
+                    </p>
+                    {!expanded && e.actividad_economica.length > 80 && (
+                        <div className="text-primary-600 dark:text-primary-400 font-bold text-sm mt-2 flex items-center gap-1">
+                            Ver más <span className="text-xs">↓</span>
+                        </div>
+                    )}
+                </div>
+            )
+            }
+
+            <div className="grid grid-cols-2 gap-3.5" onClick={ev => ev.stopPropagation()}>
+                <button
+                    onClick={(ev) => onContact(e.telefono, ev)}
+                    className="col-span-1 flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl bg-green-50/50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 text-green-700 dark:text-green-300 font-bold text-xs hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors h-full min-h-[76px]"
+                >
+                    <MessageCircle size={22} strokeWidth={1.5} className="shrink-0 text-green-600 dark:text-green-400" />
+                    <span className="break-all text-center leading-tight">{e.telefono}</span>
+                </button>
+
+                <button
+                    onClick={() => onFollowUp(e)}
+                    className="col-span-1 flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl bg-orange-50/50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 text-orange-700 dark:text-orange-300 font-bold text-xs hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-colors h-full min-h-[76px]"
+                >
+                    <Eye size={22} strokeWidth={1.5} className="shrink-0 text-orange-500 dark:text-orange-400" />
+                    <span className="text-center leading-tight">Seguimiento</span>
+                </button>
+
+                {e.correo && (
+                    <button
+                        onClick={(ev) => onEmail(e.correo, ev)}
+                        className="col-span-1 flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-bold text-[11px] hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors h-full min-h-[76px]"
+                    >
+                        <Mail size={22} strokeWidth={1.5} className="shrink-0 text-blue-500 dark:text-blue-400" />
+                        <div className="flex flex-col items-center justify-center w-full leading-tight">
+                            <span className="break-all">{e.correo.split('@')[0]}</span>
+                            <span className="break-all">@{e.correo.split('@')[1]}</span>
+                        </div>
+                    </button>
+                )}
+
+                {e.correo && (
+                    <button
+                        onClick={(ev) => onOffer(e, ev)}
+                        className={`col-span-1 flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl bg-purple-50/50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-bold text-xs hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors h-full min-h-[76px] ${!e.correo ? 'col-span-2' : ''}`}
+                    >
+                        <Store size={22} strokeWidth={1.5} className="shrink-0 text-purple-500 dark:text-purple-400" />
+                        <span className="text-center leading-tight">Ofertar Stand</span>
+                    </button>
+                )}
+            </div>
+
+            <div className="flex items-center justify-between text-xs font-medium text-slate-400 pt-4 border-t border-slate-100 mt-1">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5">
+                        <History size={15} strokeWidth={1.5} className="text-slate-300" />
+                        <span>Part: <b className="text-slate-700 text-sm">{e.veces_en_stand}</b></span>
+                    </div>
+                </div>
+
+                <button
+                    onClick={(ev) => {
+                        ev.stopPropagation();
+                        onHistory(e);
+                    }}
+                    className="flex items-center gap-1.5 text-slate-500 hover:text-primary-600 transition-colors font-bold px-3 py-1.5 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200"
+                >
+                    <List size={16} strokeWidth={1.5} /> Ver Historial
+                </button>
+            </div>
+        </div >
+    );
+};
 
 export default function EntrepreneursList() {
     const { entrepreneurs, assignments, currentWeek, currentBlock, addEntrepreneur, updateEntrepreneur, deleteEntrepreneur } = useData();
@@ -19,7 +136,7 @@ export default function EntrepreneursList() {
     const [filterCategory, setFilterCategory] = useState('');
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
+    const [sortConfig, setSortConfig] = useState({ key: 'nombre_emprendimiento', direction: 'asc' });
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
@@ -280,7 +397,7 @@ Atentamente,`;
     const [selectedEntrepreneur, setSelectedEntrepreneur] = useState(null);
 
     return (
-        <div className="flex flex-col gap-8 animate-fade-in relative">
+        <div className="flex flex-col gap-8 animate-fade-in relative pb-20">
             {/* Detail Slide-over */}
             <EntrepreneurDetail
                 entrepreneur={selectedEntrepreneur}
@@ -302,28 +419,37 @@ Atentamente,`;
                 phoneNumber={contactSelection}
             />
 
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-0">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-secondary tracking-tight">Emprendedores</h1>
-                    <p className="text-slate-500 mt-2 text-lg">Gestión y listado general ({filteredData.length} registros)</p>
+                    <div className="flex items-center gap-3 mb-1">
+                        <div className="p-2 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg shadow-lg shadow-primary-500/20 text-white">
+                            <Users size={24} />
+                        </div>
+                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Emprendedores</h1>
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium ml-1">
+                        Gestión general <span className="inline-block mx-2 text-slate-300 dark:text-slate-600">•</span>
+                        <span className="text-primary-600 font-bold bg-primary-50 dark:bg-primary-900/30 dark:text-primary-400 px-2 py-0.5 rounded-md">{filteredData.length} registros</span>
+                    </p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3 w-full md:w-auto">
                     <button
                         onClick={handleBulkConfirmationEmail}
-                        className="btn bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 shadow-sm px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2"
-                        title="Enviar correo de confirmación a la lista filtrada"
+                        className="btn flex-1 md:flex-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-100 dark:hover:border-primary-500/30 shadow-sm hover:shadow px-4 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
                     >
-                        <Mail size={20} />
-                        <span className="hidden sm:inline">Enviar Confirmación Masiva</span>
+                        <Mail size={18} />
+                        <span>Confirmación Masiva</span>
                     </button>
                     <button
                         onClick={() => {
                             setEditingEntrepreneur(null);
                             setIsModalOpen(true);
                         }}
-                        className="btn btn-primary px-5 py-2.5 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all active:scale-95 flex items-center gap-2 rounded-xl font-semibold"
+                        className="btn flex-1 md:flex-none bg-primary-600 hover:bg-primary-700 text-white shadow-lg shadow-primary-600/25 hover:shadow-primary-600/40 px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
                     >
-                        <Plus size={20} /> Agregar Emprendedor
+                        <Plus size={20} />
+                        <span>Nuevo Emprendedor</span>
                     </button>
                 </div>
             </div>
@@ -340,273 +466,216 @@ Atentamente,`;
                 entrepreneur={selectedEntrepreneurForFollowUp}
             />
 
-            <div className="card bg-white shadow-xl shadow-slate-200/50 border-0 ring-1 ring-slate-100 rounded-2xl overflow-hidden">
-                {/* Filters */}
-                <div className="p-6 border-b border-slate-100 bg-white flex flex-col md:flex-row gap-4">
-                    <div className="flex-1 min-w-[250px] relative group">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Search size={20} /></span>
-                        <input
-                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all placeholder:text-slate-400 font-medium"
-                            placeholder="Buscar por nombre o contacto..."
-                            value={searchTerm}
-                            onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                        />
+            {/* Search & Filter Bar */}
+            <div className="glass-panel p-4 flex flex-col md:flex-row gap-4 items-center bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                <div className="relative flex-1 w-full group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                        <Search size={20} />
                     </div>
-                    <div className="relative min-w-[200px]">
-                        <select
-                            className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium cursor-pointer text-slate-700"
-                            value={filterCategory}
-                            onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }}
-                        >
-                            <option value="">Todas las Categorías</option>
-                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><ChevronDown size={16} /></span>
+                    <input
+                        className="glass-input w-full pl-12 pr-4 py-3 rounded-xl outline-none placeholder:text-slate-400 font-medium text-slate-700 dark:text-white focus:ring-4 focus:ring-primary-500/10 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600"
+                        placeholder="Buscar por nombre, teléfono o correo..."
+                        value={searchTerm}
+                        onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                    />
+                </div>
+
+                {/* Sort Dropdown */}
+                <div className="relative w-full md:hidden">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                        <ArrowUpDown size={18} />
+                    </div>
+                    <select
+                        className="w-full pl-11 pr-10 py-3 bg-slate-50/50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium text-slate-700 dark:text-white cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-700"
+                        value={`${sortConfig.key}-${sortConfig.direction}`}
+                        onChange={e => {
+                            const [key, direction] = e.target.value.split('-');
+                            setSortConfig({ key, direction });
+                        }}
+                    >
+                        <option value="veces_en_stand-desc">Mayor Participación</option>
+                        <option value="veces_en_stand-asc">Menor Participación</option>
+                        <option value="nombre_emprendimiento-asc">Nombre (A-Z)</option>
+                        <option value="nombre_emprendimiento-desc">Nombre (Z-A)</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                        <ChevronDown size={16} />
                     </div>
                 </div>
 
-                {/* Table (Desktop) */}
-                <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-100">
-                                <th onClick={() => requestSort('id')} className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors group">
-                                    <div className="flex items-center gap-2">ID <span className="text-slate-300 group-hover:text-slate-500 transition-colors">{getSortIcon('id')}</span></div>
-                                </th>
-                                <th onClick={() => requestSort('nombre_emprendimiento')} className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors group">
-                                    <div className="flex items-center gap-2">Emprendimiento <span className="text-slate-300 group-hover:text-slate-500 transition-colors">{getSortIcon('nombre_emprendimiento')}</span></div>
-                                </th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Contacto</th>
-                                <th onClick={() => requestSort('categoria_principal')} className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors group">
-                                    <div className="flex items-center gap-2">Categoría <span className="text-slate-300 group-hover:text-slate-500 transition-colors">{getSortIcon('categoria_principal')}</span></div>
-                                </th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                    Estado Seguimiento
-                                </th>
-                                <th onClick={() => requestSort('veces_en_stand')} className="px-8 py-5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors group">
-                                    <div className="flex items-center justify-center gap-2">Part. <span className="text-slate-300 group-hover:text-slate-500 transition-colors">{getSortIcon('veces_en_stand')}</span></div>
-                                </th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Última Part.</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {paginatedData.map((e, idx) => (
-                                <tr
-                                    key={e.id}
-                                    className={`group hover:bg-slate-50 transition-all cursor-pointer ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/20'}`}
-                                    onClick={() => setSelectedEntrepreneur(e)}
-                                >
-                                    <td className="px-8 py-6 font-mono text-xs font-medium text-slate-400 group-hover:text-slate-500">#{e.id}</td>
-                                    <td className="px-8 py-6">
-                                        <div className="font-bold text-slate-800 text-base group-hover:text-primary-700 transition-colors">{e.nombre_emprendimiento}</div>
-                                        <div className="text-xs text-slate-500 mt-1 font-medium">{e.actividad_economica}</div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-2">
-                                            {e.persona_contacto}
-                                            {e.no_contesto && (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 border border-red-200">
-                                                    No contestó
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className="flex flex-col gap-1">
-                                            <button
-                                                onClick={(ev) => handleContactClick(e.telefono, ev)}
-                                                className="text-xs text-slate-500 hover:text-green-600 hover:bg-green-50 w-fit px-2 py-1 -ml-2 rounded-md transition-all flex items-center gap-1.5 group/btn"
-                                                title="Enviar WhatsApp"
-                                            >
-                                                <Phone size={12} className="text-slate-400 group-hover/btn:text-green-500" />
-                                                <span className="font-medium">{e.telefono}</span>
-                                            </button>
-                                            {e.correo && (
-                                                <>
-                                                    <button
-                                                        onClick={(ev) => handleEmail(e.correo, ev)}
-                                                        className="text-xs text-slate-500 hover:text-blue-600 hover:bg-blue-50 w-fit px-2 py-1 -ml-2 rounded-md transition-all flex items-center gap-1.5 group/btn max-w-full"
-                                                        title="Enviar Correo"
-                                                    >
-                                                        <Mail size={12} className="text-slate-400 group-hover/btn:text-blue-500 shrink-0" />
-                                                        <span className="truncate font-medium">{e.correo}</span>
-                                                    </button>
-                                                    <button
-                                                        onClick={(ev) => handleStandOfferEmail(e, ev)}
-                                                        className="text-[10px] text-white bg-green-600 hover:bg-green-700 w-fit px-2 py-1 rounded-md transition-all flex items-center gap-1.5 shadow-sm"
-                                                        title="Enviar Oferta de Stand"
-                                                    >
-                                                        <Sparkles size={10} />
-                                                        <span className="font-medium">Correo oferta de stand</span>
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 group-hover:border-slate-300 transition-colors">
+                <div className="relative w-full md:w-64">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                        <Tag size={18} />
+                    </div>
+                    <select
+                        className="w-full pl-11 pr-10 py-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-700"
+                        value={filterCategory}
+                        onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }}
+                    >
+                        <option value="">Todas las Categorías</option>
+                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                        <ChevronDown size={16} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Desktop List (Card-Rows) */}
+            <div className="hidden md:flex flex-col gap-3">
+                {/* Header Row */}
+                <div className="flex px-6 py-2 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    <div className="w-[35%] cursor-pointer hover:text-primary-600 transition-colors flex items-center gap-1" onClick={() => requestSort('nombre_emprendimiento')}>
+                        Emprendimiento {getSortIcon('nombre_emprendimiento')}
+                    </div>
+                    <div className="w-[25%] pl-4">Contacto</div>
+                    <div className="w-[15%] text-center cursor-pointer hover:text-primary-600 transition-colors flex items-center justify-center gap-1" onClick={() => requestSort('veces_en_stand')}>
+                        Participación {getSortIcon('veces_en_stand')}
+                    </div>
+                    <div className="w-[25%] text-right pr-4">Acciones</div>
+                </div>
+
+                {paginatedData.map((e) => (
+                    <div
+                        key={e.id}
+                        onClick={() => setSelectedEntrepreneur(e)}
+                        className={`group rounded-xl p-4 flex items-center shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden ${selectedEntrepreneur?.id === e.id
+                            ? 'bg-primary-50 dark:bg-primary-900/10 border border-primary-500 dark:border-primary-500 ring-1 ring-primary-500 dark:ring-primary-500 z-10'
+                            : 'bg-white dark:bg-slate-800 hover:bg-slate-50/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 hover:border-primary-200 dark:hover:border-primary-500/30'
+                            }`}
+                    >
+                        {/* Left Accent */}
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-primary-500 transition-colors"></div>
+
+                        {/* Col 1: Identity */}
+                        <div className="w-[35%] pr-4">
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-sm shrink-0 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors mt-1">
+                                    {e.nombre_emprendimiento.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="font-bold text-slate-800 dark:text-white text-base active:text-primary-700 leading-tight">{e.nombre_emprendimiento}</h3>
+                                    <div className="flex flex-wrap items-center gap-2 mt-1 mb-1.5">
+                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{e.persona_contacto}</span>
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-orange-900/20 text-slate-500 dark:text-orange-200 border border-slate-200 dark:border-orange-900/30">
                                             {e.categoria_principal}
                                         </span>
-                                    </td>
-                                    <td className="px-8 py-6" onClick={e => e.stopPropagation()}>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedEntrepreneurForFollowUp(e);
-                                                    setFollowUpModalOpen(true);
-                                                }}
-                                                className="w-10 h-10 rounded-xl bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center shadow-lg shadow-primary-500/20 transition-all active:scale-95 group/btn relative"
-                                                title="Añadir Seguimiento"
-                                            >
-                                                <Phone size={20} />
-                                                <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                                                    Añadir Seguimiento
-                                                </span>
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedEntrepreneurForFollowUp(e);
-                                                    setHistoryModalOpen(true);
-                                                }}
-                                                className="w-10 h-10 rounded-xl bg-secondary hover:bg-slate-800 text-white flex items-center justify-center shadow-lg shadow-slate-900/10 transition-all active:scale-95 group/btn relative"
-                                                title="Ver Observaciones"
-                                            >
-                                                <List size={20} />
-                                                <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                                                    Ver Observaciones
-                                                </span>
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6 text-center">
-                                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${e.veces_en_stand > 0 ? 'bg-primary-50 text-primary-700' : 'bg-slate-100 text-slate-400'}`}>
-                                            {e.veces_en_stand}
-                                        </span>
-                                    </td>
-                                    <td className="px-8 py-6 text-sm">
-                                        <div className="flex flex-col">
-                                            <span className="font-semibold text-slate-700">{getDateRangeFromWeek(e.ultima_semana_participacion)}</span>
-                                            <span className="text-xs text-slate-400 mt-0.5 font-mono">{e.ultima_semana_participacion || '-'}</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Cards (Mobile) */}
-                <div className="md:hidden divide-y divide-slate-100">
-                    {paginatedData.map((e) => (
-                        <div
-                            key={e.id}
-                            className="p-5 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
-                            onClick={() => setSelectedEntrepreneur(e)}
-                        >
-                            <div className="flex justify-between items-start mb-3">
-                                <div>
-                                    <div className="font-bold text-secondary text-lg">{e.nombre_emprendimiento}</div>
-                                    <div className="text-sm text-slate-500 mt-0.5">{e.actividad_economica}</div>
+                                    </div>
+                                    <p className="text-xs text-slate-500 dark:text-slate-300 leading-relaxed line-clamp-2" title={e.actividad_economica}>
+                                        {e.actividad_economica || 'Sin descripción de actividad.'}
+                                    </p>
                                 </div>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                                    {e.categoria_principal}
-                                </span>
                             </div>
+                        </div>
 
-                            <div className="mb-4 flex gap-3" onClick={e => e.stopPropagation()}>
-                                <button
-                                    onClick={() => {
-                                        setSelectedEntrepreneurForFollowUp(e);
-                                        setFollowUpModalOpen(true);
-                                    }}
-                                    className="flex-1 py-3 rounded-xl bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center gap-2 shadow-sm font-bold text-sm"
-                                >
-                                    <Phone size={18} /> Añadir Seguimiento
+                        {/* Col 2: Contact */}
+                        <div className="w-[25%] px-4 border-l border-slate-100 dark:border-slate-700">
+                            <div className="flex flex-col gap-1.5">
+                                <button className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-green-600 dark:hover:text-green-400 transition-colors w-fit" onClick={(ev) => handleContactClick(e.telefono, ev)}>
+                                    <Phone size={14} className="text-slate-400 dark:text-slate-400" />
+                                    <span className="font-mono">{e.telefono}</span>
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        setSelectedEntrepreneurForFollowUp(e);
-                                        setHistoryModalOpen(true);
-                                    }}
-                                    className="flex-1 py-3 rounded-xl bg-secondary hover:bg-slate-800 text-white flex items-center justify-center gap-2 shadow-sm font-bold text-sm"
-                                >
-                                    <List size={18} /> Ver Historial
-                                </button>
-                            </div>
-
-                            <div className="flex flex-col gap-2 mt-4 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <User size={14} className="text-slate-400" />
-                                    <span className="font-semibold">{e.persona_contacto}</span>
-                                    {e.no_contesto && (
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 border border-red-200">
-                                            No contestó
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <button
-                                        onClick={(ev) => handleContactClick(e.telefono, ev)}
-                                        className="w-full flex items-center justify-center gap-2 text-xs font-medium bg-white border border-slate-200 py-2.5 rounded-lg text-slate-600 active:scale-95 transition-all"
-                                    >
-                                        <MessageCircle size={14} className="text-green-500" /> {e.telefono}
+                                {e.correo && (
+                                    <button className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full text-left group/email" onClick={(ev) => handleEmail(e.correo, ev)}>
+                                        <Mail size={14} className="text-slate-400 dark:text-slate-400 shrink-0 group-hover/email:text-blue-500 dark:group-hover/email:text-blue-400" />
+                                        <span className="break-all leading-tight">{e.correo}</span>
                                     </button>
-                                    {e.correo && (
-                                        <>
-                                            <button
-                                                onClick={(ev) => handleEmail(e.correo, ev)}
-                                                className="w-full flex items-center justify-center gap-2 text-xs font-medium bg-white border border-slate-200 py-2.5 rounded-lg text-slate-600 active:scale-95 transition-all"
-                                            >
-                                                <Mail size={14} className="text-blue-500" /> <span className="break-all">{e.correo}</span>
-                                            </button>
-                                            <button
-                                                onClick={(ev) => handleStandOfferEmail(e, ev)}
-                                                className="w-full flex items-center justify-center gap-2 text-xs font-medium bg-green-50 border border-green-200 py-2.5 rounded-lg text-green-700 active:scale-95 transition-all"
-                                            >
-                                                <Sparkles size={14} /> Correo oferta de stand
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-50">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Participaciones</span>
-                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full font-bold text-xs ${e.veces_en_stand > 0 ? 'bg-primary-50 text-primary-700' : 'bg-slate-100 text-slate-400'}`}>
-                                        {e.veces_en_stand}
-                                    </span>
-                                </div>
-                                <div className="text-xs text-slate-400 font-mono">
-                                    Última: {e.ultima_semana_participacion || '-'}
-                                </div>
+                                )}
                             </div>
                         </div>
-                    ))}
+
+                        {/* Col 3: Stats */}
+                        <div className="w-[15%] flex flex-col items-center justify-center border-l border-slate-100 dark:border-slate-700 px-4">
+                            <div className={`text-xl font-bold ${e.veces_en_stand > 0 ? 'text-primary-600 dark:text-primary-400' : 'text-slate-300 dark:text-slate-600'}`}>
+                                {e.veces_en_stand}
+                            </div>
+                            <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider text-center">
+                                {e.veces_en_stand > 0 && e.ultima_semana_participacion ? getDateRangeFromWeek(e.ultima_semana_participacion) : ''}
+                            </div>
+                        </div>
+
+                        {/* Col 4: Actions */}
+                        <div className="w-[25%] pl-4 flex items-center justify-end gap-2" onClick={ev => ev.stopPropagation()}>
+                            <button
+                                onClick={() => {
+                                    setSelectedEntrepreneurForFollowUp(e);
+                                    setFollowUpModalOpen(true);
+                                }}
+                                className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 border border-slate-200 dark:border-slate-600 hover:border-primary-200 dark:hover:border-primary-500/30 transition-all"
+                                title="Añadir Observación"
+                            >
+                                <Eye size={16} />
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setSelectedEntrepreneurForFollowUp(e);
+                                    setHistoryModalOpen(true);
+                                }}
+                                className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-secondary hover:text-white border border-slate-200 dark:border-slate-600 hover:border-secondary transition-all"
+                                title="Historial"
+                            >
+                                <List size={16} />
+                            </button>
+                            {e.correo && (
+                                <button
+                                    onClick={(ev) => handleStandOfferEmail(e, ev)}
+                                    className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-600 dark:hover:text-green-400 border border-slate-200 dark:border-slate-600 hover:border-green-200 dark:hover:border-green-500/30 transition-all"
+                                    title="Ofertar Stand"
+                                >
+                                    <Store size={16} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Cards (Mobile) */}
+            {/* Cards (Mobile) */}
+            <div className="md:hidden flex flex-col gap-4">
+                {paginatedData.map((e) => (
+                    <MobileEntrepreneurCard
+                        key={e.id}
+                        e={e}
+                        onSelect={setSelectedEntrepreneur}
+                        onContact={handleContactClick}
+                        onFollowUp={() => {
+                            setSelectedEntrepreneurForFollowUp(e);
+                            setFollowUpModalOpen(true);
+                        }}
+                        onEmail={handleEmail}
+                        onOffer={handleStandOfferEmail}
+                        onHistory={() => {
+                            setSelectedEntrepreneurForFollowUp(e);
+                            setHistoryModalOpen(true);
+                        }}
+                    />
+                ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm gap-4">
+                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    Mostrando <span className="font-bold text-slate-800 dark:text-slate-200">{((currentPage - 1) * itemsPerPage) + 1}</span> - <span className="font-bold text-slate-800 dark:text-slate-200">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> de <span className="font-bold text-slate-800 dark:text-slate-200">{filteredData.length}</span>
                 </div>
-
-                {/* Pagination */}
-                <div className="flex justify-between items-center p-6 border-t border-slate-100 bg-white">
-                    <div className="text-sm text-slate-500 font-medium">
-                        Mostrando <span className="font-bold text-secondary">{((currentPage - 1) * itemsPerPage) + 1}</span> a <span className="font-bold text-secondary">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> de <span className="font-bold text-secondary">{filteredData.length}</span> resultados
+                <div className="flex items-center gap-2">
+                    <button
+                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:hover:bg-white dark:disabled:hover:bg-slate-800 transition-all"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                    >
+                        <ArrowUp className="-rotate-90" size={18} />
+                    </button>
+                    <div className="px-4 py-2 font-bold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
+                        {currentPage} / {totalPages}
                     </div>
-                    <div className="flex gap-2">
-                        <button
-                            className="btn btn-outline py-2 px-4 text-sm hover:bg-slate-50 hover:border-slate-300 shadow-sm disabled:opacity-50 disabled:shadow-none rounded-lg transition-all"
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            disabled={currentPage === 1}
-                        >
-                            ← Anterior
-                        </button>
-                        <div className="flex items-center px-4 font-bold text-slate-700 bg-slate-50 rounded-lg border border-slate-200">
-                            {currentPage} / {totalPages}
-                        </div>
-                        <button
-                            className="btn btn-outline py-2 px-4 text-sm hover:bg-slate-50 hover:border-slate-300 shadow-sm disabled:opacity-50 disabled:shadow-none rounded-lg transition-all"
-                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                            disabled={currentPage === totalPages}
-                        >
-                            Siguiente →
-                        </button>
-                    </div>
+                    <button
+                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:hover:bg-white dark:disabled:hover:bg-slate-800 transition-all"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                    >
+                        <ArrowUp className="rotate-90" size={18} />
+                    </button>
                 </div>
             </div>
 
@@ -627,6 +696,24 @@ Atentamente,`;
     );
 }
 
+const TikTokIcon = ({ size = 20, className = "", ...props }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        {...props}
+    >
+        <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5v2a7 7 0 0 1-7-7v5" />
+    </svg>
+);
+
 function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData }) {
     const [formData, setFormData] = useState({
         nombre_emprendimiento: '',
@@ -643,39 +730,50 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
     });
     const [isCustomCategory, setIsCustomCategory] = useState(false);
 
+    const [socialOverride, setSocialOverride] = useState('instagram');
+
     useEffect(() => {
-        if (initialData) {
-            setFormData({
-                nombre_emprendimiento: initialData.nombre_emprendimiento || '',
-                persona_contacto: initialData.persona_contacto || '',
-                telefono: initialData.telefono || '',
-                correo: initialData.correo || '',
-                ciudad: initialData.ciudad || '',
-                categoria_principal: initialData.categoria_principal || '',
-                actividad_economica: initialData.actividad_economica || '',
-                red_social: initialData.red_social || '',
-                tipo_emprendedor: initialData.semaforizacion || 'Externo',
-                notas: initialData.notas || '',
-                no_contesto: initialData.no_contesto || false
-            });
-            setIsCustomCategory(!categories.includes(initialData.categoria_principal) && initialData.categoria_principal !== '');
-        } else {
-            setFormData({
-                nombre_emprendimiento: '',
-                persona_contacto: '',
-                telefono: '',
-                correo: '',
-                ciudad: '',
-                categoria_principal: '',
-                actividad_economica: '',
-                red_social: '',
-                tipo_emprendedor: 'Externo',
-                notas: '',
-                no_contesto: false
-            });
-            setIsCustomCategory(false);
+        if (isOpen) {
+            if (initialData) {
+                setFormData({
+                    nombre_emprendimiento: initialData.nombre_emprendimiento || '',
+                    persona_contacto: initialData.persona_contacto || '',
+                    telefono: initialData.telefono || '',
+                    correo: initialData.correo || '',
+                    ciudad: initialData.ciudad || '',
+                    categoria_principal: initialData.categoria_principal || '',
+                    actividad_economica: initialData.actividad_economica || '',
+                    red_social: initialData.red_social || '',
+                    tipo_emprendedor: initialData.semaforizacion || 'Externo',
+                    notas: initialData.notas || '',
+                    no_contesto: initialData.no_contesto || false,
+                    ruc: initialData.ruc || ''
+                });
+                setIsCustomCategory(!categories.includes(initialData.categoria_principal) && initialData.categoria_principal !== '');
+            } else {
+                setFormData({
+                    nombre_emprendimiento: '',
+                    persona_contacto: '',
+                    categoria_principal: '',
+                    tipo_emprendedor: 'Externo',
+                    actividad_economica: '',
+                    telefono: '',
+                    correo: '',
+                    ciudad: '',
+                    red_social: '',
+                    ruc: '',
+                    no_contesto: false
+                });
+                setIsCustomCategory(false);
+            }
+
+            const handleEsc = (e) => {
+                if (e.key === 'Escape') onClose();
+            };
+            window.addEventListener('keydown', handleEsc);
+            return () => window.removeEventListener('keydown', handleEsc);
         }
-    }, [initialData, isOpen, categories]);
+    }, [isOpen, initialData, onClose, categories]);
 
     if (!isOpen) return null;
 
@@ -698,9 +796,9 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/10 backdrop-blur-[2px] p-4 animate-fade-in" onClick={onClose}>
             <div
-                className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden transform transition-all animate-scale-in"
+                className="bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden transform transition-all animate-scale-in"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Fixed Header */}
@@ -727,243 +825,306 @@ function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData })
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-8 bg-slate-50/30">
+                <div className="flex-1 overflow-y-auto p-8 bg-slate-50/30 dark:bg-slate-800/50">
                     <form id="entrepreneur-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="col-span-1 md:col-span-2">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
                                     Nombre del Emprendimiento <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative group">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Building2 size={18} /></span>
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                                        <Store size={20} />
+                                    </div>
                                     <input
-                                        className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
+                                        type="text"
+                                        className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium text-slate-700 dark:text-white placeholder:text-slate-400"
+                                        placeholder="Ej. Artesanías Manabitas"
                                         value={formData.nombre_emprendimiento}
-                                        onChange={e => setFormData({ ...formData, nombre_emprendimiento: e.target.value })}
-                                        placeholder="Ej. Delicias Caseras"
+                                        onChange={(e) => setFormData({ ...formData, nombre_emprendimiento: e.target.value })}
                                         required
                                     />
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">
+                            <div className="col-span-1">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
                                     Persona de Contacto <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative group">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><User size={18} /></span>
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                                        <User size={20} />
+                                    </div>
                                     <input
-                                        className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
+                                        type="text"
+                                        className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium text-slate-700 dark:text-white placeholder:text-slate-400"
+                                        placeholder="Nombre completo"
                                         value={formData.persona_contacto}
-                                        onChange={e => setFormData({ ...formData, persona_contacto: e.target.value })}
-                                        placeholder="Ej. Juan Pérez"
+                                        onChange={(e) => setFormData({ ...formData, persona_contacto: e.target.value })}
                                         required
                                     />
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">
+                            <div className="col-span-1">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
                                     Categoría <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative group">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Tag size={18} /></span>
-                                    <select
-                                        className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm appearance-none"
-                                        value={isCustomCategory ? 'NEW' : formData.categoria_principal}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            if (val === 'NEW') {
-                                                setIsCustomCategory(true);
-                                                setFormData({ ...formData, categoria_principal: '' });
-                                            } else {
-                                                setIsCustomCategory(false);
-                                                setFormData({ ...formData, categoria_principal: val });
-                                            }
-                                        }}
-                                        required
-                                    >
-                                        <option value="">Seleccionar categoría...</option>
-                                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                        <option value="NEW">➕ NUEVA CATEGORÍA...</option>
-                                    </select>
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><ChevronDown size={16} /></span>
-                                </div>
-
-                                {/* Custom Category Input */}
-                                {isCustomCategory && (
-                                    <div className="mt-2 animate-fade-in">
-                                        <input
-                                            className="input w-full py-2 px-4 bg-slate-50 border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
-                                            placeholder="Escribe el nombre de la nueva categoría..."
-                                            value={formData.categoria_principal}
-                                            onChange={e => setFormData({ ...formData, categoria_principal: e.target.value.toUpperCase() })}
-                                            autoFocus
-                                        />
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                                        <Tag size={20} />
                                     </div>
-                                )}
+                                    {isCustomCategory ? (
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium text-slate-700 placeholder:text-slate-400"
+                                                placeholder="Nueva categoría..."
+                                                value={formData.categoria_principal}
+                                                onChange={(e) => setFormData({ ...formData, categoria_principal: e.target.value })}
+                                                autoFocus
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsCustomCategory(false)}
+                                                className="p-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-500 transition-colors"
+                                            >
+                                                <List size={20} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <select
+                                            className="w-full pl-12 pr-10 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium text-slate-700 dark:text-white cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-600"
+                                            value={formData.categoria_principal}
+                                            onChange={(e) => {
+                                                if (e.target.value === 'custom') {
+                                                    setIsCustomCategory(true);
+                                                    setFormData({ ...formData, categoria_principal: '' });
+                                                } else {
+                                                    setFormData({ ...formData, categoria_principal: e.target.value });
+                                                }
+                                            }}
+                                            required
+                                        >
+                                            <option value="">Seleccionar...</option>
+                                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                            <option value="custom" className="font-bold text-primary-600">+ Nueva Categoría</option>
+                                        </select>
+                                    )}
+                                    {!isCustomCategory && (
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                            <ChevronDown size={16} />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">
+                            <div className="col-span-1 md:col-span-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
                                     Tipo de Emprendedor <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative group">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><User size={18} /></span>
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                                        <User size={20} />
+                                    </div>
                                     <select
-                                        className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm appearance-none"
+                                        className="w-full pl-12 pr-10 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium text-slate-700 dark:text-white cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-600"
                                         value={formData.tipo_emprendedor}
-                                        onChange={e => setFormData({ ...formData, tipo_emprendedor: e.target.value })}
+                                        onChange={(e) => setFormData({ ...formData, tipo_emprendedor: e.target.value })}
                                         required
                                     >
                                         <option value="Externo">Emprendedor Externo</option>
                                         <option value="Estudiante / Graduado UNEMI">Estudiante / Graduado UNEMI</option>
                                     </select>
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><ChevronDown size={16} /></span>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                        <ChevronDown size={16} />
+                                    </div>
                                 </div>
                             </div>
 
-
-
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Notas Generales</label>
+                            <div className="col-span-1 md:col-span-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                    Notas Generales / Actividad
+                                </label>
                                 <textarea
-                                    className="input w-full py-3 px-4 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
-                                    rows="3"
-                                    placeholder="Notas internas..."
-                                    value={formData.notas}
-                                    onChange={e => setFormData({ ...formData, notas: e.target.value })}
+                                    className="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium text-slate-700 dark:text-white placeholder:text-slate-400 min-h-[100px] resize-none"
+                                    placeholder="Describe la actividad económica o añade notas internas..."
+                                    value={formData.actividad_economica}
+                                    onChange={(e) => setFormData({ ...formData, actividad_economica: e.target.value })}
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Teléfono</label>
+                            <div className="col-span-1">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                    Teléfono
+                                </label>
                                 <div className="relative group">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Phone size={18} /></span>
-                                    <input
-                                        className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
-                                        value={formData.telefono}
-                                        onChange={e => setFormData({ ...formData, telefono: e.target.value })}
-                                        placeholder="Ej. 0991234567"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Email</label>
-                                <div className="relative group">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Mail size={18} /></span>
-                                    <input
-                                        className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
-                                        type="email"
-                                        value={formData.correo}
-                                        onChange={e => setFormData({ ...formData, correo: e.target.value })}
-                                        placeholder="ejemplo@correo.com"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Ciudad</label>
-                                <div className="relative group">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Building2 size={18} /></span>
-                                    <input
-                                        className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
-                                        value={formData.ciudad}
-                                        onChange={e => setFormData({ ...formData, ciudad: e.target.value })}
-                                        placeholder="Ej. Milagro"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Red Social</label>
-                                <div className="flex gap-2">
-                                    <div className="relative w-1/3 min-w-[120px]">
-                                        <select
-                                            className="input w-full pl-3 pr-8 py-3 bg-slate-50 border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm appearance-none text-sm font-medium"
-                                            value={(() => {
-                                                const val = formData.red_social || '';
-                                                if (val.includes('instagram.com')) return 'instagram';
-                                                if (val.includes('tiktok.com')) return 'tiktok';
-                                                if (val.includes('facebook.com')) return 'facebook';
-                                                return 'web';
-                                            })()}
-                                            onChange={(e) => {
-                                                const type = e.target.value;
-                                                let currentVal = formData.red_social || '';
-                                                // Strip existing domain and @ if present to keep just handle/path
-                                                currentVal = currentVal.replace(/^https?:\/\/(www\.)?(instagram\.com\/|tiktok\.com\/@?|facebook\.com\/)/, '').replace(/^@/, '');
-
-                                                let newUrl = currentVal;
-                                                if (type === 'instagram') newUrl = `https://instagram.com/${currentVal}`;
-                                                else if (type === 'tiktok') newUrl = `https://tiktok.com/@${currentVal}`;
-                                                else if (type === 'facebook') newUrl = `https://facebook.com/${currentVal}`;
-
-                                                setFormData({ ...formData, red_social: newUrl });
-                                            }}
-                                        >
-                                            <option value="web">Web / Otro</option>
-                                            <option value="instagram">Instagram</option>
-                                            <option value="tiktok">TikTok</option>
-                                            <option value="facebook">Facebook</option>
-                                        </select>
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                                        <Phone size={20} />
                                     </div>
+                                    <input
+                                        type="tel"
+                                        className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium text-slate-700 dark:text-white placeholder:text-slate-400"
+                                        placeholder="09XXXXXXXX"
+                                        value={formData.telefono}
+                                        onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="col-span-1">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                    Email
+                                </label>
+                                <div className="relative group">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                                        <Mail size={20} />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium text-slate-700 dark:text-white placeholder:text-slate-400"
+                                        placeholder="ejemplo@correo.com"
+                                        value={formData.correo}
+                                        onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="col-span-1">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                    Ciudad
+                                </label>
+                                <div className="relative group">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                                        <Building2 size={20} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium text-slate-700 dark:text-white placeholder:text-slate-400"
+                                        placeholder="Ej. Milagro"
+                                        value={formData.ciudad}
+                                        onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="col-span-1">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                    Red Social
+                                </label>
+                                <div className="flex gap-2">
                                     <div className="relative group flex-1">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><MessageCircle size={18} /></span>
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                                            {(() => {
+                                                const val = (formData.red_social || '').toLowerCase();
+
+                                                if (val.startsWith('@')) {
+                                                    if (socialOverride === 'tiktok') {
+                                                        return <TikTokIcon
+                                                            size={20}
+                                                            className="text-black cursor-pointer hover:scale-110 transition-transform"
+                                                            onClick={() => setSocialOverride('instagram')}
+                                                            title="Cambiar a Instagram"
+                                                        />;
+                                                    }
+                                                    return <Instagram
+                                                        size={20}
+                                                        className="text-pink-500 cursor-pointer hover:scale-110 transition-transform"
+                                                        onClick={() => setSocialOverride('tiktok')}
+                                                        title="Cambiar a TikTok"
+                                                    />;
+                                                }
+
+                                                if (val.includes('instagram')) return <Instagram size={20} className="text-pink-500" />;
+                                                if (val.includes('facebook') || val.includes('fb.com')) return <Facebook size={20} className="text-blue-600" />;
+                                                if (val.includes('tiktok')) return <TikTokIcon size={20} className="text-black" />;
+
+                                                return <Globe size={20} />;
+                                            })()}
+                                        </div>
                                         <input
-                                            className="input w-full pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
+                                            type="text"
+                                            className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium text-slate-700 dark:text-white placeholder:text-slate-400"
+                                            placeholder="URL o @usuario"
                                             value={formData.red_social}
-                                            onChange={e => setFormData({ ...formData, red_social: e.target.value })}
-                                            placeholder="URL completa o @usuario"
+                                            onChange={(e) => setFormData({ ...formData, red_social: e.target.value })}
                                         />
                                     </div>
                                 </div>
                                 <p className="text-xs text-slate-400 mt-1 ml-1">
-                                    Selecciona la red para autocompletar el enlace, o pega la URL completa.
+                                    Si usas @, haz clic en el icono para cambiar entre Instagram y TikTok.
                                 </p>
                             </div>
 
                             <div className="col-span-1 md:col-span-2">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Actividad Económica / Detalles</label>
-                                <div className="relative group">
-                                    <span className="absolute left-3 top-3 text-slate-400 group-focus-within:text-primary-500 transition-colors"><FileText size={18} /></span>
-                                    <textarea
-                                        className="input w-full min-h-[100px] pl-10 py-3 bg-white border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl transition-all shadow-sm"
-                                        value={formData.actividad_economica}
-                                        onChange={e => setFormData({ ...formData, actividad_economica: e.target.value })}
-                                        placeholder="Descripción breve de los productos o servicios..."
-                                    />
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                    Identificación
+                                </label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="relative group">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                                            <FileText size={20} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-mono font-medium text-slate-700 dark:text-white placeholder:text-slate-400"
+                                            placeholder="RUC / CI"
+                                            value={formData.ruc || ''}
+                                            onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-3 px-4">
+                                        <input
+                                            type="checkbox"
+                                            id="no_contesto"
+                                            className="w-5 h-5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                                            checked={formData.no_contesto}
+                                            onChange={(e) => setFormData({ ...formData, no_contesto: e.target.checked })}
+                                        />
+                                        <label htmlFor="no_contesto" className="text-sm font-bold text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+                                            No Contestó / Inubicable
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </form>
                 </div>
 
-                {/* Fixed Footer */}
-                <div className="flex-none px-6 py-4 border-t border-slate-200 bg-white flex justify-end gap-3 rounded-b-2xl">
+                {/* Footer */}
+                <div className="flex-none p-6 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 z-10">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-6 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200"
+                        className="px-6 py-3 rounded-xl font-bold text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
                     >
                         Cancelar
                     </button>
                     <button
-                        type="submit"
-                        form="entrepreneur-form"
-                        className="px-8 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold shadow-lg shadow-primary-600/30 hover:shadow-primary-600/50 hover:scale-[1.02] transition-all active:scale-95 flex items-center gap-2"
+                        onClick={handleSubmit}
+                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
                     >
-                        {initialData ? <><Save size={20} /> Guardar Cambios</> : <><Sparkles size={20} /> Crear Emprendedor</>}
+                        <Save size={20} />
+                        {initialData ? 'Guardar Cambios' : 'Registrar Emprendedor'}
                     </button>
-                </div >
-            </div >
-        </div >,
+                </div>
+            </div>
+        </div>,
         document.body
     );
 }
 
 function ContactSelectionModal({ isOpen, onClose, phoneNumber }) {
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (isOpen && e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [isOpen, onClose]);
+
     if (!isOpen) return null;
 
     const handleAction = (type) => {
@@ -987,14 +1148,14 @@ function ContactSelectionModal({ isOpen, onClose, phoneNumber }) {
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-scale-in" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/10 backdrop-blur-[2px] p-4 animate-fade-in" onClick={onClose}>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700 transform transition-all animate-scale-in" onClick={e => e.stopPropagation()}>
                 <div className="p-6 text-center">
-                    <div className="w-16 h-16 bg-primary-50 text-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Phone size={32} />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-800 mb-2">Contactar Emprendedor</h3>
-                    <p className="text-slate-500 mb-6 font-medium text-lg">{phoneNumber}</p>
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Contactar Emprendedor</h3>
+                    <p className="text-slate-500 dark:text-slate-300 mb-6 font-medium text-lg">{phoneNumber}</p>
 
                     <div className="flex flex-col gap-3">
                         <button
@@ -1005,13 +1166,13 @@ function ContactSelectionModal({ isOpen, onClose, phoneNumber }) {
                         </button>
                         <button
                             onClick={() => handleAction('call')}
-                            className="btn bg-slate-800 hover:bg-slate-900 text-white border-none w-full py-3.5 rounded-xl flex items-center justify-center gap-3 font-bold text-lg shadow-lg shadow-slate-500/20 active:scale-95 transition-all"
+                            className="btn bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white border-none w-full py-3.5 rounded-xl flex items-center justify-center gap-3 font-bold text-lg shadow-lg shadow-slate-500/20 active:scale-95 transition-all"
                         >
                             <Phone size={24} /> Llamar
                         </button>
                         <button
                             onClick={onClose}
-                            className="btn btn-ghost w-full py-3 rounded-xl font-medium text-slate-500 hover:bg-slate-50"
+                            className="btn btn-ghost w-full py-3 rounded-xl font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
                         >
                             Cancelar
                         </button>
@@ -1041,8 +1202,13 @@ function FollowUpModal({ isOpen, onClose, entrepreneur }) {
                 status: 'answered',
                 observation: ''
             });
+            const handleEsc = (e) => {
+                if (e.key === 'Escape') onClose();
+            };
+            window.addEventListener('keydown', handleEsc);
+            return () => window.removeEventListener('keydown', handleEsc);
         }
-    }, [isOpen]);
+    }, [isOpen, onClose]);
 
     if (!isOpen || !entrepreneur) return null;
 
@@ -1058,16 +1224,16 @@ function FollowUpModal({ isOpen, onClose, entrepreneur }) {
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-in" onClick={e => e.stopPropagation()}>
-                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/10 backdrop-blur-[2px] p-4 animate-fade-in" onClick={onClose}>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-in" onClick={e => e.stopPropagation()}>
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex items-center justify-center">
                             <List size={20} />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-slate-800">Añadir Observación</h3>
-                            <p className="text-sm text-slate-500">{entrepreneur.nombre_emprendimiento}</p>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Añadir Observación</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{entrepreneur.nombre_emprendimiento}</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
@@ -1076,20 +1242,20 @@ function FollowUpModal({ isOpen, onClose, entrepreneur }) {
                 <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">Fecha :</label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Fecha :</label>
                             <input
                                 type="date"
-                                className="input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-medium"
+                                className="input w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-medium dark:text-white"
                                 value={formData.date}
                                 onChange={e => setFormData({ ...formData, date: e.target.value })}
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">Hora :</label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Hora :</label>
                             <input
                                 type="time"
-                                className="input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-medium"
+                                className="input w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-medium dark:text-white"
                                 value={formData.time}
                                 onChange={e => setFormData({ ...formData, time: e.target.value })}
                                 required
@@ -1098,10 +1264,10 @@ function FollowUpModal({ isOpen, onClose, entrepreneur }) {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">Acción :</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Acción :</label>
                         <div className="relative">
                             <select
-                                className="input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all appearance-none font-medium"
+                                className="input w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all appearance-none font-medium dark:text-white"
                                 value={formData.status}
                                 onChange={e => setFormData({ ...formData, status: e.target.value })}
                             >
@@ -1113,9 +1279,9 @@ function FollowUpModal({ isOpen, onClose, entrepreneur }) {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">Detalle :</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Detalle :</label>
                         <textarea
-                            className="input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all min-h-[100px]"
+                            className="input w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all min-h-[100px] dark:text-white"
                             value={formData.observation}
                             onChange={e => setFormData({ ...formData, observation: e.target.value })}
                             placeholder="Ingrese los detalles..."
@@ -1147,6 +1313,16 @@ function FollowUpModal({ isOpen, onClose, entrepreneur }) {
 function HistoryModal({ isOpen, onClose, entrepreneur }) {
     const { deleteFollowUp } = useData();
 
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (isOpen && e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [isOpen, onClose]);
+
     if (!isOpen || !entrepreneur) return null;
 
     const history = entrepreneur.followUpHistory || [];
@@ -1158,16 +1334,16 @@ function HistoryModal({ isOpen, onClose, entrepreneur }) {
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col animate-scale-in" onClick={e => e.stopPropagation()}>
-                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 flex-none">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/10 backdrop-blur-[2px] p-4 animate-fade-in" onClick={onClose}>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700 font-sans" onClick={e => e.stopPropagation()}>
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 flex-none">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                             <History size={20} />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-slate-800">Ver Observaciones</h3>
-                            <p className="text-sm text-slate-500">{entrepreneur.nombre_emprendimiento}</p>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Ver Observaciones</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{entrepreneur.nombre_emprendimiento}</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
@@ -1180,28 +1356,28 @@ function HistoryModal({ isOpen, onClose, entrepreneur }) {
                             <p>No hay observaciones registradas</p>
                         </div>
                     ) : (
-                        <div className="overflow-hidden rounded-xl border border-slate-200">
+                        <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
                             <table className="w-full">
-                                <thead className="bg-slate-50 border-b border-slate-200">
+                                <thead className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
                                     <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Hora Llamada</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Observación</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Registrado Por</th>
-                                        <th className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fecha</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Hora Llamada</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Observación</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Registrado Por</th>
+                                        <th className="px-6 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                     {history.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-slate-50 transition-colors group">
-                                            <td className="px-6 py-4 text-sm font-medium text-slate-700 whitespace-nowrap">
+                                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
+                                            <td className="px-6 py-4 text-sm font-medium text-slate-700 dark:text-white whitespace-nowrap">
                                                 {item.date}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">
+                                            <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">
                                                 {item.time}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-600">
+                                            <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {item.observation || '-'}
                                             </td>
                                             <td className="px-6 py-4">
@@ -1215,7 +1391,7 @@ function HistoryModal({ isOpen, onClose, entrepreneur }) {
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-500">
+                                            <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
                                                 Admin
                                             </td>
                                             <td className="px-6 py-4 text-center">
@@ -1235,10 +1411,10 @@ function HistoryModal({ isOpen, onClose, entrepreneur }) {
                     )}
                 </div>
 
-                <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end flex-none">
+                <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-end flex-none">
                     <button
                         onClick={onClose}
-                        className="btn bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 px-6 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2"
+                        className="btn bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 px-6 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2"
                     >
                         <X size={18} /> Cerrar
                     </button>

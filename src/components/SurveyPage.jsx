@@ -58,7 +58,7 @@ export default function SurveyPage() {
 
     if (!isLoaded || status === 'loading') {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
             </div>
         );
@@ -66,11 +66,13 @@ export default function SurveyPage() {
 
     if (status === 'not_found') {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-                <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
-                    <AlertCircle size={48} className="mx-auto text-red-500 mb-4" />
-                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Enlace no válido</h2>
-                    <p className="text-slate-600">No pudimos encontrar la asignación solicitada. Verifica el enlace.</p>
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl max-w-md w-full text-center border border-slate-100 dark:border-slate-700/50">
+                    <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <AlertCircle size={40} className="text-red-500 dark:text-red-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-3">Enlace no válido</h2>
+                    <p className="text-slate-600 dark:text-slate-400">No pudimos encontrar la asignación solicitada. Por favor verifica el enlace.</p>
                 </div>
             </div>
         );
@@ -78,11 +80,13 @@ export default function SurveyPage() {
 
     if (status === 'already_submitted') {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-                <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
-                    <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
-                    <h2 className="text-2xl font-bold text-slate-800 mb-2">¡Gracias!</h2>
-                    <p className="text-slate-600">Ya hemos recibido tu respuesta para esta semana.</p>
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl max-w-md w-full text-center border border-slate-100 dark:border-slate-700/50">
+                    <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle size={40} className="text-green-500 dark:text-green-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-3">¡Gracias!</h2>
+                    <p className="text-slate-600 dark:text-slate-400">Ya hemos recibido tu respuesta para esta semana.</p>
                 </div>
             </div>
         );
@@ -90,41 +94,46 @@ export default function SurveyPage() {
 
     if (status === 'success') {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-                <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center animate-scale-in">
-                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle size={40} className="text-green-600" />
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl max-w-md w-full text-center animate-scale-in border border-slate-100 dark:border-slate-700/50">
+                    <div className="w-24 h-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle size={48} className="text-green-600 dark:text-green-400" />
                     </div>
-                    <h2 className="text-2xl font-bold text-slate-800 mb-2">¡Encuesta Enviada!</h2>
-                    <p className="text-slate-600 mb-6">Gracias por compartir tu experiencia. Tu opinión nos ayuda a mejorar el programa.</p>
+                    <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-3">¡Encuesta Enviada!</h2>
+                    <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg">Gracias por compartir tu experiencia. Tu opinión nos ayuda a mejorar el programa.</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
             <div className="max-w-xl mx-auto">
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-                    <div className="bg-primary-600 px-8 py-6">
-                        <h1 className="text-2xl font-bold text-white">Encuesta Semanal</h1>
-                        <p className="text-primary-100 mt-2">Cuéntanos cómo te fue en tu stand</p>
+                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-100 dark:border-white/5 transition-colors duration-300">
+                    <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-8 py-8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+                        <div className="relative z-10">
+                            <h1 className="text-3xl font-bold text-white mb-2">Encuesta Semanal</h1>
+                            <p className="text-primary-100 text-lg">Cuéntanos cómo te fue en tu stand</p>
+                        </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="p-8 space-y-8">
+                    <form onSubmit={handleSubmit} className="p-8 space-y-10">
                         {/* Question 1 */}
-                        <div className="space-y-4">
-                            <label className="flex items-center gap-2 text-lg font-bold text-slate-800">
-                                <Star className="text-yellow-500" size={24} />
-                                1. ¿Cómo te fue esta semana en tu stand?
+                        <div className="space-y-5">
+                            <label className="flex items-center gap-3 text-xl font-bold text-slate-900 dark:text-white">
+                                <span className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400">
+                                    <Star size={24} />
+                                </span>
+                                1. ¿Cómo te fue esta semana?
                             </label>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-4">
                                 {['Muy bien', 'Bien', 'Regular', 'Mal'].map((option) => (
                                     <label key={option} className={`
-                                        relative flex items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all
+                                        relative flex items-center justify-center p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200
                                         ${formData.experience === option
-                                            ? 'border-primary-500 bg-primary-50 text-primary-700 font-bold shadow-sm'
-                                            : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-600'}
+                                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-bold shadow-md scale-[1.02]'
+                                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-300'}
                                     `}>
                                         <input
                                             type="radio"
@@ -134,25 +143,27 @@ export default function SurveyPage() {
                                             onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
                                             className="sr-only"
                                         />
-                                        <span>{option}</span>
+                                        <span className="text-lg">{option}</span>
                                     </label>
                                 ))}
                             </div>
                         </div>
 
                         {/* Question 2 */}
-                        <div className="space-y-4">
-                            <label className="flex items-center gap-2 text-lg font-bold text-slate-800">
-                                <TrendingUp className="text-blue-500" size={24} />
-                                2. ¿Sientes que este proyecto ayudó a tus ventas?
+                        <div className="space-y-5">
+                            <label className="flex items-center gap-3 text-xl font-bold text-slate-900 dark:text-white">
+                                <span className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                    <TrendingUp size={24} />
+                                </span>
+                                2. ¿Impacto en tus ventas?
                             </label>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-4">
                                 {['Mucho', 'Algo', 'Poco', 'Nada'].map((option) => (
                                     <label key={option} className={`
-                                        relative flex items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all
+                                        relative flex items-center justify-center p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200
                                         ${formData.impact === option
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold shadow-sm'
-                                            : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-600'}
+                                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-bold shadow-md scale-[1.02]'
+                                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-300'}
                                     `}>
                                         <input
                                             type="radio"
@@ -162,39 +173,49 @@ export default function SurveyPage() {
                                             onChange={(e) => setFormData({ ...formData, impact: e.target.value })}
                                             className="sr-only"
                                         />
-                                        <span>{option}</span>
+                                        <span className="text-lg">{option}</span>
                                     </label>
                                 ))}
                             </div>
                         </div>
 
                         {/* Question 3 */}
-                        <div className="space-y-4">
-                            <label className="flex items-center gap-2 text-lg font-bold text-slate-800">
-                                <DollarSign className="text-green-500" size={24} />
-                                3. ¿Cuántas ventas realizaste? <span className="text-sm font-normal text-slate-500 ml-2">(Opcional)</span>
+                        <div className="space-y-5">
+                            <label className="flex items-center gap-3 text-xl font-bold text-slate-900 dark:text-white">
+                                <span className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                                    <DollarSign size={24} />
+                                </span>
+                                3. ¿Ventas realizadas? <span className="text-sm font-normal text-slate-500 dark:text-slate-500 ml-auto">(Opcional)</span>
                             </label>
-                            <div className="relative">
+                            <div className="relative group">
                                 <input
                                     type="number"
                                     min="0"
                                     placeholder="0"
                                     value={formData.sales}
                                     onChange={(e) => setFormData({ ...formData, sales: e.target.value })}
-                                    className="w-full p-4 text-lg border-2 border-slate-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all outline-none"
+                                    className="w-full p-5 text-xl bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:border-green-500 dark:focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all outline-none placeholder:text-slate-400"
                                 />
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">ventas</span>
+                                <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 font-medium pointer-events-none group-focus-within:text-green-500 transition-colors">ventas</span>
                             </div>
                         </div>
 
                         <button
                             type="submit"
-                            className="w-full bg-primary-600 text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary-600/30 hover:bg-primary-700 hover:shadow-primary-600/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                            disabled={status === 'submitting'}
+                            className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold text-xl py-5 rounded-2xl shadow-xl shadow-primary-900/20 hover:shadow-primary-900/30 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:pointer-events-none transition-all flex items-center justify-center gap-3 relative overflow-hidden"
                         >
-                            <Send size={20} />
-                            Enviar Respuesta
+                            <div className="absolute inset-0 bg-white/20 translate-y-full hover:translate-y-0 transition-transform duration-300"></div>
+                            <Send size={24} />
+                            {status === 'submitting' ? 'Enviando...' : 'Enviar Respuesta'}
                         </button>
                     </form>
+                </div>
+
+                <div className="mt-8 text-center">
+                    <p className="text-slate-400 dark:text-slate-500 text-sm">
+                        &copy; {new Date().getFullYear()} Emprende Dashboard
+                    </p>
                 </div>
             </div>
         </div>

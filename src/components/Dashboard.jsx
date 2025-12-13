@@ -177,13 +177,13 @@ export default function Dashboard() {
             {/* Header & Controls */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 lg:gap-0">
                 <div>
-                    <h1 className="text-3xl font-bold text-secondary tracking-tight">Panel de Control</h1>
-                    <p className="text-slate-500 mt-2 text-lg">Resumen de actividad y gestión de stands</p>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Panel de Control</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">Resumen de actividad y gestión de stands</p>
                 </div>
                 <div className="flex flex-col w-full lg:w-auto gap-4">
                     <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 w-full">
-                        <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200 w-full lg:w-auto justify-between lg:justify-start">
-                            <div className="flex items-center gap-2 text-slate-600">
+                        <div className="glass-panel p-4 w-full lg:w-auto flex items-center gap-4 justify-between lg:justify-start bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                                 <Calendar size={20} />
                                 <span className="font-medium">Fecha:</span>
                             </div>
@@ -191,13 +191,13 @@ export default function Dashboard() {
                                 type="date"
                                 value={selectedDate}
                                 onChange={(e) => setSelectedDate(e.target.value)}
-                                className="border-none bg-transparent font-bold text-slate-800 focus:ring-0 cursor-pointer"
+                                className="border-none bg-transparent font-bold text-slate-800 dark:text-white focus:ring-0 cursor-pointer p-0 dark:[color-scheme:dark]"
                             />
-                            <div className="text-sm text-slate-400 border-l pl-4">
+                            <div className="text-sm text-slate-400 border-l border-slate-300 dark:border-slate-600 pl-4">
                                 Semana: {currentWeek}
                             </div>
                         </div>
-                        <div className="hidden lg:block h-8 w-px bg-slate-200"></div>
+                        <div className="hidden lg:block h-8 w-px bg-white/20"></div>
                         <button
                             className="btn btn-primary px-6 py-4 lg:py-2.5 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all active:scale-95 w-full lg:w-auto justify-center"
                             onClick={handleGenerate}
@@ -230,44 +230,43 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-blue-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="p-4 rounded-2xl bg-blue-50 text-blue-600 shadow-inner">
+                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-blue-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-inner">
                         <Users size={32} />
                     </div>
                     <div>
-                        <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Emprendedores</div>
-                        <div className="text-2xl font-bold text-secondary mt-1">
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Emprendedores</div>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
                             {entrepreneurs.filter(e => e.veces_en_stand > 0).length}
                         </div>
                     </div>
                 </div>
-                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-secondary-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="p-4 rounded-2xl bg-secondary-50 text-secondary-600 shadow-inner">
+                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-primary-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-sm">
+                    <div className="p-4 rounded-2xl bg-orange-50 dark:bg-slate-700/50 text-primary-600 dark:text-slate-300 shadow-inner">
                         <CalendarDays size={32} />
                     </div>
                     <div>
-                        <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Stands Asignados</div>
-                        <div className="text-2xl font-bold text-secondary mt-1">{stats.assigned} <span className="text-lg text-slate-400 font-normal">/ 6</span></div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Stands Asignados</div>
+                        <div className="text-2xl font-bold text-primary-600 dark:text-white mt-1">{stats.assigned} <span className="text-lg text-slate-400 font-normal">/ 6</span></div>
                     </div>
                 </div>
-                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-green-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="p-4 rounded-2xl bg-green-50 text-green-600 shadow-inner">
+                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-green-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-white dark:bg-slate-800 dark:border-slate-700 shadow-sm">
+                    <div className="p-4 rounded-2xl bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 shadow-inner">
                         <DollarSign size={32} />
                     </div>
                     <div>
-                        <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Ganancia Semanal</div>
-                        <div className="text-2xl font-bold text-secondary mt-1">${weeklyEarnings.toFixed(2)}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Ganancia Semanal</div>
+                        <div className="text-2xl font-bold text-green-600 dark:text-white mt-1">${weeklyEarnings.toFixed(2)}</div>
                     </div>
                 </div>
-                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-emerald-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-600 shadow-inner">
+                <div className="card p-6 flex items-center gap-5 border-l-4 border-l-emerald-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-white dark:bg-slate-800 dark:border-slate-700 shadow-sm">
+                    <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 shadow-inner">
                         <DollarSign size={32} />
                     </div>
                     <div>
-                        <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Ganancia Mensual</div>
-                        <div className="text-2xl font-bold text-secondary mt-1">${monthlyEarnings.toFixed(2)}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Ganancia Mensual</div>
+                        <div className="text-2xl font-bold text-emerald-600 dark:text-white mt-1">${monthlyEarnings.toFixed(2)}</div>
                     </div>
                 </div>
             </div>
@@ -275,14 +274,14 @@ export default function Dashboard() {
             {/* Stands Grid */}
             <div>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                    <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <span className="w-2 h-8 bg-primary-500 rounded-full"></span>
                         Distribución de Stands
                     </h2>
-                    <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3">
-                        <span className="font-bold text-slate-700 text-lg">{formatBlockName(currentBlock)}</span>
-                        <div className="h-4 w-px bg-slate-200"></div>
-                        <span className="text-slate-500 font-medium">{formatDateRange(currentWeek, currentBlock)}</span>
+                    <div className="glass-panel px-4 py-2 flex items-center gap-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                        <span className="font-bold text-slate-900 dark:text-slate-200 text-lg">{formatBlockName(currentBlock)}</span>
+                        <div className="h-4 w-px bg-slate-300 dark:bg-slate-600"></div>
+                        <span className="text-slate-500 dark:text-slate-400 font-medium">{formatDateRange(currentWeek, currentBlock)}</span>
                     </div>
                 </div>
                 <div className="grid gap-6 grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(340px,1fr))]">
@@ -304,7 +303,12 @@ export default function Dashboard() {
 
                             return (
                                 <div
-                                    className={`flex-1 p-3 rounded-xl transition-all border-2 border-dashed ${isAssigned ? 'bg-white border-transparent shadow-sm' : 'bg-slate-50 border-slate-200 hover:border-primary-300 hover:bg-primary-50 cursor-pointer group/slot'}`}
+                                    className={`flex-1 p-3 rounded-xl transition-all border-2 border-dashed ${selectedStandId === stand.id && selectedJornada === jornadaValue
+                                        ? 'border-primary-500 bg-primary-50/10 dark:bg-primary-900/20 ring-4 ring-primary-500/10 z-10'
+                                        : isAssigned
+                                            ? 'bg-white/60 dark:bg-slate-700/60 border-white/50 dark:border-slate-600/50 shadow-sm backdrop-blur-md'
+                                            : 'bg-slate-50/40 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-700/60 hover:border-primary-300 dark:hover:border-primary-500/50 hover:bg-primary-50/30 dark:hover:bg-primary-900/10 cursor-pointer group/slot'
+                                        }`}
                                     onClick={(e) => {
                                         if (!isAssigned) {
                                             e.stopPropagation();
@@ -336,16 +340,16 @@ export default function Dashboard() {
 
                                     {isAssigned && emp ? (
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">
+                                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm shrink-0">
                                                 {emp.nombre_emprendimiento.charAt(0)}
                                             </div>
                                             <div className="min-w-0">
-                                                <div className="font-bold text-secondary text-sm truncate">{emp.nombre_emprendimiento}</div>
-                                                <div className="text-xs text-slate-500 truncate">{emp.categoria_principal}</div>
+                                                <div className="font-bold text-slate-900 dark:text-white text-sm truncate">{emp.nombre_emprendimiento}</div>
+                                                <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{emp.categoria_principal}</div>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="h-10 flex items-center justify-center text-slate-400 text-sm font-medium">
+                                        <div className="h-10 flex items-center justify-center text-slate-400 dark:text-slate-600 text-sm font-medium">
                                             + Disponible
                                         </div>
                                     )}
@@ -354,18 +358,18 @@ export default function Dashboard() {
                         };
 
                         return (
-                            <div key={stand.id} className="card relative overflow-hidden group hover:shadow-xl transition-all duration-300 border-t-4 border-t-transparent hover:border-t-primary-500">
+                            <div key={stand.id} className="relative overflow-hidden group hover:shadow-xl transition-all duration-300 border-t-4 border-t-transparent hover:border-t-primary-500">
                                 <div className="absolute top-0 right-0 p-4 opacity-[0.03] font-black text-8xl select-none pointer-events-none group-hover:opacity-[0.07] transition-opacity">
                                     {index + 1}
                                 </div>
 
-                                <div className="p-6 h-full flex flex-col relative z-10">
+                                <div className="p-6 h-full flex flex-col relative z-10 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-md">
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
-                                            <h3 className="font-bold text-lg text-slate-800 group-hover:text-primary-600 transition-colors">{stand.name}</h3>
+                                            <h3 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{stand.name}</h3>
                                             <span className="badge mt-1 cat-libre shadow-sm">{stand.category}</span>
                                         </div>
-                                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500">
+                                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-500 dark:text-slate-400">
                                             #{stand.id}
                                         </div>
                                     </div>
@@ -393,20 +397,27 @@ export default function Dashboard() {
                 onSelect={handleManualSelect}
                 entrepreneurs={entrepreneurs}
                 initialJornada={selectedJornada}
+                standId={selectedStandId}
+                standName={STANDS.find(s => s.id === selectedStandId)?.name}
             />
         </div >
     );
 }
 
-function EntrepreneurSelectionModal({ isOpen, onClose, onSelect, entrepreneurs, initialJornada }) {
+function EntrepreneurSelectionModal({ isOpen, onClose, onSelect, entrepreneurs, initialJornada, standId, standName }) {
     const [search, setSearch] = useState('');
     const [jornada, setJornada] = useState(initialJornada || 'completa');
 
     useEffect(() => {
         if (isOpen) {
             setJornada(initialJornada || 'completa');
+            const handleEsc = (e) => {
+                if (e.key === 'Escape') onClose();
+            };
+            window.addEventListener('keydown', handleEsc);
+            return () => window.removeEventListener('keydown', handleEsc);
         }
-    }, [isOpen, initialJornada]);
+    }, [isOpen, initialJornada, onClose]);
 
     if (!isOpen) return null;
 
@@ -415,69 +426,104 @@ function EntrepreneurSelectionModal({ isOpen, onClose, onSelect, entrepreneurs, 
         e.persona_contacto.toLowerCase().includes(search.toLowerCase())
     );
 
+    const getJornadaLabel = (j) => {
+        if (j === 'manana') return 'Jornada Matutina';
+        if (j === 'tarde') return 'Jornada Vespertina';
+        return 'Jornada Completa';
+    };
+
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                    <h3 className="font-bold text-lg text-slate-800">Seleccionar Emprendedor</h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 w-8 h-8 rounded-full transition-colors flex items-center justify-center"><X size={20} /></button>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/10 backdrop-blur-[2px] p-4 animate-fade-in" onClick={onClose}>
+            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700 transform transition-all animate-scale-in" onClick={e => e.stopPropagation()}>
+                <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 z-10 relative">
+                    <div className="flex-1 min-w-0 pr-4">
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-bold bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 uppercase tracking-wide">
+                                Stand {standId}
+                            </span>
+                            <span className="text-xs text-slate-400 font-medium truncate">
+                                {getJornadaLabel(jornada)}
+                            </span>
+                        </div>
+                        <h3 className="font-bold text-xl text-slate-900 dark:text-white tracking-tight truncate">
+                            {standName && standName !== `Stand ${standId}` ? standName : 'Seleccionar Emprendedor'}
+                        </h3>
+                    </div>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 w-9 h-9 rounded-full transition-colors flex items-center justify-center flex-none"><X size={20} /></button>
                 </div>
-                <div className="p-4 border-b border-slate-100 space-y-3">
+
+                <div className="p-4 border-b border-slate-100 dark:border-slate-700 space-y-4 bg-slate-50/50 dark:bg-slate-800/50">
                     {/* Shift Selector */}
-                    <div className="flex gap-2 bg-slate-100 p-1 rounded-lg">
+                    <div className="flex gap-2 bg-slate-200/50 dark:bg-slate-700/50 p-1.5 rounded-xl">
                         <button
-                            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2 ${jornada === 'manana' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${jornada === 'manana' ? 'bg-white dark:bg-slate-600 text-orange-600 dark:text-orange-400 shadow-md transform scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-600/50'}`}
                             onClick={() => setJornada('manana')}
                         >
-                            <Sun size={16} /> Matutina
+                            <Sun size={14} /> Matutina
                         </button>
                         <button
-                            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2 ${jornada === 'tarde' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${jornada === 'tarde' ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-md transform scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-600/50'}`}
                             onClick={() => setJornada('tarde')}
                         >
-                            <Sunset size={16} /> Vespertina
+                            <Sunset size={14} /> Vespertina
                         </button>
                         <button
-                            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-2 ${jornada === 'completa' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${jornada === 'completa' ? 'bg-white dark:bg-slate-600 text-purple-600 dark:text-purple-400 shadow-md transform scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-600/50'}`}
                             onClick={() => setJornada('completa')}
                         >
-                            <Calendar size={16} /> Completa
+                            <Calendar size={14} /> Completa
                         </button>
                     </div>
 
-                    <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Search size={18} /></span>
+                    <div className="relative group">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors"><Search size={18} /></span>
                         <input
                             autoFocus
-                            className="input w-full pl-10"
+                            className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium text-slate-700 dark:text-white placeholder:text-slate-400 text-sm shadow-sm"
                             placeholder="Buscar por nombre o emprendimiento..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
                     </div>
                 </div>
-                <div className="overflow-y-auto flex-1 p-2">
+
+                <div className="overflow-y-auto flex-1 p-3 bg-white dark:bg-slate-800 space-y-2 custom-scrollbar">
                     {filtered.length > 0 ? (
                         filtered.map(e => (
                             <button
                                 key={e.id}
                                 onClick={() => onSelect(e, jornada)}
-                                className="w-full text-left p-3 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3 group border border-transparent hover:border-slate-100"
+                                className="w-full text-left p-3 rounded-xl transition-all flex items-center gap-4 group border border-transparent hover:border-primary-200 dark:hover:border-primary-500/30 hover:bg-primary-50 dark:hover:bg-primary-900/10 active:scale-[0.99]"
                             >
-                                <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-sm group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors shrink-0">
-                                    {e.nombre_emprendimiento.charAt(0)}
+                                <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-lg group-hover:bg-white dark:group-hover:bg-slate-600 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors shrink-0 shadow-sm border border-slate-200 dark:border-slate-600 group-hover:border-primary-100 dark:group-hover:border-primary-500/30">
+                                    {e.nombre_emprendimiento.charAt(0).toUpperCase()}
                                 </div>
-                                <div className="min-w-0">
-                                    <div className="font-bold text-secondary truncate">{e.nombre_emprendimiento}</div>
-                                    <div className="text-xs text-slate-500 truncate">{e.persona_contacto} • {e.categoria_principal}</div>
+                                <div className="min-w-0 flex-1">
+                                    <div className="font-bold text-slate-800 dark:text-white group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors truncate text-base">
+                                        {e.nombre_emprendimiento}
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate max-w-[120px]">{e.persona_contacto}</span>
+                                        <span className="inline-block w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                                            // Quick category styling helper inline
+                                            'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-600'
+                                            }`}>
+                                            {e.categoria_principal}
+                                        </span>
+                                    </div>
                                 </div>
                             </button>
                         ))
                     ) : (
-                        <div className="p-8 text-center text-slate-400">
-                            No se encontraron resultados
+                        <div className="flex flex-col items-center justify-center h-48 text-slate-400 dark:text-slate-500">
+                            <Search size={40} className="mb-3 opacity-20" />
+                            <p className="font-medium">No se encontraron resultados</p>
                         </div>
                     )}
+                </div>
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-700 text-center">
+                    <p className="text-xs text-slate-400">Mostrando {filtered.length} emprendedores</p>
                 </div>
             </div>
         </div>,

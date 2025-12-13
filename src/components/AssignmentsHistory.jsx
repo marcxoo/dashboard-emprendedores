@@ -247,7 +247,7 @@ export default function AssignmentsHistory() {
     const AssignmentCell = ({ assignment }) => {
         if (!assignment) {
             return (
-                <div className="h-full min-h-[140px] flex flex-col items-center justify-center text-slate-300 border-2 border-dashed border-slate-100 rounded-xl p-4 transition-colors hover:border-slate-200 hover:bg-slate-50/50 group">
+                <div className="h-full min-h-[140px] flex flex-col items-center justify-center text-slate-300 dark:text-slate-600 border-2 border-dashed border-slate-100 dark:border-slate-700 rounded-xl p-4 transition-colors hover:border-slate-200 dark:hover:border-slate-600 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 group">
                     <Sparkles size={24} className="mb-2 opacity-50 group-hover:opacity-70 transition-opacity" />
                     <span className="text-xs font-medium italic">Disponible</span>
                 </div>
@@ -257,30 +257,30 @@ export default function AssignmentsHistory() {
         return (
             <div
                 onClick={() => handleCardClick(assignment.id_emprendedor)}
-                className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 relative group h-full flex flex-col min-h-[140px] cursor-pointer hover:border-primary-200"
+                className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 relative group h-full flex flex-col min-h-[140px] cursor-pointer hover:border-primary-200 dark:hover:border-primary-500/30"
             >
                 {/* Header: Status & Delete */}
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-wrap gap-1.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${assignment.estado === 'Confirmado' ? 'bg-green-50 text-green-700 border-green-100' :
-                            assignment.estado === 'Pendiente' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
-                                'bg-red-50 text-red-700 border-red-100'
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${assignment.estado === 'Confirmado' ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-100 dark:border-green-800' :
+                            assignment.estado === 'Pendiente' ? 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-100 dark:border-yellow-800' :
+                                'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-100 dark:border-red-800'
                             } `}>
                             {assignment.estado}
                         </span>
 
                         {(assignment.jornada === 'completa' || !assignment.jornada) && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
                                 Jornada Completa
                             </span>
                         )}
                         {assignment.jornada === 'manana' && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-100 dark:border-amber-800">
                                 Matutina
                             </span>
                         )}
                         {assignment.jornada === 'tarde' && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
                                 Vespertina
                             </span>
                         )}
@@ -292,14 +292,14 @@ export default function AssignmentsHistory() {
                             const type = emp.semaforizacion || 'Externo';
 
                             // Determine style based on type
-                            let styleClass = 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'; // Default Externo
+                            let styleClass = 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600'; // Default Externo
                             if (type === 'Estudiante') {
-                                styleClass = 'bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100';
+                                styleClass = 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-violet-100 dark:border-violet-800 hover:bg-violet-100 dark:hover:bg-violet-900/40';
                             } else if (type === 'Graduado') {
-                                styleClass = 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100';
+                                styleClass = 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40';
                             } else if (type === 'Estudiante / Graduado UNEMI') {
                                 // Legacy support - map to Estudiante style or generic
-                                styleClass = 'bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100';
+                                styleClass = 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-violet-100 dark:border-violet-800 hover:bg-violet-100 dark:hover:bg-violet-900/40';
                             }
 
                             return (
@@ -314,9 +314,9 @@ export default function AssignmentsHistory() {
                                         className={`appearance-none cursor-pointer inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border outline-none transition-all ${styleClass}`}
                                         style={{ textAlignLast: 'center' }}
                                     >
-                                        <option value="Externo">EXTERNO</option>
-                                        <option value="Estudiante">ESTUDIANTE</option>
-                                        <option value="Graduado">GRADUADO</option>
+                                        <option value="Externo" className='text-black'>EXTERNO</option>
+                                        <option value="Estudiante" className='text-black'>ESTUDIANTE</option>
+                                        <option value="Graduado" className='text-black'>GRADUADO</option>
                                     </select>
                                 </div>
                             );
@@ -324,7 +324,7 @@ export default function AssignmentsHistory() {
                         {/* Survey Completed Badge */}
                         {assignment.comentarios && assignment.comentarios.startsWith('[SURVEY]') && (
                             <div className="flex items-center gap-1">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-100 gap-1">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 border border-teal-100 dark:border-teal-800 gap-1">
                                     <CheckCircle size={10} /> Encuesta OK
                                 </span>
                                 <button
@@ -334,7 +334,7 @@ export default function AssignmentsHistory() {
                                             updateAssignmentAttendance(assignment.id_asignacion, assignment.asistio, '');
                                         }
                                     }}
-                                    className="p-0.5 rounded-full hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors"
+                                    className="p-0.5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-slate-400 hover:text-red-500 transition-colors"
                                     title="Eliminar encuesta"
                                 >
                                     <X size={12} />
@@ -345,7 +345,7 @@ export default function AssignmentsHistory() {
 
                     <button
                         onClick={(e) => { e.stopPropagation(); handleDelete(assignment.id_asignacion); }}
-                        className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1 rounded-md transition-all opacity-0 group-hover:opacity-100"
+                        className="text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded-md transition-all opacity-0 group-hover:opacity-100"
                         title="Eliminar asignación"
                     >
                         <Trash2 size={16} />
@@ -354,7 +354,7 @@ export default function AssignmentsHistory() {
 
                 {/* Content: Name & Category */}
                 <div className="mb-4">
-                    <div className="font-bold text-slate-800 text-base leading-tight mb-1 line-clamp-2" title={getEntrepreneurName(assignment.id_emprendedor)}>
+                    <div className="font-bold text-slate-800 dark:text-slate-100 text-base leading-tight mb-1 line-clamp-2" title={getEntrepreneurName(assignment.id_emprendedor)}>
                         {getEntrepreneurName(assignment.id_emprendedor)}
                     </div>
                     <div className="text-xs font-medium text-slate-400 uppercase tracking-wide line-clamp-1" title={getEntrepreneurCategory(assignment.id_emprendedor)}>
@@ -364,29 +364,29 @@ export default function AssignmentsHistory() {
 
                 {/* Comments Warning */}
                 {assignment.comentarios && assignment.comentarios !== 'Asignación manual' && !assignment.asistio && (
-                    <div className="mb-3 px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 italic flex items-start gap-1.5">
+                    <div className="mb-3 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg text-xs text-red-600 dark:text-red-400 italic flex items-start gap-1.5">
                         <AlertTriangle size={14} className="shrink-0" />
                         <span className="line-clamp-2" title={assignment.comentarios}>"{assignment.comentarios}"</span>
                     </div>
                 )}
 
                 {/* Footer: Attendance Controls */}
-                <div className="mt-auto pt-3 border-t border-slate-50 flex justify-between items-center">
+                <div className="mt-auto pt-3 border-t border-slate-50 dark:border-slate-700/50 flex justify-between items-center">
                     <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Asistencia</span>
 
                     {assignment.asistio === null || assignment.asistio === undefined ? (
-                        <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-100">
+                        <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-700/50 p-1 rounded-lg border border-slate-100 dark:border-slate-700">
                             <button
                                 onClick={(e) => { e.stopPropagation(); updateAssignmentAttendance(assignment.id_asignacion, true, ''); }}
-                                className="w-8 h-8 flex items-center justify-center rounded-md bg-white text-slate-400 hover:text-green-600 hover:bg-green-50 hover:border-green-200 border border-transparent transition-all shadow-sm"
+                                className="w-8 h-8 flex items-center justify-center rounded-md bg-white dark:bg-slate-600 text-slate-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 hover:border-green-200 border border-transparent transition-all shadow-sm"
                                 title="Marcar como Asistió"
                             >
                                 <CheckCircle size={16} />
                             </button>
-                            <div className="w-px h-4 bg-slate-200"></div>
+                            <div className="w-px h-4 bg-slate-200 dark:bg-slate-600"></div>
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleAttendanceToggle({ ...assignment, asistio: true }); }}
-                                className="w-8 h-8 flex items-center justify-center rounded-md bg-white text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 border border-transparent transition-all shadow-sm"
+                                className="w-8 h-8 flex items-center justify-center rounded-md bg-white dark:bg-slate-600 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 hover:border-red-200 border border-transparent transition-all shadow-sm"
                                 title="Marcar como No Asistió"
                             >
                                 <XCircle size={16} />
@@ -396,8 +396,8 @@ export default function AssignmentsHistory() {
                         <button
                             onClick={(e) => { e.stopPropagation(); handleAttendanceToggle(assignment); }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border ${assignment.asistio
-                                ? 'bg-green-50 text-green-700 border-green-100 hover:bg-green-100'
-                                : 'bg-red-50 text-red-700 border-red-100 hover:bg-red-100'
+                                ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-100 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/50'
+                                : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-100 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50'
                                 }`}
                         >
                             {assignment.asistio ? (
@@ -416,7 +416,7 @@ export default function AssignmentsHistory() {
                                 navigator.clipboard.writeText(link);
                                 alert('Enlace de encuesta copiado');
                             }}
-                            className="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm"
+                            className="p-2 rounded-lg bg-white dark:bg-slate-600 border border-slate-200 dark:border-slate-600 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-200 transition-all shadow-sm"
                             title="Copiar Enlace"
                         >
                             <Link size={20} />
@@ -424,7 +424,7 @@ export default function AssignmentsHistory() {
 
                         <button
                             onClick={(e) => { e.stopPropagation(); handleDelete(assignment.id_asignacion); }}
-                            className="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all shadow-sm"
+                            className="p-2 rounded-lg bg-white dark:bg-slate-600 border border-slate-200 dark:border-slate-600 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 hover:border-red-200 transition-all shadow-sm"
                             title="Eliminar"
                         >
                             <Trash2 size={20} />
@@ -442,16 +442,16 @@ export default function AssignmentsHistory() {
         return (
             <div
                 onClick={() => handleCardClick(assignment.id_emprendedor)}
-                className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm active:scale-[0.99] transition-transform"
+                className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-[0.99] transition-transform"
             >
                 {/* Header */}
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-col gap-1">
-                        <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">{label}</span>
+                        <span className="text-xs font-bold uppercase text-slate-400 tracking-wider dark:text-slate-500">{label}</span>
                         <div className="flex gap-2 flex-wrap">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${assignment.estado === 'Confirmado' ? 'bg-green-50 text-green-700 border-green-100' :
-                                assignment.estado === 'Pendiente' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
-                                    'bg-red-50 text-red-700 border-red-100'
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${assignment.estado === 'Confirmado' ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-100 dark:border-green-800' :
+                                assignment.estado === 'Pendiente' ? 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-100 dark:border-yellow-800' :
+                                    'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-100 dark:border-red-800'
                                 } `}>
                                 {assignment.estado}
                             </span>
@@ -462,37 +462,40 @@ export default function AssignmentsHistory() {
                                 const type = emp.semaforizacion || 'Externo';
 
                                 // Determine style based on type
-                                let styleClass = 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'; // Default Externo
+                                let styleClass = 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600'; // Default Externo
                                 if (type === 'Estudiante') {
-                                    styleClass = 'bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100';
+                                    styleClass = 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-violet-100 dark:border-violet-800 hover:bg-violet-100 dark:hover:bg-violet-900/40';
                                 } else if (type === 'Graduado') {
-                                    styleClass = 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100';
+                                    styleClass = 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40';
                                 } else if (type === 'Estudiante / Graduado UNEMI') {
                                     // Legacy support
-                                    styleClass = 'bg-violet-50 text-violet-700 border-violet-100 hover:bg-violet-100';
+                                    styleClass = 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-violet-100 dark:border-violet-800 hover:bg-violet-100 dark:hover:bg-violet-900/40';
                                 }
 
                                 return (
-                                    <select
-                                        value={type}
-                                        onClick={(e) => e.stopPropagation()}
-                                        onChange={(e) => {
-                                            e.stopPropagation();
-                                            updateEntrepreneur(emp.id, { ...emp, tipo_emprendedor: e.target.value });
-                                        }}
-                                        className={`appearance-none cursor-pointer inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border outline-none transition-all ${styleClass}`}
-                                    >
-                                        <option value="Externo">EXTERNO</option>
-                                        <option value="Estudiante">ESTUDIANTE</option>
-                                        <option value="Graduado">GRADUADO</option>
-                                    </select>
+                                    <div className="relative inline-block group/tag">
+                                        <select
+                                            value={type}
+                                            onClick={(e) => e.stopPropagation()}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                updateEntrepreneur(emp.id, { ...emp, tipo_emprendedor: e.target.value });
+                                            }}
+                                            className={`appearance-none cursor-pointer inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border outline-none transition-all ${styleClass}`}
+                                            style={{ textAlignLast: 'center' }}
+                                        >
+                                            <option value="Externo" className='text-black'>EXTERNO</option>
+                                            <option value="Estudiante" className='text-black'>ESTUDIANTE</option>
+                                            <option value="Graduado" className='text-black'>GRADUADO</option>
+                                        </select>
+                                    </div>
                                 );
                             })()}
 
                             {/* Survey Completed Badge */}
                             {assignment.comentarios && assignment.comentarios.startsWith('[SURVEY]') && (
                                 <div className="flex items-center gap-1">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-100 gap-1">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 border border-teal-100 dark:border-teal-800 gap-1">
                                         <CheckCircle size={10} /> Encuesta OK
                                     </span>
                                     <button
@@ -502,7 +505,7 @@ export default function AssignmentsHistory() {
                                                 updateAssignmentAttendance(assignment.id_asignacion, assignment.asistio, '');
                                             }
                                         }}
-                                        className="p-0.5 rounded-full hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors"
+                                        className="p-0.5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-slate-400 hover:text-red-500 transition-colors"
                                         title="Eliminar encuesta"
                                     >
                                         <X size={12} />
@@ -515,31 +518,31 @@ export default function AssignmentsHistory() {
 
                 {/* Content */}
                 <div className="mb-4">
-                    <div className="font-bold text-slate-900 text-base mb-1">{getEntrepreneurName(assignment.id_emprendedor)}</div>
+                    <div className="font-bold text-slate-900 dark:text-slate-100 text-base mb-1">{getEntrepreneurName(assignment.id_emprendedor)}</div>
                     <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">{getEntrepreneurCategory(assignment.id_emprendedor)}</div>
                 </div>
 
                 {/* Warning */}
                 {assignment.comentarios && assignment.comentarios !== 'Asignación manual' && !assignment.asistio && (
-                    <div className="mb-4 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 italic flex items-start gap-2">
+                    <div className="mb-4 px-3 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg text-xs text-red-600 dark:text-red-400 italic flex items-start gap-2">
                         <AlertTriangle size={16} className="shrink-0" />
                         <span>"{assignment.comentarios}"</span>
                     </div>
                 )}
 
                 {/* Footer */}
-                <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+                <div className="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-700/50">
                     {assignment.asistio === null || assignment.asistio === undefined ? (
                         <div className="flex gap-2">
                             <button
                                 onClick={(e) => { e.stopPropagation(); updateAssignmentAttendance(assignment.id_asignacion, true, ''); }}
-                                className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition-all text-sm flex items-center gap-2 shadow-sm"
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-700 dark:hover:text-green-400 hover:border-green-200 transition-all text-sm flex items-center gap-2 shadow-sm"
                             >
                                 <CheckCircle size={16} /> Asistió
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleAttendanceToggle({ ...assignment, asistio: true }); }}
-                                className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all text-sm flex items-center gap-2 shadow-sm"
+                                className="px-4 py-2 rounded-lg bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-700 dark:hover:text-red-400 hover:border-red-200 transition-all text-sm flex items-center gap-2 shadow-sm"
                             >
                                 <XCircle size={16} /> No Asistió
                             </button>
@@ -548,8 +551,8 @@ export default function AssignmentsHistory() {
                         <button
                             onClick={(e) => { e.stopPropagation(); handleAttendanceToggle(assignment); }}
                             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-sm border ${assignment.asistio
-                                ? 'bg-green-50 text-green-700 border-green-100'
-                                : 'bg-red-50 text-red-700 border-red-100'
+                                ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-100 dark:border-green-800'
+                                : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-100 dark:border-red-800'
                                 }`}
                         >
                             {assignment.asistio ? (
@@ -568,7 +571,7 @@ export default function AssignmentsHistory() {
                             // Simple alert or toast could be better, but alert is quick
                             alert('Enlace de encuesta copiado');
                         }}
-                        className="text-slate-400 hover:text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-all"
+                        className="text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 p-2 rounded-lg transition-all"
                         title="Copiar enlace de encuesta"
                     >
                         <Link size={20} />
@@ -576,7 +579,7 @@ export default function AssignmentsHistory() {
 
                     <button
                         onClick={(e) => { e.stopPropagation(); handleDelete(assignment.id_asignacion); }}
-                        className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all"
+                        className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:text-red-400 p-2 rounded-lg transition-all"
                         title="Eliminar"
                     >
                         <Trash2 size={20} />
@@ -602,8 +605,8 @@ export default function AssignmentsHistory() {
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-0">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Historial de Asignaciones</h1>
-                    <p className="text-slate-500 mt-2 text-lg">Registro histórico de stands asignados</p>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Historial de Asignaciones</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">Registro histórico de stands asignados</p>
                 </div>
                 <div className="flex gap-3">
                     <button
@@ -612,13 +615,13 @@ export default function AssignmentsHistory() {
                                 clearAllData();
                             }
                         }}
-                        className="btn bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 shadow-sm transition-all flex items-center gap-2 px-4 py-2.5 rounded-xl"
+                        className="btn bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-100 dark:border-red-900/30 shadow-sm transition-all flex items-center gap-2 px-4 py-2.5 rounded-xl"
                     >
                         <Trash2 size={18} /> Borrar Historial
                     </button>
                     <button
                         onClick={exportToCSV}
-                        className="btn bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary-600 hover:border-primary-200 shadow-sm transition-all flex items-center gap-2 px-4 py-2.5 rounded-xl"
+                        className="btn bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-200 dark:hover:border-primary-700/50 shadow-sm transition-all flex items-center gap-2 px-4 py-2.5 rounded-xl"
                     >
                         <Download size={18} /> Exportar CSV
                     </button>
@@ -626,40 +629,40 @@ export default function AssignmentsHistory() {
             </div>
 
             {/* Filter Controls */}
-            <div className="flex flex-wrap gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200 w-fit">
+            <div className="flex flex-wrap gap-2 bg-slate-50 dark:bg-slate-800/50 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 w-fit">
                 <button
                     onClick={() => setFilterStatus('all')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filterStatus === 'all' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filterStatus === 'all' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                 >
                     Todos
                 </button>
                 <button
                     onClick={() => setFilterStatus('attended')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'attended' ? 'bg-white text-green-700 shadow-sm' : 'text-slate-500 hover:text-green-600 hover:bg-slate-100'}`}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'attended' ? 'bg-white dark:bg-slate-700 text-green-700 dark:text-green-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                 >
                     <CheckCircle size={16} /> Asistieron
                 </button>
                 <button
                     onClick={() => setFilterStatus('not_attended')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'not_attended' ? 'bg-white text-red-700 shadow-sm' : 'text-slate-500 hover:text-red-600 hover:bg-slate-100'}`}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'not_attended' ? 'bg-white dark:bg-slate-700 text-red-700 dark:text-red-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                 >
                     <XCircle size={16} /> No Asistieron
                 </button>
                 <button
                     onClick={() => setFilterStatus('pending')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'pending' ? 'bg-white text-yellow-700 shadow-sm' : 'text-slate-500 hover:text-yellow-600 hover:bg-slate-100'}`}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'pending' ? 'bg-white dark:bg-slate-700 text-yellow-700 dark:text-yellow-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                 >
                     <Clock size={16} /> Pendientes
                 </button>
             </div>
 
             {sortedWeeks.length === 0 ? (
-                <div className="text-center py-20 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
-                    <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                        <Calendar size={48} className="text-slate-300" />
+                <div className="text-center py-20 bg-slate-50/50 dark:bg-slate-800/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700">
+                    <div className="w-24 h-24 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <Calendar size={48} className="text-slate-300 dark:text-slate-500" />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">No hay historial disponible</h3>
-                    <p className="text-slate-500 max-w-md mx-auto">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No hay historial disponible</h3>
+                    <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">
                         Aún no se han generado asignaciones. Ve al Dashboard para generar la primera asignación de stands.
                     </p>
                 </div>
@@ -671,7 +674,7 @@ export default function AssignmentsHistory() {
                                 <h2 className="text-2xl font-bold text-slate-800 bg-slate-100 px-4 py-2 rounded-lg inline-block border border-slate-200">
                                     Semana {week}
                                 </h2>
-                                <div className="h-px bg-slate-200 flex-1"></div>
+                                <div className="h-px bg-primary-500 flex-1"></div>
                             </div>
 
                             {blockOrder.map(block => {
@@ -680,24 +683,24 @@ export default function AssignmentsHistory() {
                                 if (!blockAssignments || blockAssignments.length === 0) return null;
 
                                 return (
-                                    <div key={block} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                                        <div className="bg-slate-50/80 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                                    <div key={block} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                        <div className="bg-slate-50/80 dark:bg-slate-800 px-6 py-4 flex justify-between items-center">
                                             <div>
-                                                <h3 className="font-bold text-lg text-slate-700">{formatBlock(block)}</h3>
-                                                <p className="text-sm text-slate-500">{formatDateRange(week, block)}</p>
+                                                <h3 className="font-bold text-lg text-slate-700 dark:text-slate-200">{formatBlock(block)}</h3>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">{formatDateRange(week, block)}</p>
                                             </div>
                                         </div>
 
                                         <div className="overflow-x-auto hidden md:block">
                                             <table className="w-full">
                                                 <thead>
-                                                    <tr className="bg-white border-b border-slate-100">
+                                                    <tr className="bg-white dark:bg-slate-800">
                                                         <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-24">Stand</th>
                                                         <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-1/2">Matutina (08:30 - 12:30)</th>
                                                         <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-1/2">Vespertina (13:00 - 16:30)</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-slate-50">
+                                                <tbody className="">
                                                     {STANDS.map(stand => {
                                                         const standAssignments = blockAssignments.filter(a => a.id_stand === stand.id);
                                                         const fullDay = standAssignments.find(a => a.jornada === 'completa' || !a.jornada);
@@ -705,9 +708,9 @@ export default function AssignmentsHistory() {
                                                         const afternoon = standAssignments.find(a => a.jornada === 'tarde');
 
                                                         return (
-                                                            <tr key={stand.id} className="hover:bg-slate-50/30 transition-colors">
+                                                            <tr key={stand.id} className="hover:bg-slate-50/30 dark:hover:bg-slate-700/30 transition-colors">
                                                                 <td className="px-6 py-4">
-                                                                    <div className="font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded text-sm inline-block whitespace-nowrap">
+                                                                    <div className="font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded text-sm inline-block whitespace-nowrap">
                                                                         {stand.name}
                                                                     </div>
                                                                 </td>
@@ -733,7 +736,7 @@ export default function AssignmentsHistory() {
                                         </div>
 
                                         {/* Mobile Card View - Grouped by Stand */}
-                                        <div className="md:hidden divide-y divide-slate-100 border-t border-slate-100">
+                                        <div className="md:hidden">
                                             {STANDS.map(stand => {
                                                 const standAssignments = blockAssignments.filter(a => a.id_stand === stand.id);
                                                 if (standAssignments.length === 0) return null;
@@ -773,4 +776,5 @@ export default function AssignmentsHistory() {
             )}
         </div >
     );
+
 }

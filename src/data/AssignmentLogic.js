@@ -72,7 +72,8 @@ export function generarAsignacionParaSemana(semana, db) {
                         estado: 'invitado',
                         comentarios: '',
                         bloque: block,
-                        jornada: shift
+                        jornada: shift,
+                        asistio: null
                     };
                     assignments.push(assignment);
                     assignedIds.add(bestCandidate.id);

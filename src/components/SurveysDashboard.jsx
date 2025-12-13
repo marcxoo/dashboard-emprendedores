@@ -127,11 +127,11 @@ export default function SurveysDashboard() {
             {/* Header & Filter */}
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Resultados de Encuestas</h2>
-                    <p className="text-slate-500">Análisis de satisfacción y ventas</p>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Resultados de Encuestas</h2>
+                    <p className="text-slate-500 dark:text-slate-400">Análisis de satisfacción y ventas</p>
                 </div>
 
-                <div className="flex flex-wrap gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                <div className="flex flex-wrap gap-3 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-2xl border border-slate-100 dark:border-slate-700">
                     {/* Year Filter */}
                     <div className="relative">
                         <select
@@ -141,7 +141,7 @@ export default function SurveysDashboard() {
                                 setSelectedMonth('all'); // Reset child filters
                                 setSelectedWeek('all');
                             }}
-                            className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary-100 cursor-pointer shadow-sm appearance-none hover:border-primary-200 transition-colors min-w-[100px]"
+                            className="pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-primary-100 cursor-pointer shadow-sm appearance-none hover:border-primary-200 dark:hover:border-primary-500/30 transition-colors min-w-[100px]"
                         >
                             <option value="all">Año</option>
                             {years.map(year => (
@@ -159,7 +159,7 @@ export default function SurveysDashboard() {
                                 setSelectedMonth(e.target.value);
                                 setSelectedWeek('all'); // Reset child filter
                             }}
-                            className={`pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary-100 cursor-pointer shadow-sm appearance-none hover:border-primary-200 transition-colors min-w-[120px] ${selectedYear === 'all' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-primary-100 cursor-pointer shadow-sm appearance-none hover:border-primary-200 dark:hover:border-primary-500/30 transition-colors min-w-[120px] ${selectedYear === 'all' ? 'opacity-50 cursor-not-allowed' : ''}`}
                             disabled={selectedYear === 'all'}
                         >
                             <option value="all">Mes</option>
@@ -175,7 +175,7 @@ export default function SurveysDashboard() {
                         <select
                             value={selectedWeek}
                             onChange={(e) => setSelectedWeek(e.target.value)}
-                            className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary-100 cursor-pointer shadow-sm appearance-none hover:border-primary-200 transition-colors min-w-[160px]"
+                            className="pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-primary-100 cursor-pointer shadow-sm appearance-none hover:border-primary-200 dark:hover:border-primary-500/30 transition-colors min-w-[160px]"
                         >
                             <option value="all">Todas las semanas</option>
                             {weeks.map(week => (
@@ -192,7 +192,7 @@ export default function SurveysDashboard() {
                                 setSelectedMonth('all');
                                 setSelectedWeek('all');
                             }}
-                            className="px-3 py-2 text-sm text-red-500 font-medium hover:bg-red-50 rounded-xl transition-colors"
+                            className="px-3 py-2 text-sm text-red-500 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                         >
                             Borrar filtros
                         </button>
@@ -201,42 +201,42 @@ export default function SurveysDashboard() {
             </div>
 
             {!stats ? (
-                <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-slate-100 shadow-sm text-center">
-                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                        <MessageSquare size={32} className="text-slate-300" />
+                <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-center">
+                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-700/50 rounded-full flex items-center justify-center mb-4">
+                        <MessageSquare size={32} className="text-slate-300 dark:text-slate-500" />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-700">No hay datos para esta selección</h3>
-                    <p className="text-slate-500 max-w-sm mt-2">No se encontraron encuestas respondidas en el período seleccionado.</p>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-slate-200">No hay datos para esta selección</h3>
+                    <p className="text-slate-500 dark:text-slate-400 max-w-sm mt-2">No se encontraron encuestas respondidas en el período seleccionado.</p>
                 </div>
             ) : (
                 <>
                     {/* Header Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center text-primary-600">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400">
                                 <MessageSquare size={24} />
                             </div>
                             <div>
-                                <div className="text-3xl font-bold text-slate-800">{stats.total}</div>
-                                <div className="text-sm font-medium text-slate-500">Respuestas Totales</div>
+                                <div className="text-3xl font-bold text-slate-900 dark:text-white">{stats.total}</div>
+                                <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Respuestas Totales</div>
                             </div>
                         </div>
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
                                 <DollarSign size={24} />
                             </div>
                             <div>
-                                <div className="text-3xl font-bold text-slate-800">${stats.totalSales.toLocaleString()}</div>
-                                <div className="text-sm font-medium text-slate-500">Ventas Reportadas</div>
+                                <div className="text-3xl font-bold text-slate-900 dark:text-white">${stats.totalSales.toLocaleString()}</div>
+                                <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Ventas Reportadas</div>
                             </div>
                         </div>
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
                                 <TrendingUp size={24} />
                             </div>
                             <div>
-                                <div className="text-3xl font-bold text-slate-800">~${stats.avgSales.toLocaleString()}</div>
-                                <div className="text-sm font-medium text-slate-500">Promedio Ventas / Stand</div>
+                                <div className="text-3xl font-bold text-slate-900 dark:text-white">~${stats.avgSales.toLocaleString()}</div>
+                                <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Promedio Ventas / Stand</div>
                             </div>
                         </div>
                     </div>
@@ -244,8 +244,8 @@ export default function SurveysDashboard() {
                     {/* Charts */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Experience Chart */}
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                                 <Star className="text-yellow-500" size={20} /> Experiencia en Stand
                             </h3>
                             <div className="h-[300px] w-full">
@@ -264,7 +264,7 @@ export default function SurveysDashboard() {
                                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                             ))}
                                         </Pie>
-                                        <Tooltip />
+                                        <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', color: '#f8fafc' }} />
                                         <Legend verticalAlign="bottom" height={36} />
                                     </PieChart>
                                 </ResponsiveContainer>
@@ -272,17 +272,17 @@ export default function SurveysDashboard() {
                         </div>
 
                         {/* Impact Chart */}
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                                 <TrendingUp className="text-blue-500" size={20} /> Impacto en Ventas
                             </h3>
                             <div className="h-[300px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={stats.impactData}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                        <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                                        <YAxis axisLine={false} tickLine={false} />
-                                        <Tooltip cursor={{ fill: '#F8FAFC' }} />
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
+                                        <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#1e293b', border: 'none', color: '#f8fafc' }} />
                                         <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={40} />
                                     </BarChart>
                                 </ResponsiveContainer>
