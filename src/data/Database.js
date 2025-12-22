@@ -39,6 +39,10 @@ export class Database {
             const parsed = JSON.parse(notes);
             history = parsed.history || [];
             generalNotes = parsed.general_notes || '';
+            // New: Extract RUC from notes if available
+            if (parsed.ruc) {
+              e.ruc = parsed.ruc;
+            }
           } catch {
             // Fallback if parse fails
             generalNotes = notes;
@@ -53,7 +57,11 @@ export class Database {
           ...e,
           no_contesto: noContesto, // Keep for legacy compatibility if needed
           notas: generalNotes,
-          followUpHistory: history
+          ...e,
+          no_contesto: noContesto, // Keep for legacy compatibility if needed
+          notas: generalNotes,
+          followUpHistory: history,
+          ruc: e.ruc || '' // Ensure top-level property
         };
       });
 
@@ -413,7 +421,8 @@ export class Database {
     // But for new entrepreneur, history is empty.
     const notesObject = {
       general_notes: data.notas || '',
-      history: []
+      history: [],
+      ruc: data.ruc || ''
     };
 
     const supabaseData = {
@@ -427,9 +436,15 @@ export class Database {
       subcategoria_interna: data.categoria_principal,
       categoria_principal: data.categoria_principal,
       semaforizacion: data.tipo_emprendedor || 'Externo',
+
       veces_en_stand: 0,
       ultima_semana_participacion: null,
-      notas: JSON.stringify(notesObject)
+      ruc: data.ruc || '', // Store in local object
+      notas: JSON.stringify({
+        general_notes: data.notas || '',
+        history: [],
+        ruc: data.ruc || '' // Store inside JSON
+      })
     };
 
     const { data: inserted, error } = await supabase
@@ -472,10 +487,14 @@ export class Database {
 
       const newGeneralNotes = updates.notas !== undefined ? updates.notas : currentGeneralNotes;
 
+      const currentRuc = current.ruc || '';
+      const newRuc = updates.ruc !== undefined ? updates.ruc : currentRuc;
+
       // Construct JSON for DB
       const notesObject = {
         general_notes: newGeneralNotes,
-        history: currentHistory
+        history: currentHistory,
+        ruc: newRuc
       };
 
       const supabaseUpdates = {
@@ -489,6 +508,8 @@ export class Database {
         red_social: updates.red_social ?? current.red_social,
         subcategoria_interna: updates.categoria_principal ?? current.subcategoria_interna,
         semaforizacion: updates.tipo_emprendedor ?? current.semaforizacion,
+        semaforizacion: updates.tipo_emprendedor ?? current.semaforizacion,
+        // ruc: updates.ruc ?? current.ruc, // Removed: Not a column
         notas: JSON.stringify(notesObject)
       };
 
@@ -497,7 +518,8 @@ export class Database {
         ...current,
         ...updates,
         notas: newGeneralNotes,
-        followUpHistory: currentHistory
+        followUpHistory: currentHistory,
+        ruc: newRuc
       };
 
       const { error } = await supabase
