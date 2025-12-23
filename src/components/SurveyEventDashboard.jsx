@@ -551,7 +551,7 @@ function SurveyEventDashboard() {
 
                         return (
                             <div className="space-y-6 animate-fade-in">
-                                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-white/5 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 lg:p-6 border border-slate-200 dark:border-white/5 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                     <div className="min-w-0 flex-1">
                                         <button onClick={() => setViewingResultsId(null)} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white text-sm font-bold mb-2 flex items-center gap-1 transition-colors">
                                             ← Volver a Formularios
@@ -562,9 +562,9 @@ function SurveyEventDashboard() {
                                     <div className="flex flex-col gap-2 items-end w-full md:w-auto">
                                         <button
                                             onClick={() => handleDownloadCSV(survey)}
-                                            className="w-full md:w-auto flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-green-600/20 whitespace-nowrap"
+                                            className="w-full md:w-auto flex-shrink-0 flex items-center justify-center gap-2 px-4 py-3 md:py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-green-600/20 whitespace-normal text-center h-auto"
                                         >
-                                            <FileDown size={18} /> Descargar Excel / CSV
+                                            <FileDown size={18} className="flex-shrink-0" /> Descargar Excel / CSV
                                         </button>
                                         <button
                                             onClick={async () => {
@@ -575,7 +575,7 @@ function SurveyEventDashboard() {
 
                                                     // Rows
                                                     const rows = survey.responses.map(response => {
-                                                        const date = new Date(response.created_at || response.submittedAt).toLocaleString();
+                                                        const date = new Date(response.created_at || response.createdAt || response.submittedAt).toLocaleString();
                                                         const answers = survey.questions.map(q => {
                                                             const answer = response.answers[q.label];
                                                             if (Array.isArray(answer)) return answer.join(', ');
@@ -598,9 +598,9 @@ function SurveyEventDashboard() {
                                                     showToast('Error al copiar datos', 'error');
                                                 }
                                             }}
-                                            className="w-full md:w-auto flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-colors shadow-sm whitespace-nowrap text-xs"
+                                            className="w-full md:w-auto flex-shrink-0 flex items-center justify-center gap-2 px-4 py-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-colors shadow-sm whitespace-normal text-center h-auto text-xs"
                                         >
-                                            <Table size={14} /> Copiar y Abrir Google Sheets
+                                            <Table size={14} className="flex-shrink-0" /> Copiar y Abrir Google Sheets
                                         </button>
                                     </div>
                                 </div>
@@ -624,18 +624,27 @@ function SurveyEventDashboard() {
                                                         </td>
                                                     </tr>
                                                 ) : (
-                                                    responses.map((r, idx) => (
-                                                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-sm">
-                                                            <td className="p-4 whitespace-nowrap text-slate-500 font-medium">{new Date(r.submittedAt).toLocaleDateString()} {new Date(r.submittedAt).toLocaleTimeString()}</td>
-                                                            {survey.questions.map(q => (
-                                                                <td key={q.id} className="p-4 max-w-xs truncate font-medium text-slate-900 dark:text-white" title={Array.isArray(r.answers[q.label]) ? r.answers[q.label].join(', ') : r.answers[q.label]}>
-                                                                    {Array.isArray(r.answers[q.label])
-                                                                        ? r.answers[q.label].join(', ')
-                                                                        : r.answers[q.label]}
+                                                    responses.map((r, idx) => {
+                                                        const dateVal = r.created_at || r.createdAt || r.submittedAt;
+                                                        return (
+                                                            <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-sm">
+                                                                <td className="p-4 whitespace-nowrap text-slate-500 font-medium">
+                                                                    {dateVal ? (
+                                                                        <>
+                                                                            {new Date(dateVal).toLocaleDateString()} {new Date(dateVal).toLocaleTimeString()}
+                                                                        </>
+                                                                    ) : 'Fecha inválida'}
                                                                 </td>
-                                                            ))}
-                                                        </tr>
-                                                    ))
+                                                                {survey.questions.map(q => (
+                                                                    <td key={q.id} className="p-4 max-w-xs truncate font-medium text-slate-900 dark:text-white" title={Array.isArray(r.answers[q.label]) ? r.answers[q.label].join(', ') : r.answers[q.label]}>
+                                                                        {Array.isArray(r.answers[q.label])
+                                                                            ? r.answers[q.label].join(', ')
+                                                                            : r.answers[q.label]}
+                                                                    </td>
+                                                                ))}
+                                                            </tr>
+                                                        )
+                                                    })
                                                 )}
                                             </tbody>
                                         </table>
