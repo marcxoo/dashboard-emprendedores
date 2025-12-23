@@ -349,7 +349,7 @@ function SurveyEventDashboard() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 lg:ml-72 min-h-screen pt-16 lg:pt-0 bg-slate-50 dark:bg-slate-900 transition-all duration-300">
+            <main className="flex-1 lg:ml-72 min-h-screen pt-16 lg:pt-0 bg-slate-50 dark:bg-slate-900 transition-all duration-300 w-full max-w-full overflow-x-hidden">
                 <header className="hidden lg:flex h-16 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 items-center justify-between px-8 sticky top-0 z-40">
                     <h2 className="text-xl font-bold text-slate-800 dark:text-white">
                         {view === 'list' && !viewingResultsId && 'Mis Formularios Activos'}
@@ -358,7 +358,7 @@ function SurveyEventDashboard() {
                     </h2>
                 </header>
 
-                <div className="p-4 lg:p-8 max-w-5xl mx-auto">
+                <div className="p-4 lg:p-8 max-w-5xl mx-auto w-full">
                     {view === 'create' && (
                         <form onSubmit={handleCreateSurvey} className="space-y-8 animate-fade-in">
                             {/* General Info Card */}
