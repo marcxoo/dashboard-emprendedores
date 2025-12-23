@@ -559,12 +559,13 @@ function SurveyEventDashboard() {
                                         <h1 className="text-2xl font-bold text-slate-900 dark:text-white break-words md:break-all leading-tight">{survey.title}</h1>
                                         <p className="text-slate-500 mt-1">{responses.length} respuestas recibidas</p>
                                     </div>
-                                    <div className="flex flex-col gap-2 items-end w-full md:w-auto">
+                                    <div className="flex flex-col gap-2 w-full md:w-auto mt-4 md:mt-0">
                                         <button
                                             onClick={() => handleDownloadCSV(survey)}
-                                            className="w-full md:w-auto flex-shrink-0 flex items-center justify-center gap-2 px-4 py-3 md:py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-green-600/20 whitespace-normal text-center h-auto"
+                                            className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-3 md:py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-green-600/20 text-sm"
                                         >
-                                            <FileDown size={18} className="flex-shrink-0" /> Descargar Excel / CSV
+                                            <FileDown size={18} className="flex-shrink-0" />
+                                            <span>Descargar Excel</span>
                                         </button>
                                         <button
                                             onClick={async () => {
@@ -598,9 +599,10 @@ function SurveyEventDashboard() {
                                                     showToast('Error al copiar datos', 'error');
                                                 }
                                             }}
-                                            className="w-full md:w-auto flex-shrink-0 flex items-center justify-center gap-2 px-4 py-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-colors shadow-sm whitespace-normal text-center h-auto text-xs"
+                                            className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-3 md:py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-colors shadow-sm text-sm"
                                         >
-                                            <Table size={14} className="flex-shrink-0" /> Copiar y Abrir Google Sheets
+                                            <Table size={18} className="flex-shrink-0" />
+                                            <span>Abrir en Sheets</span>
                                         </button>
                                     </div>
                                 </div>
