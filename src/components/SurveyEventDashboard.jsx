@@ -516,19 +516,19 @@ function SurveyEventDashboard() {
                                 </button>
                             </div>
 
-                            <div className="sticky bottom-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl shadow-slate-200/50 flex justify-between items-center z-30">
-                                <div className="flex items-center gap-2 text-sm text-slate-500 font-medium px-2">
+                            <div className="sticky bottom-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl shadow-slate-200/50 flex flex-col sm:flex-row justify-between items-center z-30 gap-4 sm:gap-0">
+                                <div className="flex items-center gap-2 text-sm text-slate-500 font-medium px-2 w-full sm:w-auto justify-center sm:justify-start">
                                     <span className="w-2 h-2 rounded-full bg-green-500"></span>
                                     {formData.questions.length} preguntas configuradas
                                 </div>
-                                <div className="flex gap-3">
-                                    <button type="button" onClick={() => { resetForm(); setView('list'); }} className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 transition-colors">
+                                <div className="flex gap-3 w-full sm:w-auto">
+                                    <button type="button" onClick={() => { resetForm(); setView('list'); }} className="flex-1 sm:flex-none px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 transition-colors">
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className={`px-8 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-bold rounded-xl transition-all shadow-lg shadow-primary-600/30 hover:shadow-primary-600/40 transform hover:-translate-y-0.5 flex items-center gap-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed transform-none' : ''}`}
+                                        className={`flex-1 sm:flex-none px-8 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-bold rounded-xl transition-all shadow-lg shadow-primary-600/30 hover:shadow-primary-600/40 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed transform-none' : ''}`}
                                     >
                                         {isSubmitting ? (
                                             <>
@@ -559,10 +559,10 @@ function SurveyEventDashboard() {
                                         <h1 className="text-2xl font-bold text-slate-900 dark:text-white break-words md:break-all leading-tight">{survey.title}</h1>
                                         <p className="text-slate-500 mt-1">{responses.length} respuestas recibidas</p>
                                     </div>
-                                    <div className="flex flex-col gap-2 items-end">
+                                    <div className="flex flex-col gap-2 items-end w-full md:w-auto">
                                         <button
                                             onClick={() => handleDownloadCSV(survey)}
-                                            className="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-green-600/20 whitespace-nowrap"
+                                            className="w-full md:w-auto flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-green-600/20 whitespace-nowrap"
                                         >
                                             <FileDown size={18} /> Descargar Excel / CSV
                                         </button>
@@ -598,7 +598,7 @@ function SurveyEventDashboard() {
                                                     showToast('Error al copiar datos', 'error');
                                                 }
                                             }}
-                                            className="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-colors shadow-sm whitespace-nowrap text-xs"
+                                            className="w-full md:w-auto flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-colors shadow-sm whitespace-nowrap text-xs"
                                         >
                                             <Table size={14} /> Copiar y Abrir Google Sheets
                                         </button>
@@ -659,7 +659,7 @@ function SurveyEventDashboard() {
                                     </button>
                                 </div>
                             ) : (
-                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {customSurveys.map(survey => {
                                         const responsesCount = survey.responses?.length || 0;
                                         const percentage = Math.min((responsesCount / survey.limit) * 100, 100);
