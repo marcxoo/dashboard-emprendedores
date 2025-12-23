@@ -565,7 +565,7 @@ function SurveyEventDashboard() {
 
                                                     // Rows
                                                     const rows = survey.responses.map(response => {
-                                                        const date = new Date(response.submittedAt).toLocaleString();
+                                                        const date = new Date(response.created_at || response.submittedAt).toLocaleString();
                                                         const answers = survey.questions.map(q => {
                                                             const answer = response.answers[q.label];
                                                             if (Array.isArray(answer)) return answer.join(', ');

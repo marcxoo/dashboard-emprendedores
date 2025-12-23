@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useData } from '../context/DataContext';
+import { supabase } from '../lib/supabase';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 
 function PublicSurveyView() {
     const { id } = useParams();
-    const { isLoaded, getSurveyById, addSurveyResponse } = useData();
     const [survey, setSurvey] = useState(null);
     const [loading, setLoading] = useState(true);
     const [submitted, setSubmitted] = useState(false);
@@ -13,33 +12,65 @@ function PublicSurveyView() {
     const [formValues, setFormValues] = useState({});
 
     useEffect(() => {
-        if (isLoaded) {
-            const foundSurvey = getSurveyById(id);
-            if (foundSurvey) {
-                setSurvey(foundSurvey);
-                const responsesCount = foundSurvey.responses?.length || 0;
-                if (responsesCount >= foundSurvey.limit) {
-                    setIsFull(true);
+        const fetchSurvey = async () => {
+            try {
+                // Fetch survey and its responses count (we don't need all response content, but for now fetching all is easier/ok for small scale)
+                const { data, error } = await supabase
+                    .from('custom_surveys')
+                    .select('*, survey_responses(*)')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    const formattedSurvey = {
+                        ...data,
+                        limit: data.response_limit, // Map DB column to frontend prop
+                        responses: data.survey_responses || [] // Map relation
+                    };
+                    setSurvey(formattedSurvey);
+
+                    if (formattedSurvey.responses.length >= formattedSurvey.limit) {
+                        setIsFull(true);
+                    }
                 }
+            } catch (error) {
+                console.error('Error fetching survey:', error);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
-        }
-    }, [isLoaded, id, getSurveyById]);
+        };
+
+        fetchSurvey();
+    }, [id]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!survey) return;
 
         // Double check limit before submitting
-        const currentSurvey = getSurveyById(id);
-        if ((currentSurvey.responses?.length || 0) >= currentSurvey.limit) {
+        if ((survey.responses?.length || 0) >= survey.limit) {
             setIsFull(true);
             return;
         }
 
-        const success = await addSurveyResponse(id, formValues);
-        if (success) {
+        try {
+            const responseData = {
+                survey_id: id,
+                answers: formValues
+            };
+
+            const { error } = await supabase
+                .from('survey_responses')
+                .insert([responseData]);
+
+            if (error) throw error;
+
             setSubmitted(true);
+        } catch (error) {
+            console.error('Error submitting survey:', error);
+            alert('Hubo un error al enviar tu respuesta. Por favor intenta de nuevo.');
         }
     };
 

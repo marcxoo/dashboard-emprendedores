@@ -74,9 +74,21 @@ export class Database {
       if (assignError) throw assignError;
       this.asignaciones = assignments || [];
 
-      // Load Custom Surveys from LocalStorage (Mock Backend)
-      const storedSurveys = localStorage.getItem('custom_surveys');
-      this.customSurveys = storedSurveys ? JSON.parse(storedSurveys) : [];
+      // Load Custom Surveys from Supabase
+      const { data: surveys, error: surveyError } = await supabase
+        .from('custom_surveys')
+        .select('*, survey_responses(*)');
+
+      if (surveyError) {
+        console.error("Error loading surveys:", surveyError);
+        this.customSurveys = [];
+      } else {
+        this.customSurveys = (surveys || []).map(s => ({
+          ...s,
+          limit: s.response_limit, // Map DB column to frontend prop
+          responses: s.survey_responses || [] // Map relation to frontend prop
+        }));
+      }
 
       // Recalculate stats based on confirmed assignments (asistio === true)
       // This ensures 'veces_en_stand' reflects actual participation, not just scheduling
@@ -112,21 +124,53 @@ export class Database {
   }
 
   async addCustomSurvey(data) {
+    const newId = crypto.randomUUID();
     const newSurvey = {
       ...data,
-      id: crypto.randomUUID(),
+      id: newId,
       createdAt: new Date().toISOString(),
       responses: []
     };
 
+    // Optimistic update
     this.customSurveys.push(newSurvey);
-    this._persistSurveys();
+
+    // Persist to Supabase
+    const { error } = await supabase
+      .from('custom_surveys')
+      .insert([{
+        id: newId,
+        title: data.title,
+        description: data.description,
+        response_limit: data.limit,
+        questions: data.questions,
+        active: data.active ?? true
+      }]);
+
+    if (error) {
+      console.error("Error creating survey:", error);
+      // Revert optimistic update?
+      this.customSurveys = this.customSurveys.filter(s => s.id !== newId);
+      return null; // Or throw
+    }
+
     return newSurvey;
   }
 
   async deleteCustomSurvey(id) {
+    const original = [...this.customSurveys];
     this.customSurveys = this.customSurveys.filter(s => s.id !== id);
-    this._persistSurveys();
+
+    const { error } = await supabase
+      .from('custom_surveys')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error("Error deleting survey:", error);
+      this.customSurveys = original;
+      return false;
+    }
     return true;
   }
 
@@ -134,8 +178,26 @@ export class Database {
     const index = this.customSurveys.findIndex(s => s.id === id);
     if (index === -1) return false;
 
-    this.customSurveys[index] = { ...this.customSurveys[index], ...updates };
-    this._persistSurveys();
+    const original = this.customSurveys[index];
+    this.customSurveys[index] = { ...original, ...updates };
+
+    const dbUpdates = {};
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.limit !== undefined) dbUpdates.response_limit = updates.limit;
+    if (updates.questions !== undefined) dbUpdates.questions = updates.questions;
+    if (updates.active !== undefined) dbUpdates.active = updates.active;
+
+    const { error } = await supabase
+      .from('custom_surveys')
+      .update(dbUpdates)
+      .eq('id', id);
+
+    if (error) {
+      console.error("Error updating survey:", error);
+      this.customSurveys[index] = original;
+      return false;
+    }
     return true;
   }
 
@@ -145,21 +207,29 @@ export class Database {
 
     const newResponse = {
       id: crypto.randomUUID(),
-      submittedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(), // Use created_at to match DB
       answers: responseData
     };
 
-    // Update locally
+    // Optimistic locally
     const updatedSurvey = { ...this.customSurveys[surveyIndex] };
-    updatedSurvey.responses = [...updatedSurvey.responses, newResponse];
-
+    updatedSurvey.responses = [...(updatedSurvey.responses || []), newResponse];
     this.customSurveys[surveyIndex] = updatedSurvey;
-    this._persistSurveys();
-    return true;
-  }
 
-  _persistSurveys() {
-    localStorage.setItem('custom_surveys', JSON.stringify(this.customSurveys));
+    const { error } = await supabase
+      .from('survey_responses')
+      .insert([{
+        id: newResponse.id,
+        survey_id: surveyId,
+        answers: responseData
+      }]);
+
+    if (error) {
+      console.error("Error saving response:", error);
+      // Revert
+      return false;
+    }
+    return true;
   }
 
   async loadEarnings() {
