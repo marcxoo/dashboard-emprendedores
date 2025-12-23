@@ -85,6 +85,7 @@ export class Database {
       } else {
         this.customSurveys = (surveys || []).map(s => ({
           ...s,
+          createdAt: s.created_at, // Map DB column to frontend prop
           limit: s.response_limit, // Map DB column to frontend prop
           responses: s.survey_responses || [] // Map relation to frontend prop
         }));
