@@ -14,7 +14,9 @@ export class Database {
   constructor() {
     this.emprendedores = [];
     this.asignaciones = [];
+    this.asignaciones = [];
     this.earnings = [];
+    this.customSurveys = [];
   }
 
   async loadData() {
@@ -72,6 +74,10 @@ export class Database {
       if (assignError) throw assignError;
       this.asignaciones = assignments || [];
 
+      // Load Custom Surveys from LocalStorage (Mock Backend)
+      const storedSurveys = localStorage.getItem('custom_surveys');
+      this.customSurveys = storedSurveys ? JSON.parse(storedSurveys) : [];
+
       // Recalculate stats based on confirmed assignments (asistio === true)
       // This ensures 'veces_en_stand' reflects actual participation, not just scheduling
       this.emprendedores = this.emprendedores.map(e => {
@@ -97,6 +103,63 @@ export class Database {
       console.error('Error loading data:', error);
       return false;
     }
+  }
+
+  // --- Custom Survey Methods (LocalStorage Mock) ---
+
+  getCustomSurveys() {
+    return this.customSurveys;
+  }
+
+  async addCustomSurvey(data) {
+    const newSurvey = {
+      ...data,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+      responses: []
+    };
+
+    this.customSurveys.push(newSurvey);
+    this._persistSurveys();
+    return newSurvey;
+  }
+
+  async deleteCustomSurvey(id) {
+    this.customSurveys = this.customSurveys.filter(s => s.id !== id);
+    this._persistSurveys();
+    return true;
+  }
+
+  async updateCustomSurvey(id, updates) {
+    const index = this.customSurveys.findIndex(s => s.id === id);
+    if (index === -1) return false;
+
+    this.customSurveys[index] = { ...this.customSurveys[index], ...updates };
+    this._persistSurveys();
+    return true;
+  }
+
+  async addSurveyResponse(surveyId, responseData) {
+    const surveyIndex = this.customSurveys.findIndex(s => s.id === surveyId);
+    if (surveyIndex === -1) return false;
+
+    const newResponse = {
+      id: crypto.randomUUID(),
+      submittedAt: new Date().toISOString(),
+      answers: responseData
+    };
+
+    // Update locally
+    const updatedSurvey = { ...this.customSurveys[surveyIndex] };
+    updatedSurvey.responses = [...updatedSurvey.responses, newResponse];
+
+    this.customSurveys[surveyIndex] = updatedSurvey;
+    this._persistSurveys();
+    return true;
+  }
+
+  _persistSurveys() {
+    localStorage.setItem('custom_surveys', JSON.stringify(this.customSurveys));
   }
 
   async loadEarnings() {

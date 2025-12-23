@@ -11,6 +11,7 @@ export function DataProvider({ children }) {
     const [isLoaded, setIsLoaded] = useState(false);
     const [entrepreneurs, setEntrepreneurs] = useState([]);
     const [assignments, setAssignments] = useState([]);
+    const [customSurveys, setCustomSurveys] = useState([]);
 
     // Date State
     // Date State
@@ -28,6 +29,7 @@ export function DataProvider({ children }) {
         setEntrepreneurs([...db.getEmprendedores()]);
         setAssignments([...db.asignaciones]);
         setEarnings(Array.isArray(db.earnings) ? [...db.earnings] : []);
+        setCustomSurveys(db.getCustomSurveys ? [...db.getCustomSurveys()] : []);
     };
 
     useEffect(() => {
@@ -161,6 +163,35 @@ export function DataProvider({ children }) {
         return success;
     };
 
+    // Custom Survey Methods
+    const addCustomSurvey = async (surveyData) => {
+        const newSurvey = await db.addCustomSurvey(surveyData);
+        await refreshData();
+        return newSurvey;
+    };
+
+    const deleteCustomSurvey = async (id) => {
+        const success = await db.deleteCustomSurvey(id);
+        if (success) await refreshData();
+        return success;
+    };
+
+    const updateCustomSurvey = async (id, data) => {
+        const success = await db.updateCustomSurvey(id, data);
+        if (success) await refreshData();
+        return success;
+    };
+
+    const addSurveyResponse = async (surveyId, responseData) => {
+        const result = await db.addSurveyResponse(surveyId, responseData);
+        if (result) await refreshData();
+        return result;
+    };
+
+    const getSurveyById = (id) => {
+        return customSurveys.find(s => s.id === id);
+    };
+
     const value = {
         db,
         isLoaded,
@@ -197,7 +228,13 @@ export function DataProvider({ children }) {
             const result = await db.deleteFollowUp(id, index);
             if (result) await refreshData();
             return result;
-        }
+        },
+        customSurveys,
+        addCustomSurvey,
+        updateCustomSurvey,
+        deleteCustomSurvey,
+        addSurveyResponse,
+        getSurveyById,
     };
 
     return (
