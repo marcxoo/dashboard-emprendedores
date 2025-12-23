@@ -69,16 +69,26 @@ function SurveyEventDashboard() {
             // Simulate network delay for better UX (optional but good for feeling "saved")
             await new Promise(resolve => setTimeout(resolve, 800));
 
-            await addCustomSurvey({
-                ...formData,
-                active: true
-            });
+            if (editingId) {
+                await updateCustomSurvey(editingId, {
+                    ...formData,
+                    active: true // Ensure it stays active or pass existing status if preferred, but usually editing implies active intent or no change to status unless explicit
+                });
+                showToast('Encuesta actualizada exitosamente', 'success');
+            } else {
+                await addCustomSurvey({
+                    ...formData,
+                    active: true
+                });
+                showToast('Encuesta creada exitosamente', 'success');
+            }
 
-            showToast('Encuesta creada exitosamente', 'success');
             resetForm();
             setView('list');
+            setEditingId(null); // Clear editing state
         } catch (error) {
-            showToast('Error al crear la encuesta', 'error');
+            console.error(error);
+            showToast('Error al guardar la encuesta', 'error');
         } finally {
             setIsSubmitting(false);
         }
