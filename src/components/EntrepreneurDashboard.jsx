@@ -66,7 +66,7 @@ function EntrepreneurDashboard() {
                         <div className="flex items-center gap-3">
                             <div
                                 className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-secondary dark:from-primary-500 dark:to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/20 dark:shadow-none border border-white/20 dark:border-white/5 cursor-pointer hover:scale-105 transition-transform"
-                                onClick={() => navigate('/')}
+                                onClick={() => navigate('/portal')}
                                 title="Volver al Portal"
                             >
                                 <span className="text-xl font-bold text-white dark:shadow-sm">E</span>
@@ -159,7 +159,7 @@ function EntrepreneurDashboard() {
 
                     <div className="flex gap-2">
                         <button
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate('/portal')}
                             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 transition-all text-sm font-medium"
                         >
                             Portal
