@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
 export default function Login() {
@@ -7,7 +8,14 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { login } = useAuth();
+    const { login, isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/portal', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -15,13 +23,13 @@ export default function Login() {
         setIsLoading(true);
 
         // Simulate network delay for better UX
-        setTimeout(() => {
-            const result = login(email, password);
+        setTimeout(async () => {
+            const result = await login(email, password);
             if (!result.success) {
                 setError(result.error);
                 setIsLoading(false);
             }
-            // If success, AuthContext state change will trigger re-render in App
+            // If success, useEffect will handle redirect
         }, 800);
     };
 
