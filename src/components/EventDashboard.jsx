@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, LogOut, Calendar, Home, CheckCircle, Filter, ChevronDown, CalendarDays, ArrowLeft, Check, Plus, Pencil, Trash2, Save, Search, Clock, MapPin } from 'lucide-react';
-import { events2026, responsibleOptions } from '../data/eventsData';
+import { responsibleOptions } from '../data/eventsData';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,7 +9,8 @@ function EventDashboard() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [selectedResponsible, setSelectedResponsible] = useState('Todos');
     const [searchTerm, setSearchTerm] = useState('');
-    const [events, setEvents] = useState(events2026);
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [trackingModalOpen, setTrackingModalOpen] = useState(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [currentEvent, setCurrentEvent] = useState(null);
@@ -36,24 +38,57 @@ function EventDashboard() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
+    useEffect(() => {
+        fetchEvents();
+    }, []);
+
+    const fetchEvents = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('events_2026')
+            .select('*')
+            .eq('status', 'active') // Only fetch active events
+            .order('date', { ascending: true });
+
+        if (error) {
+            console.error('Error fetching events:', error);
+        } else {
+            setEvents(data || []);
+        }
+        setLoading(false);
+    };
+
     const handleLogout = async () => {
         await logout();
         navigate('/');
     };
 
-    const toggleTracking = (eventId, field) => {
+    const toggleTracking = async (eventId, field) => {
+        const event = events.find(e => e.id === eventId);
+        if (!event) return;
+
+        const updatedTracking = {
+            ...event.tracking,
+            [field]: !event.tracking[field]
+        };
+
+        // Optimistic update
         setEvents(prev => prev.map(ev => {
             if (ev.id === eventId) {
-                return {
-                    ...ev,
-                    tracking: {
-                        ...ev.tracking,
-                        [field]: !ev.tracking[field]
-                    }
-                };
+                return { ...ev, tracking: updatedTracking };
             }
             return ev;
         }));
+
+        const { error } = await supabase
+            .from('events_2026')
+            .update({ tracking: updatedTracking })
+            .eq('id', eventId);
+
+        if (error) {
+            console.error('Error updating tracking:', error);
+            fetchEvents(); // Revert on error
+        }
     };
 
     const getResbonsibleColor = (name) => {
@@ -120,24 +155,51 @@ function EventDashboard() {
         setIsFormOpen(true);
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (window.confirm('¿Estás seguro de eliminar este evento?')) {
+            // Optimistic delete
             setEvents(prev => prev.filter(ev => ev.id !== id));
+
+            const { error } = await supabase
+                .from('events_2026')
+                .update({ status: 'deleted' }) // Soft delete
+                .eq('id', id);
+
+            if (error) {
+                console.error('Error deleting event:', error);
+                fetchEvents(); // Revert
+            }
         }
     };
 
-    const handleSave = () => {
-        if (currentEvent) {
-            // Update existing
-            setEvents(prev => prev.map(ev => ev.id === currentEvent.id ? { ...formData, id: currentEvent.id } : ev));
+    const handleSave = async () => {
+        const payload = {
+            ...formData,
+            // Ensure types match DB
+            date: formData.date || null,
+            startTime: formData.startTime || null,
+            endTime: formData.endTime || null,
+        };
+
+        // If editing, use ID. If new, Supabase generates ID (don't send custom numeric ID)
+        if (currentEvent && currentEvent.id) {
+            const { error } = await supabase
+                .from('events_2026')
+                .update(payload)
+                .eq('id', currentEvent.id);
+
+            if (error) console.error("Error updating", error);
         } else {
-            // Create new
-            const newEvent = {
-                ...formData,
-                id: Math.max(...events.map(e => e.id), 0) + 1
-            };
-            setEvents(prev => [...prev, newEvent]);
+            // Remove ID if it exists in formData/payload to let DB generate UUID
+            delete payload.id;
+            const { error } = await supabase
+                .from('events_2026')
+                .insert([payload]);
+
+            if (error) console.error("Error creating", error);
         }
+
+        await fetchEvents(); // Refresh to get correct IDs/Data
         setIsFormOpen(false);
         resetForm();
     };
