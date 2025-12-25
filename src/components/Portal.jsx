@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Users, MessageSquare, LogOut, ArrowRight, Sparkles } from 'lucide-react';
+import { Users, MessageSquare, LogOut, ArrowRight, Sparkles, CalendarDays } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 function Portal() {
@@ -43,36 +43,61 @@ function Portal() {
                 </div>
 
                 {/* Cards Grid */}
-                <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
+                <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
                     {/* Card 1: Entrepreneur Dashboard */}
                     <div
                         onClick={() => navigate('/dashboard')}
-                        className="group relative bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-white/5 cursor-pointer hover:-translate-y-1 transition-all duration-300"
+                        className="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 lg:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-white/5 cursor-pointer hover:-translate-y-1 transition-all duration-300"
                     >
                         <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <ArrowRight className="text-primary-500" size={24} />
                         </div>
 
-                        <div className="w-16 h-16 rounded-2xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center mb-6 text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-transform duration-300">
+                        <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center mb-6 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300">
                             <Users size={32} strokeWidth={1.5} />
                         </div>
 
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                            Gestión de Emprendedores
+                        <h2 className="text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                            Emprendedores
                         </h2>
-                        <p className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-                            Administra perfiles de emprendedores, asignaciones a ferias, historial de participaciones y estadísticas de ventas.
+                        <p className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed text-sm lg:text-base">
+                            Administra perfiles, asignaciones a ferias y estadísticas.
                         </p>
 
-                        <div className="flex items-center gap-2 text-primary-600 font-medium group-hover:gap-3 transition-all">
-                            <span>Acceder al panel</span>
+                        <div className="flex items-center gap-2 text-primary-600 font-medium group-hover:gap-3 transition-all text-sm">
+                            <span>Acceder</span>
                         </div>
                     </div>
 
-                    {/* Card 2: Surveys & Events Dashboard */}
+                    {/* Card 2: Surveys Dashboard */}
+                    <div
+                        onClick={() => navigate('/surveys')}
+                        className="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 lg:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-white/5 cursor-pointer hover:-translate-y-1 transition-all duration-300"
+                    >
+                        <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <ArrowRight className="text-primary-500" size={24} />
+                        </div>
+
+                        <div className="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center mb-6 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform duration-300">
+                            <MessageSquare size={32} strokeWidth={1.5} />
+                        </div>
+
+                        <h2 className="text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                            Encuestas
+                        </h2>
+                        <p className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed text-sm lg:text-base">
+                            Creación y análisis de formularios y satisfacción.
+                        </p>
+
+                        <div className="flex items-center gap-2 text-primary-600 font-medium group-hover:gap-3 transition-all text-sm">
+                            <span>Acceder</span>
+                        </div>
+                    </div>
+
+                    {/* Card 3: Events Dashboard */}
                     <div
                         onClick={() => navigate('/events')}
-                        className="group relative bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-white/5 cursor-pointer hover:-translate-y-1 transition-all duration-300"
+                        className="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 lg:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-white/5 cursor-pointer hover:-translate-y-1 transition-all duration-300"
                     >
                         <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <ArrowRight className="text-primary-500" size={24} />
@@ -80,23 +105,23 @@ function Portal() {
 
                         <div className="absolute top-4 right-4">
                             <span className="px-3 py-1 rounded-full bg-primary-100 text-primary-700 text-xs font-bold uppercase tracking-wider">
-                                Nuevo
+                                2026
                             </span>
                         </div>
 
-                        <div className="w-16 h-16 rounded-2xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center mb-6 text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-transform duration-300">
-                            <MessageSquare size={32} strokeWidth={1.5} />
+                        <div className="w-16 h-16 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center mb-6 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform duration-300">
+                            <CalendarDays size={32} strokeWidth={1.5} />
                         </div>
 
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                            Gestión de Encuestas y Eventos
+                        <h2 className="text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                            Eventos
                         </h2>
-                        <p className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-                            Plataforma dedicada para la creación y análisis de encuestas para ferias, talleres y eventos especiales.
+                        <p className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed text-sm lg:text-base">
+                            Cronograma de actividades, seguimiento y logística.
                         </p>
 
-                        <div className="flex items-center gap-2 text-primary-600 font-medium group-hover:gap-3 transition-all">
-                            <span>Acceder al panel</span>
+                        <div className="flex items-center gap-2 text-primary-600 font-medium group-hover:gap-3 transition-all text-sm">
+                            <span>Acceder</span>
                         </div>
                     </div>
                 </div>

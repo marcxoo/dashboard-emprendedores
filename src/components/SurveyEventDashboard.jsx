@@ -299,7 +299,7 @@ function SurveyEventDashboard() {
                         </div>
                         <div>
                             <h1 className="font-bold text-lg leading-tight text-slate-900 dark:text-white">Emprende<span className="text-primary-600">Forms</span></h1>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Gestión de Eventos</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Gestión de Encuestas</p>
                         </div>
                     </div>
                 </div>
@@ -354,7 +354,7 @@ function SurveyEventDashboard() {
                     <h2 className="text-xl font-bold text-slate-800 dark:text-white">
                         {view === 'list' && !viewingResultsId && 'Mis Formularios Activos'}
                         {view === 'list' && viewingResultsId && 'Resultados de la Encuesta'}
-                        {view === 'create' && (editingId ? 'Editar Encuesta' : 'Nueva Encuesta / Evento')}
+                        {view === 'create' && (editingId ? 'Editar Encuesta' : 'Nueva Encuesta')}
                     </h2>
                 </header>
 
@@ -755,6 +755,8 @@ function SurveyEventDashboard() {
                             )}
                         </div>
                     )}
+
+
                 </div>
             </main>
         </div>

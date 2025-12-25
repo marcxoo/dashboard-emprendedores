@@ -8,6 +8,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import Portal from './components/Portal';
 import EntrepreneurDashboard from './components/EntrepreneurDashboard';
 import SurveyEventDashboard from './components/SurveyEventDashboard';
+import EventDashboard from './components/EventDashboard';
 import PublicSurveyView from './components/PublicSurveyView';
 
 import LandingPage from './components/LandingPage';
@@ -34,8 +35,8 @@ function App() {
                 {/* Public Route for Surveys */}
                 <Route path="/forms/:id" element={<PublicSurveyView />} />
 
-                {/* Public Landing Page (No Login) */}
-                <Route path="/" element={<LandingPage />} />
+                {/* Public Landing Page (No Login) -> Redirect to Login for now */}
+                <Route path="/" element={<Navigate to="/admin/login" replace />} />
 
                 {/* Admin Login - Hidden Route */}
                 <Route path="/admin/login" element={<Login />} />
@@ -57,6 +58,12 @@ function App() {
                 } />
 
                 <Route path="/events/*" element={
+                  <ProtectedRoute>
+                    <EventDashboard />
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/surveys/*" element={
                   <ProtectedRoute>
                     <SurveyEventDashboard />
                   </ProtectedRoute>
