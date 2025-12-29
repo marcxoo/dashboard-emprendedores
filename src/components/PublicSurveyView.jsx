@@ -167,7 +167,7 @@ function PublicSurveyView() {
                             </button>
                         </div>
 
-                        <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight mb-3 md:mb-4">{survey.title}</h1>
+                        <h1 className="text-2xl md:text-4xl font-extrabold text-[#1d2b4f] leading-tight tracking-tight mb-3 md:mb-4">{survey.title}</h1>
 
                         {survey.description && (
                             <p className="text-slate-600 text-sm md:text-lg leading-relaxed whitespace-pre-wrap mb-6 md:mb-8">{survey.description}</p>
@@ -183,7 +183,7 @@ function PublicSurveyView() {
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">FECHA</span>
-                                            <span className="font-bold text-slate-900 capitalize text-sm md:text-base leading-tight">
+                                            <span className="font-bold text-[#1d2b4f] capitalize text-sm md:text-base leading-tight">
                                                 {new Date(survey.eventDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                                             </span>
                                         </div>
@@ -197,7 +197,7 @@ function PublicSurveyView() {
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">HORA</span>
-                                            <span className="font-bold text-slate-900 text-sm md:text-base leading-tight">
+                                            <span className="font-bold text-[#1d2b4f] text-sm md:text-base leading-tight">
                                                 {survey.eventTime.slice(0, 5)}
                                                 <span className="text-[10px] md:text-xs text-slate-500 font-medium ml-1">hrs</span>
                                             </span>
@@ -212,7 +212,7 @@ function PublicSurveyView() {
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">LUGAR</span>
-                                            <span className="font-bold text-slate-900 text-sm md:text-base leading-tight break-words">
+                                            <span className="font-bold text-[#1d2b4f] text-sm md:text-base leading-tight break-words">
                                                 {survey.eventLocation}
                                             </span>
                                         </div>
@@ -241,7 +241,7 @@ function PublicSurveyView() {
                                     <textarea
                                         required={q.required}
                                         onChange={(e) => handleInputChange(q.label, e.target.value)}
-                                        className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all duration-300 min-h-[120px] text-slate-900 placeholder:text-slate-400 text-base resize-none"
+                                        className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all duration-300 min-h-[120px] text-[#1d2b4f] placeholder:text-slate-400 text-base resize-none"
                                         placeholder="Escribe tu respuesta aquí..."
                                     />
                                 ) : q.type === 'multiple_choice' ? (
@@ -259,7 +259,7 @@ function PublicSurveyView() {
                                                     />
                                                     <div className="absolute w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
                                                 </div>
-                                                <span className="text-slate-700 font-medium group-hover/opt:text-slate-900">{opt}</span>
+                                                <span className="text-slate-700 font-medium group-hover/opt:text-[#1d2b4f]">{opt}</span>
                                             </label>
                                         ))}
                                     </div>
@@ -285,7 +285,7 @@ function PublicSurveyView() {
                                                     />
                                                     <CheckCircle size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
                                                 </div>
-                                                <span className="text-slate-700 font-medium group-hover/opt:text-slate-900">{opt}</span>
+                                                <span className="text-slate-700 font-medium group-hover/opt:text-[#1d2b4f]">{opt}</span>
                                             </label>
                                         ))}
                                     </div>
@@ -294,7 +294,7 @@ function PublicSurveyView() {
                                         type={q.type}
                                         required={q.required}
                                         onChange={(e) => handleInputChange(q.label, e.target.value)}
-                                        className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all duration-300 text-slate-900 placeholder:text-slate-400 text-base"
+                                        className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all duration-300 text-[#1d2b4f] placeholder:text-slate-400 text-base"
                                         placeholder={`Escribe tu respuesta...`}
                                     />
                                 )}
@@ -304,7 +304,7 @@ function PublicSurveyView() {
                         <div className="pt-8 border-t border-slate-100 mt-12">
                             <button
                                 type="submit"
-                                className="w-full group bg-slate-900 hover:bg-black text-white font-bold py-5 px-6 rounded-2xl transition-all shadow-xl shadow-slate-900/10 active:scale-[0.99] transform text-lg flex items-center justify-center gap-3"
+                                className="w-full group bg-[#1d2b4f] hover:bg-[#15203c] text-white font-bold py-5 px-6 rounded-2xl transition-all shadow-xl shadow-[#1d2b4f]/10 active:scale-[0.99] transform text-lg flex items-center justify-center gap-3"
                             >
                                 <span>Confirmar Asistencia</span>
                                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
