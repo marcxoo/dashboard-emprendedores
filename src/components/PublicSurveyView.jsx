@@ -153,44 +153,54 @@ function PublicSurveyView() {
                     )}
 
                     {(survey.eventDate || survey.eventTime || survey.eventLocation) && (
-                        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
+                        <div className="mt-8 bg-slate-50/80 backdrop-blur-sm rounded-2xl p-4 md:p-5 border border-slate-200/60 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-4 relative z-10">
                             {survey.eventDate && (
-                                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex items-center gap-4 hover:border-primary-100 transition-colors group">
-                                    <div className="w-12 h-12 rounded-xl bg-white text-primary-600 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                <div className="flex items-center gap-4 flex-1">
+                                    <div className="w-12 h-12 rounded-xl bg-white text-primary-600 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
                                         <Calendar size={22} strokeWidth={2} />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">FECHA</span>
-                                        <span className="font-bold text-slate-900 capitalize text-base leading-tight">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">FECHA</span>
+                                        <span className="font-bold text-slate-900 capitalize text-lg leading-tight whitespace-nowrap">
                                             {new Date(survey.eventDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                                         </span>
                                     </div>
                                 </div>
                             )}
 
+                            {/* Divider for Desktop */}
+                            {(survey.eventDate && (survey.eventTime || survey.eventLocation)) && (
+                                <div className="hidden md:block w-px h-12 bg-slate-200"></div>
+                            )}
+
                             {survey.eventTime && (
-                                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex items-center gap-4 hover:border-orange-100 transition-colors group">
-                                    <div className="w-12 h-12 rounded-xl bg-white text-orange-500 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                <div className="flex items-center gap-4 flex-1 md:justify-center">
+                                    <div className="w-12 h-12 rounded-xl bg-white text-orange-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
                                         <Clock size={22} strokeWidth={2} />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">HORA</span>
-                                        <span className="font-bold text-slate-900 text-base leading-tight">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">HORA</span>
+                                        <span className="font-bold text-slate-900 text-lg leading-tight whitespace-nowrap">
                                             {survey.eventTime.slice(0, 5)}
-                                            <span className="text-xs text-slate-500 font-medium ml-1">hrs</span>
+                                            <span className="text-sm text-slate-500 font-medium ml-1">hrs</span>
                                         </span>
                                     </div>
                                 </div>
                             )}
 
+                            {/* Divider for Desktop */}
+                            {((survey.eventDate || survey.eventTime) && survey.eventLocation) && (
+                                <div className="hidden md:block w-px h-12 bg-slate-200"></div>
+                            )}
+
                             {survey.eventLocation && (
-                                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex items-center gap-4 hover:border-purple-100 transition-colors group">
-                                    <div className="w-12 h-12 rounded-xl bg-white text-purple-500 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                <div className="flex items-center gap-4 flex-1 md:justify-end">
+                                    <div className="w-12 h-12 rounded-xl bg-white text-purple-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
                                         <MapPin size={22} strokeWidth={2} />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">LUGAR</span>
-                                        <span className="font-bold text-slate-900 text-base leading-tight">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">LUGAR</span>
+                                        <span className="font-bold text-slate-900 text-lg leading-tight">
                                             {survey.eventLocation}
                                         </span>
                                     </div>
