@@ -216,25 +216,30 @@ function PublicSurveyView() {
                 </div>
 
                 {/* Form Section */}
-                <div className="p-8 md:p-10 bg-white">
-                    <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="p-8 md:p-12 bg-white relative">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 py-1 rounded-full border border-slate-100 shadow-sm z-20">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Formulario de Registro</span>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-8 mt-4">
                         {survey.questions.map(q => (
-                            <div key={q.id} className="group">
-                                <label className="block text-sm font-bold text-slate-700 mb-3 group-focus-within:text-primary-600 transition-colors uppercase tracking-wide">
-                                    {q.label} {q.required && <span className="text-red-500">*</span>}
+                            <div key={q.id} className="group animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-backwards" style={{ animationDelay: `${q.id * 100}ms` }}>
+                                <label className="block text-sm font-bold text-slate-700 mb-3 group-focus-within:text-primary-600 transition-colors uppercase tracking-wide flex justify-between items-center">
+                                    {q.label}
+                                    {q.required && <span className="text-[10px] bg-red-50 text-red-500 px-2 py-0.5 rounded-full font-bold tracking-wider">REQUERIDO</span>}
                                 </label>
 
                                 {q.type === 'paragraph' ? (
                                     <textarea
                                         required={q.required}
                                         onChange={(e) => handleInputChange(q.label, e.target.value)}
-                                        className="w-full px-5 py-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all min-h-[120px] text-slate-900 placeholder:text-slate-400 text-base"
+                                        className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all duration-300 min-h-[120px] text-slate-900 placeholder:text-slate-400 text-base resize-none"
                                         placeholder="Escribe tu respuesta aquí..."
                                     />
                                 ) : q.type === 'multiple_choice' ? (
                                     <div className="space-y-3">
                                         {q.options?.map((opt, idx) => (
-                                            <label key={idx} className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 hover:border-primary-200 cursor-pointer transition-all group/opt">
+                                            <label key={idx} className="flex items-center gap-4 p-4 rounded-xl border-2 border-slate-100 hover:border-primary-200 hover:bg-slate-50 cursor-pointer transition-all duration-200 group/opt">
                                                 <div className="relative flex items-center justify-center">
                                                     <input
                                                         type="radio"
@@ -253,7 +258,7 @@ function PublicSurveyView() {
                                 ) : q.type === 'checkbox' ? (
                                     <div className="space-y-3">
                                         {q.options?.map((opt, idx) => (
-                                            <label key={idx} className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 hover:border-primary-200 cursor-pointer transition-all group/opt">
+                                            <label key={idx} className="flex items-center gap-4 p-4 rounded-xl border-2 border-slate-100 hover:border-primary-200 hover:bg-slate-50 cursor-pointer transition-all duration-200 group/opt">
                                                 <div className="relative flex items-center justify-center">
                                                     <input
                                                         type="checkbox"
@@ -281,22 +286,24 @@ function PublicSurveyView() {
                                         type={q.type}
                                         required={q.required}
                                         onChange={(e) => handleInputChange(q.label, e.target.value)}
-                                        className="w-full px-5 py-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all text-slate-900 placeholder:text-slate-400 text-base"
-                                        placeholder={`Tu respuesta...`}
+                                        className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all duration-300 text-slate-900 placeholder:text-slate-400 text-base"
+                                        placeholder={`Escribe tu respuesta...`}
                                     />
                                 )}
                             </div>
                         ))}
 
-                        <div className="pt-8">
+                        <div className="pt-8 border-t border-slate-100 mt-12">
                             <button
                                 type="submit"
-                                className="w-full bg-slate-900 hover:bg-black text-white font-bold py-5 px-6 rounded-2xl transition-all shadow-xl shadow-slate-900/10 active:scale-[0.99] transform text-lg"
+                                className="w-full group bg-slate-900 hover:bg-black text-white font-bold py-5 px-6 rounded-2xl transition-all shadow-xl shadow-slate-900/10 active:scale-[0.99] transform text-lg flex items-center justify-center gap-3"
                             >
-                                Confirmar Asistencia
+                                <span>Confirmar Asistencia</span>
+                                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                             </button>
-                            <p className="text-xs text-center text-slate-400 mt-6">
-                                Este formulario fue creado con <span className="font-bold text-slate-600">EmprendeForms</span>.
+                            <p className="text-xs text-center text-slate-400 mt-6 flex items-center justify-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                                Sus datos están protegidos y seguros
                             </p>
                         </div>
                     </form>
