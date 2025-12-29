@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Calendar, Clock, MapPin } from 'lucide-react';
 
 function PublicSurveyView() {
     const { id } = useParams();
@@ -27,6 +27,10 @@ function PublicSurveyView() {
                     const formattedSurvey = {
                         ...data,
                         limit: data.response_limit, // Map DB column to frontend prop
+                        limit: data.response_limit, // Map DB column to frontend prop
+                        eventDate: data.event_date,
+                        eventTime: data.event_time,
+                        eventLocation: data.event_location,
                         responses: data.survey_responses || [] // Map relation
                     };
                     setSurvey(formattedSurvey);
@@ -146,6 +150,44 @@ function PublicSurveyView() {
                     <h1 className="text-3xl font-bold text-slate-900 mb-2 relative z-10">{survey.title}</h1>
                     {survey.description && (
                         <p className="text-slate-600 whitespace-pre-wrap relative z-10">{survey.description}</p>
+                    )}
+
+                    {(survey.eventDate || survey.eventTime || survey.eventLocation) && (
+                        <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
+                            {survey.eventDate && (
+                                <div className="flex items-center gap-3 text-slate-700">
+                                    <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                        <Calendar size={20} />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Fecha</span>
+                                        <span className="font-semibold">{new Date(survey.eventDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                                    </div>
+                                </div>
+                            )}
+                            {survey.eventTime && (
+                                <div className="flex items-center gap-3 text-slate-700">
+                                    <div className="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+                                        <Clock size={20} />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hora</span>
+                                        <span className="font-semibold">{survey.eventTime}</span>
+                                    </div>
+                                </div>
+                            )}
+                            {survey.eventLocation && (
+                                <div className="flex items-center gap-3 text-slate-700">
+                                    <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                                        <MapPin size={20} />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Lugar</span>
+                                        <span className="font-semibold">{survey.eventLocation}</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     )}
                     <div className="mt-6 flex items-center gap-2 text-sm text-slate-500 relative z-10">
                         <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase tracking-wide">Registro Abierto</span>

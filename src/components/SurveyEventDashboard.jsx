@@ -101,6 +101,9 @@ function SurveyEventDashboard() {
             title: '',
             description: '',
             limit: 30,
+            eventDate: '',
+            eventTime: '',
+            eventLocation: '',
             questions: [
                 { id: 1, type: 'text', label: 'Nombre Completo', required: true, options: [] },
                 { id: 2, type: 'email', label: 'Correo Electrónico', required: true, options: [] }
@@ -225,6 +228,9 @@ function SurveyEventDashboard() {
             title: survey.title,
             description: survey.description || '',
             limit: survey.limit,
+            eventDate: survey.eventDate || '',
+            eventTime: survey.eventTime || '',
+            eventLocation: survey.eventLocation || '',
             questions: survey.questions
         });
         setView('create');
@@ -439,7 +445,35 @@ function SurveyEventDashboard() {
                                         />
                                     </div>
 
-                                    <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                                        <div className="flex flex-col">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Fecha del Evento</label>
+                                            <input
+                                                type="date"
+                                                value={formData.eventDate}
+                                                onChange={e => setFormData({ ...formData, eventDate: e.target.value })}
+                                                className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Hora</label>
+                                            <input
+                                                type="time"
+                                                value={formData.eventTime}
+                                                onChange={e => setFormData({ ...formData, eventTime: e.target.value })}
+                                                className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Lugar</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Ej. Auditorio Central"
+                                                value={formData.eventLocation}
+                                                onChange={e => setFormData({ ...formData, eventLocation: e.target.value })}
+                                                className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                            />
+                                        </div>
                                         <div className="flex flex-col">
                                             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Límite de Cupos</label>
                                             <input

@@ -87,6 +87,9 @@ export class Database {
           ...s,
           createdAt: s.created_at, // Map DB column to frontend prop
           limit: s.response_limit, // Map DB column to frontend prop
+          eventDate: s.event_date,
+          eventTime: s.event_time,
+          eventLocation: s.event_location,
           responses: s.survey_responses || [] // Map relation to frontend prop
         }));
       }
@@ -144,6 +147,9 @@ export class Database {
         title: data.title,
         description: data.description,
         response_limit: data.limit,
+        event_date: data.eventDate,
+        event_time: data.eventTime,
+        event_location: data.eventLocation,
         questions: data.questions,
         active: data.active ?? true
       }]);
@@ -186,6 +192,9 @@ export class Database {
     if (updates.title !== undefined) dbUpdates.title = updates.title;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
     if (updates.limit !== undefined) dbUpdates.response_limit = updates.limit;
+    if (updates.eventDate !== undefined) dbUpdates.event_date = updates.eventDate;
+    if (updates.eventTime !== undefined) dbUpdates.event_time = updates.eventTime;
+    if (updates.eventLocation !== undefined) dbUpdates.event_location = updates.eventLocation;
     if (updates.questions !== undefined) dbUpdates.questions = updates.questions;
     if (updates.active !== undefined) dbUpdates.active = updates.active;
 
