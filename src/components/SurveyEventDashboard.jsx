@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Menu, X, LogOut, LayoutGrid, Plus, Trash2, Calendar, FileText, Settings, Home, Link, Copy, Check, Users, MoreVertical, GripVertical, Pencil, FileDown, Table } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import { useData } from '../context/DataContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
@@ -13,8 +14,9 @@ function SurveyEventDashboard() {
     const [copiedId, setCopiedId] = useState(null);
     const [editingId, setEditingId] = useState(null);
     const [viewingResultsId, setViewingResultsId] = useState(null);
+    const [editingResponse, setEditingResponse] = useState(null);
     const { user, logout } = useAuth();
-    const { customSurveys, addCustomSurvey, deleteCustomSurvey, updateCustomSurvey } = useData();
+    const { customSurveys, addCustomSurvey, deleteCustomSurvey, updateCustomSurvey, refreshData } = useData();
     const { showToast } = useToast();
     const titleRef = useRef(null);
     const dragItem = useRef(null);
@@ -74,13 +76,13 @@ function SurveyEventDashboard() {
                     ...formData,
                     active: true // Ensure it stays active or pass existing status if preferred, but usually editing implies active intent or no change to status unless explicit
                 });
-                showToast('Encuesta actualizada exitosamente', 'success');
+                showToast('Formulario actualizado exitosamente', 'success');
             } else {
                 await addCustomSurvey({
                     ...formData,
                     active: true
                 });
-                showToast('Encuesta creada exitosamente', 'success');
+                showToast('Formulario creado exitosamente', 'success');
             }
 
             resetForm();
@@ -88,7 +90,7 @@ function SurveyEventDashboard() {
             setEditingId(null); // Clear editing state
         } catch (error) {
             console.error(error);
-            showToast('Error al guardar la encuesta', 'error');
+            showToast('Error al guardar el formulario', 'error');
         } finally {
             setIsSubmitting(false);
         }
@@ -211,9 +213,9 @@ function SurveyEventDashboard() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('¿Eliminar esta encuesta? Se perderán todas las respuestas.')) {
+        if (window.confirm('¿Eliminar este formulario? Se perderán todas las respuestas.')) {
             await deleteCustomSurvey(id);
-            showToast('Encuesta eliminada', 'success');
+            showToast('Formulario eliminado', 'success');
         }
     };
 
@@ -226,6 +228,53 @@ function SurveyEventDashboard() {
             questions: survey.questions
         });
         setView('create');
+    };
+
+    const handleDeleteResponse = async (responseId) => {
+        if (window.confirm('¿Estás seguro de eliminar esta respuesta? Se liberará un cupo.')) {
+            try {
+                const { error } = await supabase
+                    .from('survey_responses')
+                    .delete()
+                    .eq('id', responseId);
+
+                if (error) throw error;
+
+                await refreshData();
+                showToast('Respuesta eliminada correctamente', 'success');
+            } catch (error) {
+                console.error(error);
+                showToast('Error al eliminar la respuesta', 'error');
+            }
+        }
+    };
+
+    const handleEditResponse = (response) => {
+        setEditingResponse({
+            id: response.id,
+            answers: { ...response.answers }
+        });
+    };
+
+    const handleSaveResponseEdit = async (e) => {
+        e.preventDefault();
+        if (!editingResponse) return;
+
+        try {
+            const { error } = await supabase
+                .from('survey_responses')
+                .update({ answers: editingResponse.answers })
+                .eq('id', editingResponse.id);
+
+            if (error) throw error;
+
+            await refreshData();
+            showToast('Respuesta actualizada', 'success');
+            setEditingResponse(null);
+        } catch (error) {
+            console.error(error);
+            showToast('Error al actualizar', 'error');
+        }
     };
 
     const handleDownloadCSV = (survey) => {
@@ -299,7 +348,7 @@ function SurveyEventDashboard() {
                         </div>
                         <div>
                             <h1 className="font-bold text-lg leading-tight text-slate-900 dark:text-white">Emprende<span className="text-primary-600">Forms</span></h1>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Gestión de Encuestas</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Gestión de Formularios</p>
                         </div>
                     </div>
                 </div>
@@ -353,8 +402,8 @@ function SurveyEventDashboard() {
                 <header className="hidden lg:flex h-16 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 items-center justify-between px-8 sticky top-0 z-40">
                     <h2 className="text-xl font-bold text-slate-800 dark:text-white">
                         {view === 'list' && !viewingResultsId && 'Mis Formularios Activos'}
-                        {view === 'list' && viewingResultsId && 'Resultados de la Encuesta'}
-                        {view === 'create' && (editingId ? 'Editar Encuesta' : 'Nueva Encuesta')}
+                        {view === 'list' && viewingResultsId && 'Resultados del Formulario'}
+                        {view === 'create' && (editingId ? 'Editar Formulario' : 'Nuevo Formulario')}
                     </h2>
                 </header>
 
@@ -536,7 +585,7 @@ function SurveyEventDashboard() {
                                                 Guardando...
                                             </>
                                         ) : (
-                                            'Guardar Encuesta'
+                                            'Guardar Formulario'
                                         )}
                                     </button>
                                 </div>
@@ -616,6 +665,7 @@ function SurveyEventDashboard() {
                                                     {survey.questions.map(q => (
                                                         <th key={q.id} className="p-4 font-bold whitespace-nowrap min-w-[150px]">{q.label}</th>
                                                     ))}
+                                                    <th className="p-4 font-bold whitespace-nowrap text-right">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -644,6 +694,24 @@ function SurveyEventDashboard() {
                                                                             : r.answers[q.label]}
                                                                     </td>
                                                                 ))}
+                                                                <td className="p-4 text-right whitespace-nowrap">
+                                                                    <div className="flex items-center justify-end gap-2">
+                                                                        <button
+                                                                            onClick={() => handleEditResponse(r)}
+                                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                                            title="Editar respuesta"
+                                                                        >
+                                                                            <Pencil size={16} />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeleteResponse(r.id)}
+                                                                            className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                                            title="Eliminar respuesta"
+                                                                        >
+                                                                            <Trash2 size={16} />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
                                                             </tr>
                                                         )
                                                     })
@@ -664,9 +732,9 @@ function SurveyEventDashboard() {
                                         <FileText size={32} />
                                     </div>
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No hay formularios activos</h3>
-                                    <p className="text-slate-500 mb-6">Crea tu primera encuesta o evento para empezar a recibir registros.</p>
+                                    <p className="text-slate-500 mb-6">Crea tu primer formulario o evento para empezar a recibir registros.</p>
                                     <button onClick={() => setView('create')} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                        Crear Encuesta
+                                        Crear Formulario
                                     </button>
                                 </div>
                             ) : (
@@ -758,9 +826,78 @@ function SurveyEventDashboard() {
 
 
                 </div>
+
+                {/* Edit Response Modal */}
+                {editingResponse && (() => {
+                    const survey = customSurveys.find(s => s.id === viewingResultsId);
+                    if (!survey) return null;
+
+                    return (
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditingResponse(null)}></div>
+                            <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-lg relative z-10 shadow-2xl animate-scale-in flex flex-col max-h-[90vh]">
+                                <div className="p-6 border-b border-slate-100 dark:border-white/10 flex justify-between items-center">
+                                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">Editar Respuesta</h3>
+                                    <button onClick={() => setEditingResponse(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                        <X size={20} />
+                                    </button>
+                                </div>
+                                <div className="p-6 overflow-y-auto custom-scrollbar">
+                                    <form onSubmit={handleSaveResponseEdit} className="space-y-4">
+                                        {survey.questions.map(q => (
+                                            <div key={q.id}>
+                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                                    {q.label}
+                                                </label>
+                                                {q.type === 'paragraph' ? (
+                                                    <textarea
+                                                        value={editingResponse.answers[q.label] || ''}
+                                                        onChange={e => setEditingResponse(prev => ({
+                                                            ...prev,
+                                                            answers: { ...prev.answers, [q.label]: e.target.value }
+                                                        }))}
+                                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                                        rows={3}
+                                                    />
+                                                ) : (
+                                                    <input
+                                                        type="text"
+                                                        value={Array.isArray(editingResponse.answers[q.label]) ? editingResponse.answers[q.label].join(', ') : (editingResponse.answers[q.label] || '')}
+                                                        onChange={e => setEditingResponse(prev => ({
+                                                            ...prev,
+                                                            answers: { ...prev.answers, [q.label]: e.target.value }
+                                                        }))}
+                                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                                    />
+                                                )}
+                                            </div>
+                                        ))}
+                                        <div className="pt-4 flex gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditingResponse(null)}
+                                                className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                className="flex-1 py-2.5 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-700 transition-colors shadow-lg shadow-primary-600/20"
+                                            >
+                                                Guardar Cambios
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
+
             </main>
         </div>
     );
 }
 
 export default SurveyEventDashboard;
+

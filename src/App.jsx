@@ -1,24 +1,23 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './components/Login';
 import { DataProvider } from './context/DataContext'
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 
-import Portal from './components/Portal';
+import PortalGate from './components/PortalGate';
+import NotFound from './components/NotFound';
 import EntrepreneurDashboard from './components/EntrepreneurDashboard';
 import SurveyEventDashboard from './components/SurveyEventDashboard';
 import EventDashboard from './components/EventDashboard';
 import PublicSurveyView from './components/PublicSurveyView';
-
-import LandingPage from './components/LandingPage';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
-    return <Navigate to="/admin/login" replace />;
+    // Redirect to 404 (Root) if unauthorized trying to access protected route
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -35,22 +34,14 @@ function App() {
                 {/* Public Route for Surveys */}
                 <Route path="/forms/:id" element={<PublicSurveyView />} />
 
-                {/* Public Landing Page (No Login) -> Redirect to Login for now */}
-                <Route path="/" element={<Navigate to="/admin/login" replace />} />
+                {/* Secure Login & Portal Entry Point */}
+                <Route path="/portal" element={<PortalGate />} />
 
-                {/* Admin Login - Hidden Route */}
-                <Route path="/admin/login" element={<Login />} />
-
-                {/* Portals Redirect to Dashboard or specific portal logic */}
-                {/* Keeping logic simple: /portal is protected, root / goes to landing */}
+                {/* Root & Catch-all -> 404 (Hidden Login) */}
+                <Route path="/" element={<NotFound />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
 
                 {/* Protected Routes */}
-                <Route path="/portal" element={
-                  <ProtectedRoute>
-                    <Portal />
-                  </ProtectedRoute>
-                } />
-
                 <Route path="/dashboard/*" element={
                   <ProtectedRoute>
                     <EntrepreneurDashboard />
@@ -68,9 +59,6 @@ function App() {
                     <SurveyEventDashboard />
                   </ProtectedRoute>
                 } />
-
-                {/* Catch-all redirect */}
-                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </BrowserRouter>
           </DataProvider>

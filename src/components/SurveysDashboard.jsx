@@ -127,7 +127,7 @@ export default function SurveysDashboard() {
             {/* Header & Filter */}
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Resultados de Encuestas</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Resultados de Formularios</h2>
                     <p className="text-slate-500 dark:text-slate-400">Análisis de satisfacción y ventas</p>
                 </div>
 
@@ -206,7 +206,7 @@ export default function SurveysDashboard() {
                         <MessageSquare size={32} className="text-slate-300 dark:text-slate-500" />
                     </div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-slate-200">No hay datos para esta selección</h3>
-                    <p className="text-slate-500 dark:text-slate-400 max-w-sm mt-2">No se encontraron encuestas respondidas en el período seleccionado.</p>
+                    <p className="text-slate-500 dark:text-slate-400 max-w-sm mt-2">No se encontraron formularios respondidos en el período seleccionado.</p>
                 </div>
             ) : (
                 <>

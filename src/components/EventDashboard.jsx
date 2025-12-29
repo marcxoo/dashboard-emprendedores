@@ -93,12 +93,12 @@ function EventDashboard() {
 
     const getResbonsibleColor = (name) => {
         const n = name.toUpperCase();
-        if (n.includes('ANGIE')) return 'bg-pink-100 text-pink-700 border-pink-200';
-        if (n.includes('CARLOS')) return 'bg-blue-100 text-blue-700 border-blue-200';
-        if (n.includes('XUXA')) return 'bg-green-100 text-green-700 border-green-200';
-        if (n.includes('MARCOS')) return 'bg-orange-100 text-orange-700 border-orange-200';
-        if (n.includes('JAEL')) return 'bg-purple-100 text-purple-700 border-purple-200';
-        return 'bg-slate-100 text-slate-700 border-slate-200';
+        if (n.includes('ANGIE')) return 'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-500/30';
+        if (n.includes('CARLOS')) return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-500/30';
+        if (n.includes('XUXA')) return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-500/30';
+        if (n.includes('MARCOS')) return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-500/30';
+        if (n.includes('JAEL')) return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-500/30';
+        return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
     };
 
     const getResponsibleDotColor = (name) => {
@@ -113,10 +113,10 @@ function EventDashboard() {
 
     const getIndicatorColor = (indicator) => {
         switch (indicator) {
-            case 'Eventos de capacitación': return 'bg-indigo-900/30 text-indigo-300 border-indigo-500/30';
-            case 'Eventos de sensibilización': return 'bg-pink-900/30 text-pink-300 border-pink-500/30';
-            case 'Encuentro de articulación profesional o emprendedora': return 'bg-amber-900/30 text-amber-300 border-amber-500/30';
-            default: return 'bg-slate-800 text-slate-400 border-slate-700';
+            case 'Eventos de capacitación': return 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-500/30';
+            case 'Eventos de sensibilización': return 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-500/30';
+            case 'Encuentro de articulación profesional o emprendedora': return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-500/30';
+            default: return 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
         }
     };
 
@@ -406,23 +406,23 @@ function EventDashboard() {
 
 
                         {/* Search and Filters Container */}
-                        <div className="flex flex-col gap-6 bg-slate-900 p-6 rounded-[2rem] shadow-xl border border-slate-800">
+                        <div className="flex flex-col gap-6 bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-sm dark:shadow-xl border border-slate-200 dark:border-slate-800">
 
                             {/* Search Bar */}
                             <div className="relative group">
-                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-slate-400 transition-colors" size={20} />
+                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-slate-600 dark:group-focus-within:text-slate-400 transition-colors" size={20} />
                                 <input
                                     type="text"
                                     placeholder="Buscar evento por nombre, tipo..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-14 pr-6 py-4 rounded-2xl bg-slate-950/50 border border-slate-800 focus:border-slate-600 focus:ring-4 focus:ring-slate-800/50 outline-none transition-all placeholder:text-slate-600 text-slate-200 font-medium"
+                                    className="w-full pl-14 pr-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 focus:border-slate-400 dark:focus:border-slate-600 focus:ring-4 focus:ring-slate-100 dark:focus:ring-slate-800/50 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 text-slate-900 dark:text-slate-200 font-medium"
                                 />
                             </div>
 
                             {/* Month Filter - Improved */}
                             <div className="space-y-4">
-                                <div className="flex items-center gap-2 text-slate-200 font-bold text-sm ml-1">
+                                <div className="flex items-center gap-2 text-slate-900 dark:text-slate-200 font-bold text-sm ml-1">
                                     <Calendar size={18} className="text-orange-500" />
                                     <span>Filtrar por Mes</span>
                                 </div>
@@ -432,8 +432,8 @@ function EventDashboard() {
                                             key={month}
                                             onClick={() => setSelectedMonth(month)}
                                             className={`px-6 py-2.5 rounded-2xl text-xs font-black tracking-wide whitespace-nowrap snap-center transition-all duration-300 border uppercase ${selectedMonth === month
-                                                ? 'bg-white text-slate-900 border-white shadow-[0_0_20px_rgba(255,255,255,0.1)] transform scale-105'
-                                                : 'bg-slate-800/50 text-slate-500 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 hover:text-slate-300'
+                                                ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-lg shadow-slate-900/20 dark:shadow-[0_0_20px_rgba(255,255,255,0.1)] transform scale-105'
+                                                : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700 dark:bg-slate-800/50 dark:text-slate-500 dark:border-slate-700/50 dark:hover:bg-slate-800 dark:hover:border-slate-600 dark:hover:text-slate-300'
                                                 }`}
                                         >
                                             {month}
@@ -444,7 +444,7 @@ function EventDashboard() {
 
                             {/* Responsible Filter */}
                             <div className="space-y-4">
-                                <div className="flex items-center gap-2 text-slate-200 font-bold text-sm ml-1">
+                                <div className="flex items-center gap-2 text-slate-900 dark:text-slate-200 font-bold text-sm ml-1">
                                     <Filter size={18} className="text-orange-500" />
                                     <span>Filtrar por Responsable</span>
                                 </div>
@@ -452,8 +452,8 @@ function EventDashboard() {
                                     <button
                                         onClick={() => setSelectedResponsible('Todos')}
                                         className={`px-6 py-2.5 rounded-2xl text-xs font-black tracking-wide transition-all duration-300 border uppercase ${selectedResponsible === 'Todos'
-                                            ? 'bg-white text-slate-900 border-white shadow-[0_0_20px_rgba(255,255,255,0.1)] transform scale-105'
-                                            : 'bg-slate-800/50 text-slate-500 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 hover:text-slate-300'
+                                            ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-lg shadow-slate-900/20 dark:shadow-[0_0_20px_rgba(255,255,255,0.1)] transform scale-105'
+                                            : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700 dark:bg-slate-800/50 dark:text-slate-500 dark:border-slate-700/50 dark:hover:bg-slate-800 dark:hover:border-slate-600 dark:hover:text-slate-300'
                                             }`}
                                     >
                                         Todos
@@ -463,8 +463,8 @@ function EventDashboard() {
                                             key={resp}
                                             onClick={() => setSelectedResponsible(resp)}
                                             className={`pl-5 pr-6 py-2.5 rounded-2xl text-xs font-black tracking-wide transition-all duration-300 flex items-center gap-2.5 border uppercase ${selectedResponsible === resp
-                                                ? 'bg-white text-slate-900 border-white shadow-[0_0_20px_rgba(255,255,255,0.1)] transform scale-105'
-                                                : 'bg-slate-800/50 text-slate-500 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 hover:text-slate-300'
+                                                ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-lg shadow-slate-900/20 dark:shadow-[0_0_20px_rgba(255,255,255,0.1)] transform scale-105'
+                                                : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700 dark:bg-slate-800/50 dark:text-slate-500 dark:border-slate-700/50 dark:hover:bg-slate-800 dark:hover:border-slate-600 dark:hover:text-slate-300'
                                                 }`}
                                         >
                                             <div className={`w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] transition-colors duration-300 ${getResponsibleDotColor(resp)}`}></div>
@@ -500,11 +500,11 @@ function EventDashboard() {
                                         >
                                             {/* Date Column - Visual Calendar */}
                                             <td className="p-4 rounded-l-2xl border-l-4 border-transparent hover:border-primary-500 transition-colors">
-                                                <div className="flex flex-col items-center justify-center bg-slate-800/80 dark:bg-white/5 rounded-2xl p-2 w-16 h-16 border border-slate-700/50 dark:border-white/10 shadow-inner">
-                                                    <span className="text-[10px] font-black uppercase text-red-400 tracking-wider">
+                                                <div className="flex flex-col items-center justify-center bg-slate-100 dark:bg-white/5 rounded-2xl p-2 w-16 h-16 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-inner">
+                                                    <span className="text-[10px] font-black uppercase text-slate-500 dark:text-red-400 tracking-wider">
                                                         {ev.date ? new Date(ev.date + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short' }).replace('.', '') : ''}
                                                     </span>
-                                                    <span className="text-2xl font-black text-white leading-none">
+                                                    <span className="text-2xl font-black text-slate-900 dark:text-white leading-none">
                                                         {ev.date ? new Date(ev.date + 'T12:00:00').getDate() : '-'}
                                                     </span>
                                                 </div>
@@ -512,7 +512,7 @@ function EventDashboard() {
 
                                             <td className="p-4">
                                                 <div className="flex flex-col gap-1.5">
-                                                    <span className="font-black text-orange-400 dark:text-orange-300 text-lg leading-tight whitespace-normal">
+                                                    <span className="font-black text-orange-500 dark:text-orange-300 text-lg leading-tight whitespace-normal">
                                                         {ev.type}
                                                     </span>
                                                     {ev.name && (
@@ -524,15 +524,15 @@ function EventDashboard() {
                                             </td>
 
                                             <td className="p-4">
-                                                <div className={`text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg text-center leading-snug whitespace-normal border bg-opacity-10 dark:bg-opacity-20 ${getIndicatorColor(ev.indicator)}`}>
+                                                <div className={`text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg text-center leading-snug whitespace-normal border bg-opacity-50 dark:bg-opacity-20 ${getIndicatorColor(ev.indicator)}`}>
                                                     {ev.indicator || '-'}
                                                 </div>
                                             </td>
 
                                             <td className="p-4 text-center">
                                                 <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${ev.scope === 'Interno'
-                                                    ? 'bg-blue-900/30 text-blue-400 border-blue-500/30'
-                                                    : 'bg-emerald-900/30 text-emerald-400 border-emerald-500/30'
+                                                    ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-500/30'
+                                                    : 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-500/30'
                                                     }`}>
                                                     {ev.scope}
                                                 </span>
@@ -554,15 +554,15 @@ function EventDashboard() {
                                             <td className="p-4">
                                                 {(ev.date || ev.startTime) ? (
                                                     <div className="flex flex-col gap-2">
-                                                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                                                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 dark:text-slate-300">
                                                             <span className="capitalize">
                                                                 {ev.date ? new Date(ev.date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' }) : ''}
                                                             </span>
                                                         </div>
                                                         {(ev.startTime || ev.endTime) && (
-                                                            <div className="inline-flex items-center gap-2 bg-slate-800/80 dark:bg-white/5 px-3 py-1.5 rounded-lg w-fit border border-slate-700/50 dark:border-white/10">
-                                                                <Clock size={12} className="text-slate-400" />
-                                                                <span className="text-[11px] font-bold text-slate-400">
+                                                            <div className="inline-flex items-center gap-2 bg-slate-100 dark:bg-white/5 px-3 py-1.5 rounded-lg w-fit border border-slate-200 dark:border-white/10">
+                                                                <Clock size={12} className="text-slate-500 dark:text-slate-400" />
+                                                                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
                                                                     {ev.startTime || '--:--'} - {ev.endTime || '--:--'}
                                                                 </span>
                                                             </div>

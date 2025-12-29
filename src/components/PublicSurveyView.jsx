@@ -93,7 +93,7 @@ function PublicSurveyView() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold text-slate-800 mb-2">Encuesta no encontrada</h1>
+                    <h1 className="text-2xl font-bold text-slate-800 mb-2">Formulario no encontrado</h1>
                     <p className="text-slate-500">El link que utilizaste no es válido o ha expirado.</p>
                 </div>
             </div>

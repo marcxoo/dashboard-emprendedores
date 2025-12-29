@@ -83,7 +83,7 @@ function Portal() {
                         </div>
 
                         <h2 className="text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                            Encuestas
+                            Formularios
                         </h2>
                         <p className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed text-sm lg:text-base">
                             Creación y análisis de formularios y satisfacción.
