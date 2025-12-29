@@ -140,85 +140,93 @@ function PublicSurveyView() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-xl mx-auto">
-                {/* Header Card */}
-                <div className="bg-white rounded-t-3xl shadow-sm border-b-8 border-primary-600 p-8 mb-6 relative overflow-hidden">
-                    {/* Decor */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary-50 rounded-bl-full opacity-50 pointer-events-none"></div>
+        <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+            <div className="max-w-2xl w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+                {/* Header Section */}
+                <div className="bg-white p-8 md:p-10 border-b border-slate-100 relative overflow-hidden">
+                    {/* Top Decor Line */}
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-500 to-primary-600"></div>
 
-                    <h1 className="text-3xl font-bold text-slate-900 mb-2 relative z-10">{survey.title}</h1>
-                    {survey.description && (
-                        <p className="text-slate-600 whitespace-pre-wrap relative z-10">{survey.description}</p>
-                    )}
+                    {/* Background Decor */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary-50/50 rounded-bl-full -mr-16 -mt-16 pointer-events-none opacity-60"></div>
 
-                    {(survey.eventDate || survey.eventTime || survey.eventLocation) && (
-                        <div className="mt-8 bg-slate-50/80 backdrop-blur-sm rounded-2xl p-4 md:p-5 border border-slate-200/60 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-4 relative z-10">
-                            {survey.eventDate && (
-                                <div className="flex items-center gap-4 flex-1">
-                                    <div className="w-12 h-12 rounded-xl bg-white text-primary-600 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                        <Calendar size={22} strokeWidth={2} />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">FECHA</span>
-                                        <span className="font-bold text-slate-900 capitalize text-lg leading-tight whitespace-nowrap">
-                                            {new Date(survey.eventDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Divider for Desktop */}
-                            {(survey.eventDate && (survey.eventTime || survey.eventLocation)) && (
-                                <div className="hidden md:block w-px h-12 bg-slate-200"></div>
-                            )}
-
-                            {survey.eventTime && (
-                                <div className="flex items-center gap-4 flex-1 md:justify-center">
-                                    <div className="w-12 h-12 rounded-xl bg-white text-orange-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                        <Clock size={22} strokeWidth={2} />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">HORA</span>
-                                        <span className="font-bold text-slate-900 text-lg leading-tight whitespace-nowrap">
-                                            {survey.eventTime.slice(0, 5)}
-                                            <span className="text-sm text-slate-500 font-medium ml-1">hrs</span>
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Divider for Desktop */}
-                            {((survey.eventDate || survey.eventTime) && survey.eventLocation) && (
-                                <div className="hidden md:block w-px h-12 bg-slate-200"></div>
-                            )}
-
-                            {survey.eventLocation && (
-                                <div className="flex items-center gap-4 flex-1 md:justify-end">
-                                    <div className="w-12 h-12 rounded-xl bg-white text-purple-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                        <MapPin size={22} strokeWidth={2} />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">LUGAR</span>
-                                        <span className="font-bold text-slate-900 text-lg leading-tight">
-                                            {survey.eventLocation}
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
+                    <div className="relative z-10">
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight">{survey.title}</h1>
+                            {/* Status Badge */}
+                            <span className="shrink-0 px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-200">
+                                Registro Abierto
+                            </span>
                         </div>
-                    )}
-                    <div className="mt-6 flex items-center gap-2 text-sm text-slate-500 relative z-10">
-                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase tracking-wide">Registro Abierto</span>
+
+                        {survey.description && (
+                            <p className="text-slate-600 text-lg leading-relaxed whitespace-pre-wrap mb-8">{survey.description}</p>
+                        )}
+
+                        {/* Event Details Bar */}
+                        {(survey.eventDate || survey.eventTime || survey.eventLocation) && (
+                            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 flex flex-col md:flex-row gap-6 md:items-center relative z-10">
+                                {survey.eventDate && (
+                                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                                        <div className="w-12 h-12 rounded-xl bg-white text-primary-600 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                            <Calendar size={22} strokeWidth={2} />
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">FECHA</span>
+                                            <span className="font-bold text-slate-900 capitalize text-lg leading-tight truncate">
+                                                {new Date(survey.eventDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {survey.eventDate && (survey.eventTime || survey.eventLocation) && (
+                                    <div className="hidden md:block w-px h-12 bg-slate-200 shrink-0"></div>
+                                )}
+
+                                {survey.eventTime && (
+                                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                                        <div className="w-12 h-12 rounded-xl bg-white text-orange-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                            <Clock size={22} strokeWidth={2} />
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">HORA</span>
+                                            <span className="font-bold text-slate-900 text-lg leading-tight whitespace-nowrap">
+                                                {survey.eventTime.slice(0, 5)}
+                                                <span className="text-sm text-slate-500 font-medium ml-1">hrs</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {((survey.eventDate || survey.eventTime) && survey.eventLocation) && (
+                                    <div className="hidden md:block w-px h-12 bg-slate-200 shrink-0"></div>
+                                )}
+
+                                {survey.eventLocation && (
+                                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                                        <div className="w-12 h-12 rounded-xl bg-white text-purple-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                            <MapPin size={22} strokeWidth={2} />
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">LUGAR</span>
+                                            <span className="font-bold text-slate-900 text-lg leading-tight truncate" title={survey.eventLocation}>
+                                                {survey.eventLocation}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Form */}
-                <div className="bg-white rounded-3xl shadow-sm p-8 border border-slate-100">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Form Section */}
+                <div className="p-8 md:p-10 bg-white">
+                    <form onSubmit={handleSubmit} className="space-y-8">
                         {survey.questions.map(q => (
                             <div key={q.id} className="group">
-                                <label className="block text-sm font-bold text-slate-700 mb-2 group-focus-within:text-primary-600 transition-colors">
+                                <label className="block text-sm font-bold text-slate-700 mb-3 group-focus-within:text-primary-600 transition-colors uppercase tracking-wide">
                                     {q.label} {q.required && <span className="text-red-500">*</span>}
                                 </label>
 
@@ -226,45 +234,51 @@ function PublicSurveyView() {
                                     <textarea
                                         required={q.required}
                                         onChange={(e) => handleInputChange(q.label, e.target.value)}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all min-h-[120px] text-slate-900 placeholder:text-slate-400"
-                                        placeholder="Tu respuesta..."
+                                        className="w-full px-5 py-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all min-h-[120px] text-slate-900 placeholder:text-slate-400 text-base"
+                                        placeholder="Escribe tu respuesta aquí..."
                                     />
                                 ) : q.type === 'multiple_choice' ? (
                                     <div className="space-y-3">
                                         {q.options?.map((opt, idx) => (
-                                            <label key={idx} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 hover:border-primary-200 cursor-pointer transition-all">
-                                                <input
-                                                    type="radio"
-                                                    name={`question_${q.id}`}
-                                                    value={opt}
-                                                    required={q.required}
-                                                    onChange={(e) => handleInputChange(q.label, e.target.value)}
-                                                    className="w-5 h-5 text-primary-600 focus:ring-primary-500 border-slate-300"
-                                                />
-                                                <span className="text-slate-700 font-medium">{opt}</span>
+                                            <label key={idx} className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 hover:border-primary-200 cursor-pointer transition-all group/opt">
+                                                <div className="relative flex items-center justify-center">
+                                                    <input
+                                                        type="radio"
+                                                        name={`question_${q.id}`}
+                                                        value={opt}
+                                                        required={q.required}
+                                                        onChange={(e) => handleInputChange(q.label, e.target.value)}
+                                                        className="peer appearance-none w-5 h-5 border-2 border-slate-300 rounded-full checked:border-primary-500 checked:bg-primary-500 transition-colors"
+                                                    />
+                                                    <div className="absolute w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+                                                </div>
+                                                <span className="text-slate-700 font-medium group-hover/opt:text-slate-900">{opt}</span>
                                             </label>
                                         ))}
                                     </div>
                                 ) : q.type === 'checkbox' ? (
                                     <div className="space-y-3">
                                         {q.options?.map((opt, idx) => (
-                                            <label key={idx} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 hover:border-primary-200 cursor-pointer transition-all">
-                                                <input
-                                                    type="checkbox"
-                                                    value={opt}
-                                                    onChange={(e) => {
-                                                        const currentVal = formValues[q.label] || [];
-                                                        let newVal;
-                                                        if (e.target.checked) {
-                                                            newVal = [...currentVal, opt];
-                                                        } else {
-                                                            newVal = currentVal.filter(v => v !== opt);
-                                                        }
-                                                        handleInputChange(q.label, newVal);
-                                                    }}
-                                                    className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500 border-slate-300"
-                                                />
-                                                <span className="text-slate-700 font-medium">{opt}</span>
+                                            <label key={idx} className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 hover:border-primary-200 cursor-pointer transition-all group/opt">
+                                                <div className="relative flex items-center justify-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        value={opt}
+                                                        onChange={(e) => {
+                                                            const currentVal = formValues[q.label] || [];
+                                                            let newVal;
+                                                            if (e.target.checked) {
+                                                                newVal = [...currentVal, opt];
+                                                            } else {
+                                                                newVal = currentVal.filter(v => v !== opt);
+                                                            }
+                                                            handleInputChange(q.label, newVal);
+                                                        }}
+                                                        className="peer appearance-none w-5 h-5 border-2 border-slate-300 rounded-md checked:border-primary-500 checked:bg-primary-500 transition-colors"
+                                                    />
+                                                    <CheckCircle size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
+                                                </div>
+                                                <span className="text-slate-700 font-medium group-hover/opt:text-slate-900">{opt}</span>
                                             </label>
                                         ))}
                                     </div>
@@ -273,22 +287,22 @@ function PublicSurveyView() {
                                         type={q.type}
                                         required={q.required}
                                         onChange={(e) => handleInputChange(q.label, e.target.value)}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all text-slate-900 placeholder:text-slate-400"
+                                        className="w-full px-5 py-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all text-slate-900 placeholder:text-slate-400 text-base"
                                         placeholder={`Tu respuesta...`}
                                     />
                                 )}
                             </div>
                         ))}
 
-                        <div className="pt-6">
+                        <div className="pt-8">
                             <button
                                 type="submit"
-                                className="w-full bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-bold py-4 px-4 rounded-xl transition-all shadow-lg shadow-primary-600/30 active:scale-[0.98] transform"
+                                className="w-full bg-slate-900 hover:bg-black text-white font-bold py-5 px-6 rounded-2xl transition-all shadow-xl shadow-slate-900/10 active:scale-[0.99] transform text-lg"
                             >
-                                Enviar Registro
+                                Confirmar Asistencia
                             </button>
-                            <p className="text-xs text-center text-slate-400 mt-4">
-                                Nunca envíes contraseñas a través de Formularios.
+                            <p className="text-xs text-center text-slate-400 mt-6">
+                                Este formulario fue creado con <span className="font-bold text-slate-600">EmprendeForms</span>.
                             </p>
                         </div>
                     </form>
