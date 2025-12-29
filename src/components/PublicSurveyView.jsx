@@ -153,38 +153,49 @@ function PublicSurveyView() {
                     )}
 
                     {(survey.eventDate || survey.eventTime || survey.eventLocation) && (
-                        <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
+                        <div className="mt-8 bg-slate-50 rounded-2xl p-6 border border-slate-100 flex flex-col md:flex-row gap-6 md:gap-8 md:items-center justify-between relative z-10">
                             {survey.eventDate && (
-                                <div className="flex items-center gap-3 text-slate-700">
-                                    <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                                        <Calendar size={20} />
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-white text-primary-600 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                        <Calendar size={24} strokeWidth={2} />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Fecha</span>
-                                        <span className="font-semibold">{new Date(survey.eventDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">FECHA</span>
+                                        <span className="font-bold text-slate-900 capitalize text-lg leading-tight">
+                                            {new Date(survey.eventDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                        </span>
                                     </div>
                                 </div>
                             )}
-                            {survey.eventTime && (
-                                <div className="flex items-center gap-3 text-slate-700">
-                                    <div className="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
-                                        <Clock size={20} />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hora</span>
-                                        <span className="font-semibold">{survey.eventTime}</span>
-                                    </div>
-                                </div>
-                            )}
-                            {survey.eventLocation && (
-                                <div className="flex items-center gap-3 text-slate-700">
-                                    <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                                        <MapPin size={20} />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Lugar</span>
-                                        <span className="font-semibold">{survey.eventLocation}</span>
-                                    </div>
+
+                            {(survey.eventTime || survey.eventLocation) && (
+                                <div className="flex flex-col sm:flex-row gap-6 md:gap-8 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-8">
+                                    {survey.eventTime && (
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-white text-orange-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                                <Clock size={24} strokeWidth={2} />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">HORA</span>
+                                                <span className="font-bold text-slate-900 text-lg leading-tight">
+                                                    {survey.eventTime.slice(0, 5)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {survey.eventLocation && (
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-white text-purple-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                                <MapPin size={24} strokeWidth={2} />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">LUGAR</span>
+                                                <span className="font-bold text-slate-900 text-lg leading-tight">
+                                                    {survey.eventLocation}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
