@@ -143,7 +143,7 @@ function PublicSurveyView() {
         <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
             <div className="max-w-2xl w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
                 {/* Header Section */}
-                <div className="bg-white p-8 md:p-10 border-b border-slate-100 relative overflow-hidden">
+                <div className="bg-white p-6 md:p-10 border-b border-slate-100 relative overflow-hidden">
                     {/* Top Decor Line */}
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-500 to-primary-600"></div>
 
@@ -152,30 +152,38 @@ function PublicSurveyView() {
 
                     <div className="relative z-10">
                         {/* Status Badge - Moved above title */}
-                        <div className="mb-4">
-                            <span className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-200">
+                        <div className="mb-3 md:mb-4 flex items-center justify-between">
+                            <span className="inline-flex items-center px-2.5 py-0.5 md:px-3 md:py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-200">
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2 animate-pulse"></span>
                                 Registro Abierto
                             </span>
+
+                            {/* Mobile Scroll Shortcut */}
+                            <button
+                                onClick={() => document.getElementById('registration-form').scrollIntoView({ behavior: 'smooth' })}
+                                className="md:hidden text-xs font-bold text-primary-600 flex items-center gap-1 active:scale-95 transition-transform"
+                            >
+                                Ir al formulario <ArrowRight size={14} />
+                            </button>
                         </div>
 
-                        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight mb-4">{survey.title}</h1>
+                        <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight mb-3 md:mb-4">{survey.title}</h1>
 
                         {survey.description && (
-                            <p className="text-slate-600 text-lg leading-relaxed whitespace-pre-wrap mb-8">{survey.description}</p>
+                            <p className="text-slate-600 text-sm md:text-lg leading-relaxed whitespace-pre-wrap mb-6 md:mb-8">{survey.description}</p>
                         )}
 
                         {/* Event Details Bar - Grid Layout with Dividers */}
                         {(survey.eventDate || survey.eventTime || survey.eventLocation) && (
-                            <div className="bg-slate-50 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200 relative z-10">
+                            <div className="bg-slate-50 rounded-xl md:rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200 relative z-10">
                                 {survey.eventDate && (
-                                    <div className="p-5 flex items-center gap-4 hover:bg-white/50 transition-colors first:rounded-t-2xl md:first:rounded-l-2xl md:first:rounded-tr-none">
-                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white text-primary-600 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                            <Calendar size={20} strokeWidth={2} />
+                                    <div className="p-4 md:p-5 flex items-center gap-3 md:gap-4 hover:bg-white/50 transition-colors first:rounded-t-xl md:first:rounded-l-2xl md:first:rounded-tr-none">
+                                        <div className="w-9 h-9 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-white text-primary-600 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                            <Calendar size={18} strokeWidth={2} className="md:w-[20px] md:h-[20px]" />
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">FECHA</span>
-                                            <span className="font-bold text-slate-900 capitalize text-base md:text-lg leading-tight">
+                                            <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">FECHA</span>
+                                            <span className="font-bold text-slate-900 capitalize text-sm md:text-base leading-tight">
                                                 {new Date(survey.eventDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                                             </span>
                                         </div>
@@ -183,28 +191,28 @@ function PublicSurveyView() {
                                 )}
 
                                 {survey.eventTime && (
-                                    <div className="p-5 flex items-center gap-4 hover:bg-white/50 transition-colors">
-                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white text-orange-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                            <Clock size={20} strokeWidth={2} />
+                                    <div className="p-4 md:p-5 flex items-center gap-3 md:gap-4 hover:bg-white/50 transition-colors">
+                                        <div className="w-9 h-9 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-white text-orange-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                            <Clock size={18} strokeWidth={2} className="md:w-[20px] md:h-[20px]" />
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">HORA</span>
-                                            <span className="font-bold text-slate-900 text-base md:text-lg leading-tight">
+                                            <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">HORA</span>
+                                            <span className="font-bold text-slate-900 text-sm md:text-base leading-tight">
                                                 {survey.eventTime.slice(0, 5)}
-                                                <span className="text-xs md:text-sm text-slate-500 font-medium ml-1">hrs</span>
+                                                <span className="text-[10px] md:text-xs text-slate-500 font-medium ml-1">hrs</span>
                                             </span>
                                         </div>
                                     </div>
                                 )}
 
                                 {survey.eventLocation && (
-                                    <div className="p-5 flex items-center gap-4 hover:bg-white/50 transition-colors last:rounded-b-2xl md:last:rounded-r-2xl md:last:rounded-bl-none">
-                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white text-purple-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                            <MapPin size={20} strokeWidth={2} />
+                                    <div className="p-4 md:p-5 flex items-center gap-3 md:gap-4 hover:bg-white/50 transition-colors last:rounded-b-xl md:last:rounded-r-2xl md:last:rounded-bl-none">
+                                        <div className="w-9 h-9 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-white text-purple-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                            <MapPin size={18} strokeWidth={2} className="md:w-[20px] md:h-[20px]" />
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">LUGAR</span>
-                                            <span className="font-bold text-slate-900 text-base md:text-lg leading-tight break-words">
+                                            <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">LUGAR</span>
+                                            <span className="font-bold text-slate-900 text-sm md:text-base leading-tight break-words">
                                                 {survey.eventLocation}
                                             </span>
                                         </div>
@@ -216,8 +224,8 @@ function PublicSurveyView() {
                 </div>
 
                 {/* Form Section */}
-                <div className="p-8 md:p-12 bg-white relative">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 py-1 rounded-full border border-slate-100 shadow-sm z-20">
+                <div id="registration-form" className="p-6 md:p-12 bg-white relative">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 py-1 rounded-full border border-slate-100 shadow-sm z-20 whitespace-nowrap">
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Formulario de Registro</span>
                     </div>
 
