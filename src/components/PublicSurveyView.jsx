@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, AlertCircle, Calendar, Clock, MapPin } from 'lucide-react';
+import { CheckCircle, AlertCircle, Calendar, Clock, MapPin, ArrowRight } from 'lucide-react';
 
 function PublicSurveyView() {
     const { id } = useParams();
