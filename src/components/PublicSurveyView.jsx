@@ -151,66 +151,60 @@ function PublicSurveyView() {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary-50/50 rounded-bl-full -mr-16 -mt-16 pointer-events-none opacity-60"></div>
 
                     <div className="relative z-10">
-                        <div className="flex items-start justify-between gap-4 mb-4">
-                            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight">{survey.title}</h1>
-                            {/* Status Badge */}
-                            <span className="shrink-0 px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-200">
+                        {/* Status Badge - Moved above title */}
+                        <div className="mb-4">
+                            <span className="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-200">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2 animate-pulse"></span>
                                 Registro Abierto
                             </span>
                         </div>
+
+                        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight mb-4">{survey.title}</h1>
 
                         {survey.description && (
                             <p className="text-slate-600 text-lg leading-relaxed whitespace-pre-wrap mb-8">{survey.description}</p>
                         )}
 
-                        {/* Event Details Bar */}
+                        {/* Event Details Bar - Grid Layout with Dividers */}
                         {(survey.eventDate || survey.eventTime || survey.eventLocation) && (
-                            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 flex flex-col md:flex-row gap-6 md:items-center relative z-10">
+                            <div className="bg-slate-50 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200 relative z-10">
                                 {survey.eventDate && (
-                                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                                        <div className="w-12 h-12 rounded-xl bg-white text-primary-600 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                            <Calendar size={22} strokeWidth={2} />
+                                    <div className="p-5 flex items-center gap-4 hover:bg-white/50 transition-colors first:rounded-t-2xl md:first:rounded-l-2xl md:first:rounded-tr-none">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white text-primary-600 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                            <Calendar size={20} strokeWidth={2} />
                                         </div>
-                                        <div className="flex flex-col min-w-0">
+                                        <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">FECHA</span>
-                                            <span className="font-bold text-slate-900 capitalize text-lg leading-tight truncate">
+                                            <span className="font-bold text-slate-900 capitalize text-base md:text-lg leading-tight">
                                                 {new Date(survey.eventDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                                             </span>
                                         </div>
                                     </div>
                                 )}
 
-                                {survey.eventDate && (survey.eventTime || survey.eventLocation) && (
-                                    <div className="hidden md:block w-px h-12 bg-slate-200 shrink-0"></div>
-                                )}
-
                                 {survey.eventTime && (
-                                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                                        <div className="w-12 h-12 rounded-xl bg-white text-orange-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                            <Clock size={22} strokeWidth={2} />
+                                    <div className="p-5 flex items-center gap-4 hover:bg-white/50 transition-colors">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white text-orange-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                            <Clock size={20} strokeWidth={2} />
                                         </div>
-                                        <div className="flex flex-col min-w-0">
+                                        <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">HORA</span>
-                                            <span className="font-bold text-slate-900 text-lg leading-tight whitespace-nowrap">
+                                            <span className="font-bold text-slate-900 text-base md:text-lg leading-tight">
                                                 {survey.eventTime.slice(0, 5)}
-                                                <span className="text-sm text-slate-500 font-medium ml-1">hrs</span>
+                                                <span className="text-xs md:text-sm text-slate-500 font-medium ml-1">hrs</span>
                                             </span>
                                         </div>
                                     </div>
                                 )}
 
-                                {((survey.eventDate || survey.eventTime) && survey.eventLocation) && (
-                                    <div className="hidden md:block w-px h-12 bg-slate-200 shrink-0"></div>
-                                )}
-
                                 {survey.eventLocation && (
-                                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                                        <div className="w-12 h-12 rounded-xl bg-white text-purple-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                            <MapPin size={22} strokeWidth={2} />
+                                    <div className="p-5 flex items-center gap-4 hover:bg-white/50 transition-colors last:rounded-b-2xl md:last:rounded-r-2xl md:last:rounded-bl-none">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white text-purple-500 flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                            <MapPin size={20} strokeWidth={2} />
                                         </div>
-                                        <div className="flex flex-col min-w-0">
+                                        <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">LUGAR</span>
-                                            <span className="font-bold text-slate-900 text-lg leading-tight truncate" title={survey.eventLocation}>
+                                            <span className="font-bold text-slate-900 text-base md:text-lg leading-tight break-words">
                                                 {survey.eventLocation}
                                             </span>
                                         </div>
