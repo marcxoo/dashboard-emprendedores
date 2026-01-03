@@ -317,4 +317,30 @@
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     @apply bg-slate-400 dark:bg-slate-500;
   }
+
+  @keyframes shine-pulse {
+    0% {
+      background-position: 0% 0%;
+    }
+
+    25% {
+      background-position: 100% 0%;
+    }
+
+    50% {
+      background-position: 100% 100%;
+    }
+
+    75% {
+      background-position: 0% 100%;
+    }
+
+    100% {
+      background-position: 0% 0%;
+    }
+  }
+
+  .animate-shine-pulse {
+    animation: shine-pulse var(--shine-pulse-duration) infinite linear;
+  }
 }

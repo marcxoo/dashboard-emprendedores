@@ -60,8 +60,25 @@ export default {
             },
             spacing: {
                 'sidebar': '280px',
+                'sidebar': '280px',
                 'header': '64px',
-            }
+            },
+            animation: {
+                "shine-pulse": "shine-pulse var(--shine-pulse-duration) infinite linear",
+            },
+            keyframes: {
+                "shine-pulse": {
+                    "0%": {
+                        "background-position": "0% 0%",
+                    },
+                    "50%": {
+                        "background-position": "100% 100%",
+                    },
+                    to: {
+                        "background-position": "0% 0%",
+                    },
+                },
+            },
         },
     },
     plugins: [],

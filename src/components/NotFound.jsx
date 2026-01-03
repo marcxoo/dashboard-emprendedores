@@ -1,26 +1,33 @@
 import { useNavigate } from 'react-router-dom';
-import { Home, AlertTriangle } from 'lucide-react';
 
 export default function NotFound() {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
-            <div className="text-center max-w-md w-full">
-                <div className="w-24 h-24 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
-                    <AlertTriangle size={48} />
+        <section className="bg-white font-serif min-h-screen flex items-center justify-center p-4">
+            <div className="container mx-auto">
+                <div className="flex justify-center">
+                    <div className="w-full sm:w-10/12 md:w-8/12 text-center">
+                        <div
+                            className="bg-[url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif)] h-[250px] sm:h-[350px] md:h-[400px] bg-center bg-no-repeat bg-contain"
+                            aria-hidden="true"
+                        >
+                            <h1 className="text-center text-black text-6xl sm:text-7xl md:text-8xl pt-6 sm:pt-8 font-black">
+                                404
+                            </h1>
+                        </div>
+
+                        <div className="mt-[-50px]">
+                            <h3 className="text-2xl text-black sm:text-3xl font-bold mb-4">
+                                Página no encontrada
+                            </h3>
+                            <p className="mb-6 text-black sm:mb-5 font-medium">
+                                La página que buscas no existe o ha sido movida. Verifique la URL e intente nuevamente.
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <h1 className="text-6xl font-black text-slate-900 dark:text-white mb-4">404</h1>
-                <h2 className="text-2xl font-bold text-slate-700 dark:text-slate-300 mb-4">Página no encontrada</h2>
-                <p className="text-slate-500 dark:text-slate-400 mb-8">
-                    La página que buscas no existe o ha sido movida. Verifique la URL e intente nuevamente.
-                </p>
-                {/* 
-                   Intentionally NOT providing a "Go to Home" button that leads to login, 
-                   to maintain the requested security through obscurity.
-                   Users who know the real URL will type it.
-                */}
             </div>
-        </div>
+        </section>
     );
 }
