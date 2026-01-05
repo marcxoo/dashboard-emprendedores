@@ -11,6 +11,10 @@ function PublicSurveyView() {
     const [isFull, setIsFull] = useState(false);
     const [formValues, setFormValues] = useState({});
 
+    // Prize Wheel State
+    const [showWheel, setShowWheel] = useState(false);
+    const [prize, setPrize] = useState(null);
+
     useEffect(() => {
         const fetchSurvey = async () => {
             try {
@@ -106,15 +110,83 @@ function PublicSurveyView() {
 
     if (submitted) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-primary-600 p-4">
-                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center animate-scale-in">
-                    <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle size={40} />
-                    </div>
-                    <h1 className="text-2xl font-bold text-slate-900 mb-2">¡Registro Exitoso!</h1>
-                    <p className="text-slate-600 mb-8 break-words break-all">
-                        Gracias por registrarte en <strong>{survey.title}</strong>. Hemos guardado tu información correctamente.
-                    </p>
+            <div className={`min-h-screen flex items-center justify-center bg-primary-600 p-4 transition-all duration-500 ${showWheel ? 'bg-slate-900' : ''}`}>
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center animate-scale-in overflow-hidden relative">
+
+                    {!showWheel ? (
+                        <>
+                            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <CheckCircle size={40} />
+                            </div>
+                            <h1 className="text-2xl font-bold text-slate-900 mb-2">¡Registro Exitoso!</h1>
+                            <p className="text-slate-600 mb-8 break-words break-all">
+                                Gracias por registrarte en <strong>{survey.title}</strong>. Hemos guardado tu información correctamente.
+                            </p>
+
+                            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-100 rounded-2xl p-6 relative overflow-hidden group cursor-pointer hover:shadow-lg transition-all" onClick={() => setShowWheel(true)}>
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-200 rounded-full -mr-10 -mt-10 opacity-20 group-hover:scale-150 transition-transform duration-500"></div>
+                                <div className="relative z-10">
+                                    <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:rotate-12 transition-transform">
+                                        <Trophy size={24} />
+                                    </div>
+                                    <h3 className="font-bold text-slate-800 mb-1">¡Gira la Ruleta!</h3>
+                                    <p className="text-xs text-slate-500 mb-4">Participa por premios exclusivos para emprendedores.</p>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setShowWheel(true); }}
+                                        className="bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider hover:bg-slate-800 transition-colors"
+                                    >
+                                        Jugar Ahora
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
+                            {!prize ? (
+                                <>
+                                    <div className="mb-6">
+                                        <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">¡Mucha Suerte! 🍀</h2>
+                                        <p className="text-slate-500 text-sm">Gira la ruleta y descubre tu premio</p>
+                                    </div>
+                                    <div className="transform scale-90 md:scale-100">
+                                        <PrizeWheel
+                                            onWin={(p) => setPrize(p)}
+                                            prizes={[
+                                                "10% Descuento", "Asesoría Gratis", "Kit Digital", "Consulta Express",
+                                                "Workshop VIP", "Sigue Intentando", "Mención en Redes", "Ebook Gratis"
+                                            ]}
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="py-8 animate-in zoom-in duration-500">
+                                    <div className="relative inline-block mb-6">
+                                        <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-50 animate-pulse"></div>
+                                        <div className="relative w-24 h-24 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-2xl flex items-center justify-center text-white shadow-xl rotate-3 mx-auto">
+                                            <Sparkles size={48} className="animate-bounce" />
+                                        </div>
+                                    </div>
+                                    <h2 className="text-3xl font-black text-slate-900 mb-2">{prize === "Sigue Intentando" ? "¡Casi!" : "¡Ganaste!"}</h2>
+                                    <p className="text-lg font-medium text-slate-600 mb-8 border-b-2 border-slate-100 pb-8 border-dashed">
+                                        {prize === "Sigue Intentando" ? "Gracias por participar, ¡inténtalo en el próximo evento!" : <span>Tu premio es: <strong className="text-primary-600 block text-2xl mt-2">{prize}</strong></span>}
+                                    </p>
+
+                                    {prize !== "Sigue Intentando" && (
+                                        <p className="text-xs text-slate-400 mb-6 bg-slate-50 p-3 rounded-lg">
+                                            Captura esta pantalla y muéstrala al organizador para reclamar tu premio.
+                                        </p>
+                                    )}
+
+                                    <button
+                                        onClick={() => window.location.reload()}
+                                        className="text-slate-500 text-sm font-bold hover:text-slate-800 underline decoration-2 underline-offset-4"
+                                    >
+                                        Volver al inicio
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         );

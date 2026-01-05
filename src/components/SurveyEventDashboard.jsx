@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, LogOut, LayoutGrid, Plus, Trash2, Calendar, FileText, Settings, Home, Link, Copy, Check, Users, MoreVertical, GripVertical, Pencil, FileDown, Table } from 'lucide-react';
+import { Menu, X, LogOut, LayoutGrid, Plus, Trash2, Calendar, FileText, Settings, Home, Link, Copy, Check, Users, MoreVertical, GripVertical, Pencil, FileDown, Table, Trophy } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { useData } from '../context/DataContext';
@@ -829,6 +829,13 @@ function SurveyEventDashboard() {
                                                                 <Link size={16} /> Copiar Link
                                                             </>
                                                         )}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => window.open(`/raffle/${survey.id}`, '_blank')}
+                                                        className="p-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-400 hover:text-yellow-500 transition-colors"
+                                                        title="Sorteo / Ruleta"
+                                                    >
+                                                        <Trophy size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => setViewingResultsId(survey.id)}

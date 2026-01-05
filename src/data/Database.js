@@ -111,6 +111,38 @@ export class Database {
         };
       });
 
+
+      // Fetch Invitation Logs
+      const { data: logs, error: logError } = await supabase
+        .from('invitation_logs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      const invitationLogs = logs || [];
+      if (logError) {
+        // If table doesn't exist yet, just ignore to avoid breaking the app
+        console.warn("Could not load invitation logs (table might stay missing)", logError);
+      }
+
+      // Merge logs into entrepreneurs
+      this.emprendedores = this.emprendedores.map(e => {
+        const confirmedAssignments = this.asignaciones.filter(a =>
+          a.id_emprendedor === e.id && a.asistio === true
+        );
+        confirmedAssignments.sort((a, b) => compareWeeks(b.semana, a.semana));
+
+        // Find last invitation
+        const myLogs = invitationLogs.filter(l => l.entrepreneur_id === e.id);
+        const lastLog = myLogs.length > 0 ? myLogs[0] : null;
+
+        return {
+          ...e,
+          veces_en_stand: confirmedAssignments.length,
+          ultima_semana_participacion: confirmedAssignments.length > 0 ? confirmedAssignments[0].semana : null,
+          lastInvitation: lastLog ? { date: lastLog.created_at, channel: lastLog.channel } : null
+        };
+      });
+
       await this.loadEarnings();
 
       this.normalizeCategories();

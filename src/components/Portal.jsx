@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Users, MessageSquare, LogOut, ArrowRight, Sparkles, CalendarDays } from 'lucide-react';
+import { Users, MessageSquare, LogOut, ArrowRight, Sparkles, CalendarDays, Send } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ShineBorder } from './ui/ShineBorder';
 
@@ -140,6 +140,36 @@ function Portal() {
                         </p>
 
                         <div className="flex items-center gap-2 text-orange-600 font-bold group-hover:gap-3 transition-all text-sm uppercase tracking-wide absolute bottom-6 lg:bottom-8">
+                            <span>Acceder</span>
+                        </div>
+                        <div className="h-4"></div>
+                    </ShineBorder>
+
+                    {/* Card 4: Invitations */}
+                    <ShineBorder
+                        onClick={() => navigate('/invitations')}
+                        className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-6 lg:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none cursor-pointer hover:-translate-y-2 transition-all duration-300 block min-h-[280px] lg:min-h-[320px] w-full md:col-span-2 lg:col-span-1"
+                        color={["#22c55e", "#10b981", "#4ade80"]}
+                        borderRadius={32}
+                        borderWidth={2}
+                        duration={8}
+                    >
+                        <div className="absolute top-0 right-0 p-6 lg:p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-2 group-hover:translate-x-0">
+                            <ArrowRight className="text-green-500" size={24} />
+                        </div>
+
+                        <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 flex items-center justify-center mb-6 text-green-600 dark:text-green-400 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300 shadow-sm group-hover:shadow-green-500/20">
+                            <Send size={28} className="lg:w-8 lg:h-8" strokeWidth={1.5} />
+                        </div>
+
+                        <h2 className="text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                            Invitaciones
+                        </h2>
+                        <p className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed text-sm lg:text-base">
+                            Envía invitaciones a talleres y eventos por WhatsApp y Correo.
+                        </p>
+
+                        <div className="flex items-center gap-2 text-green-600 font-bold group-hover:gap-3 transition-all text-sm uppercase tracking-wide absolute bottom-6 lg:bottom-8">
                             <span>Acceder</span>
                         </div>
                         <div className="h-4"></div>

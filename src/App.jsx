@@ -10,6 +10,8 @@ import EntrepreneurDashboard from './components/EntrepreneurDashboard';
 import SurveyEventDashboard from './components/SurveyEventDashboard';
 import EventDashboard from './components/EventDashboard';
 import PublicSurveyView from './components/PublicSurveyView';
+import InvitationsDashboard from './components/InvitationsDashboard';
+import SurveyRaffle from './components/SurveyRaffle';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -57,6 +59,18 @@ function App() {
                 <Route path="/surveys/*" element={
                   <ProtectedRoute>
                     <SurveyEventDashboard />
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/invitations/*" element={
+                  <ProtectedRoute>
+                    <InvitationsDashboard />
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/raffle/:id" element={
+                  <ProtectedRoute>
+                    <SurveyRaffle />
                   </ProtectedRoute>
                 } />
               </Routes>

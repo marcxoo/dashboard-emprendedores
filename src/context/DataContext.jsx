@@ -235,6 +235,7 @@ export function DataProvider({ children }) {
         deleteCustomSurvey,
         addSurveyResponse,
         getSurveyById,
+        addInvitationLog: async (data) => db.addInvitationLog(data),
     };
 
     return (
