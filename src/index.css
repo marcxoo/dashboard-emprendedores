@@ -89,6 +89,10 @@
     /* orange-500/10 */
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply font-sans antialiased transition-colors duration-300;
     color: var(--text-main);

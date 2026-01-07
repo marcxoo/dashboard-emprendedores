@@ -8,7 +8,28 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import AvatarGroup from './ui/AvatarGroup';
 import { useMemo } from 'react';
+// Image Mapping for Events
+const EVENT_IMAGES = {
+    'bootcamp parte iii': 'https://i.imgur.com/hmqpdCKh.jpg',
+    'bootcamp parte 3': 'https://i.imgur.com/hmqpdCKh.jpg',
+    'bootcamp parte ii': 'https://i.imgur.com/vJd6Ucqh.jpg',
+    'bootcamp parte 2': 'https://i.imgur.com/vJd6Ucqh.jpg',
+    'misión huancavilca': 'https://i.imgur.com/AbiYAnjh.jpg',
+    'mision huancavilca': 'https://i.imgur.com/AbiYAnjh.jpg',
+    'emprendex': 'https://i.imgur.com/aWzHp0dh.jpg',
+    'taller': 'https://i.imgur.com/ezqazBkh.jpg',
+    'emprender': 'https://i.imgur.com/JdPJahoh.jpg',
+    'networking': 'https://i.imgur.com/vOjQxE7h.jpg',
+    'webinar': 'https://i.imgur.com/685rKvAh.jpg',
+    'bootcamp': 'https://i.imgur.com/zQtA3Nqh.jpg'
+};
 
+const getEventImage = (ev) => {
+    if (!ev) return null;
+    const searchString = `${ev.name || ''} ${ev.type || ''}`.toLowerCase();
+    const match = Object.keys(EVENT_IMAGES).find(key => searchString.includes(key.toLowerCase()));
+    return match ? EVENT_IMAGES[match] : null;
+};
 const TEAM_AVATARS = {
     'ANGIE': 'https://sga.unemi.edu.ec/media/fotos/2025/02/20/foto_aholguinb2025220152859.jpeg',
     'MARCOS': 'https://sga.unemi.edu.ec/media/fotos/2025/09/09/foto_mlojas202599123822.png',
@@ -305,7 +326,8 @@ function EventDashboard() {
         const matchesMonth = selectedMonth === 'Todos' || ev.month === selectedMonth;
         const matchesSearch = searchTerm === '' ||
             ev.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            ev.type.toLowerCase().includes(searchTerm.toLowerCase());
+            ev.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (ev.indicator && ev.indicator.toLowerCase().includes(searchTerm.toLowerCase()));
         return matchesResponsible && matchesMonth && matchesSearch;
     });
 
@@ -537,52 +559,75 @@ function EventDashboard() {
                                     key={ev.id}
                                     className="group relative bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 dark:border-white/5 flex flex-col"
                                 >
-                                    {/* Image / Header Gradient Area */}
-                                    <div className={`h-48 relative overflow-hidden rounded-t-[2rem] ${index % 4 === 0 ? 'bg-gradient-to-br from-blue-600 to-indigo-600' :
-                                        index % 4 === 1 ? 'bg-gradient-to-br from-emerald-500 to-teal-600' :
-                                            index % 4 === 2 ? 'bg-gradient-to-br from-orange-500 to-red-600' :
-                                                'bg-gradient-to-br from-purple-600 to-pink-600'
+                                    {/* Header Gradient / Image Area */}
+                                    <div className={`h-56 relative overflow-hidden rounded-t-[2rem] ${getEventImage(ev) ? 'bg-slate-900' :
+                                        index % 4 === 0 ? 'bg-gradient-to-br from-blue-600 to-indigo-600' :
+                                            index % 4 === 1 ? 'bg-gradient-to-br from-emerald-500 to-teal-600' :
+                                                index % 4 === 2 ? 'bg-gradient-to-br from-orange-500 to-red-600' :
+                                                    'bg-gradient-to-br from-purple-600 to-pink-600'
                                         }`}>
-                                        {/* Abstract Shapes overlay */}
-                                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
 
-                                        {/* Date Badge */}
-                                        <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md border border-white/20 rounded-2xl p-2.5 text-center min-w-[3.5rem] flex flex-col shadow-lg">
-                                            <span className="text-[10px] font-black uppercase text-white/80 tracking-wider">
-                                                {ev.date ? new Date(ev.date + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short' }).replace('.', '') : '---'}
-                                            </span>
-                                            <span className="text-2xl font-black text-white leading-none mb-0.5">
-                                                {ev.date ? new Date(ev.date + 'T12:00:00').getDate() : '?'}
-                                            </span>
-                                        </div>
+                                        {/* Background Image if available */}
+                                        {getEventImage(ev) ? (
+                                            <>
+                                                <img
+                                                    src={getEventImage(ev)}
+                                                    alt="Event Header"
+                                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                />
+                                                {/* Minimal gradient for text readability at the very bottom, or remove entirely if preferred */}
+                                                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent"></div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {/* Abstract Shapes for Gradient */}
+                                                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:translate-x-1/3 transition-transform duration-700"></div>
+                                                <div className="absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 group-hover:-translate-x-1/3 transition-transform duration-700"></div>
+                                            </>
+                                        )}
 
-                                        {/* Stats / Attendee Badge */}
-                                        <div className="absolute top-4 right-4 flex gap-2">
-                                            {ev.guest && (
-                                                <div className="bg-black/30 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-1.5">
-                                                    <span>⭐</span>
-                                                    <span className="max-w-[80px] truncate">{ev.guest}</span>
+                                        {/* Content Overlay */}
+                                        <div className="absolute inset-0 p-6 flex flex-col justify-between relative z-10">
+                                            <div className="flex justify-between items-start">
+                                                <div className={`${ev.type === '@Emprender' ? 'bg-slate-950/80 border-slate-800' : 'bg-white/20 border-white/20'} backdrop-blur-md border rounded-2xl p-2.5 text-center min-w-[3.5rem] shadow-lg group-hover:scale-105 transition-transform`}>
+                                                    <span className={`text-[10px] font-black uppercase tracking-wider block mb-0.5 ${ev.type === '@Emprender' ? 'text-white' : 'text-white/90'}`}>
+                                                        {ev.date ? new Date(ev.date + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short' }).replace('.', '') : '---'}
+                                                    </span>
+                                                    <span className="text-2xl font-black text-white leading-none">
+                                                        {ev.date ? new Date(ev.date + 'T12:00:00').getDate() : '?'}
+                                                    </span>
+                                                </div>
+
+                                                {ev.guest && (
+                                                    <div className="bg-black/30 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-1.5 shadow-lg">
+                                                        <span>⭐</span>
+                                                        <span className="max-w-[120px] truncate">{ev.guest}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Avatar Group Removed from Header to avoid duplication */}
+                                            {isTrackingComplete && (
+                                                <div className="bg-emerald-500 text-white p-1.5 rounded-full shadow-lg shadow-emerald-500/20 translate-y-2 group-hover:translate-y-0 transition-transform absolute bottom-6 right-6">
+                                                    <CheckCircle size={18} strokeWidth={3} />
                                                 </div>
                                             )}
                                         </div>
-
-                                        {/* Completed Indicator */}
-                                        {isTrackingComplete && (
-                                            <div className="absolute bottom-4 right-4 bg-emerald-500 text-white p-1.5 rounded-full shadow-lg shadow-emerald-500/20 animate-in zoom-in spin-in-180 duration-500">
-                                                <CheckCircle size={16} strokeWidth={3} />
-                                            </div>
-                                        )}
                                     </div>
 
                                     {/* Card Body */}
                                     <div className="p-6 flex flex-col flex-1">
                                         <div className="mb-4">
-                                            <div className="flex items-center justify-between mb-2">
+                                            <div className="flex flex-wrap items-center gap-2 mb-2">
                                                 <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-lg ${getIndicatorColor(ev.indicator).replace(' border ', ' ').replace('bg-opacity-20', 'bg-opacity-10')
                                                     }`}>
                                                     {ev.type}
                                                 </span>
+                                                {ev.indicator && (
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300">
+                                                        {ev.indicator}
+                                                    </span>
+                                                )}
                                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${ev.scope === 'Interno'
                                                     ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-500/20'
                                                     : 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-500/20'
@@ -590,13 +635,21 @@ function EventDashboard() {
                                                     {ev.scope}
                                                 </span>
                                             </div>
-                                            <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-tight mb-2 line-clamp-2 min-h-[3.5rem]" title={ev.name}>
+                                            <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-tight mb-2 min-h-[3.5rem]" title={ev.name}>
                                                 {ev.name || 'Evento sin nombre'}
                                             </h3>
 
-                                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
-                                                <MapPin size={14} className="text-slate-400" />
-                                                <span className="truncate">{ev.location || 'Por definir'}</span>
+                                            <div className="flex flex-col gap-1.5 mt-2">
+                                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+                                                    <Clock size={14} className="text-slate-400 flex-shrink-0" />
+                                                    <span>
+                                                        {ev.startTime && ev.endTime ? `${ev.startTime} - ${ev.endTime}` : ev.startTime || 'Hora por definir'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+                                                    <MapPin size={14} className="text-slate-400 flex-shrink-0" />
+                                                    <span className="truncate">{ev.location || 'Por definir'}</span>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -695,96 +748,160 @@ function EventDashboard() {
                     </div>
 
                     {/* Mobile View: Cards */}
-                    < div className="md:hidden space-y-4 pb-20" >
-                        {
-                            filteredEvents.map(ev => (
-                                <div key={ev.id} className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-white/5">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex flex-col items-center bg-slate-100 dark:bg-slate-700 rounded-xl p-2 min-w-[3.5rem]">
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase">{ev.month.substring(0, 3)}</span>
-                                                <span className="text-xl font-bold text-slate-900 dark:text-white leading-none">
-                                                    {ev.date ? new Date(ev.date + 'T12:00:00').getDate() : '-'}
-                                                </span>
-                                                <span className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">
-                                                    {ev.date ? new Date(ev.date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '') : ''}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <h3 className="font-bold text-slate-900 dark:text-white leading-tight mb-0.5">{ev.type}</h3>
-                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${ev.scope === 'Interno'
-                                                    ? 'bg-blue-50 text-blue-600 border-blue-100'
-                                                    : 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                                    }`}>
-                                                    {ev.scope}
-                                                </span>
-                                            </div>
+                    <div className="md:hidden space-y-6 pb-24">
+                        {filteredEvents.map((ev, index) => {
+                            const isTrackingComplete = (Array.isArray(ev.tracking) && ev.tracking.length > 0 && ev.tracking.every(t => t.completed));
+                            const trackingCount = Array.isArray(ev.tracking) ? ev.tracking.filter(t => t.completed).length : 0;
+                            const trackingTotal = Array.isArray(ev.tracking) ? ev.tracking.length : 0;
+
+                            return (
+                                <div key={ev.id} className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-lg border border-slate-100 dark:border-white/5 overflow-visible relative flex flex-col">
+                                    {/* Header Gradient */}
+                                    <div className={`h-52 relative rounded-t-[2rem] overflow-hidden ${getEventImage(ev) ? 'bg-slate-900' :
+                                        index % 4 === 0 ? 'bg-gradient-to-br from-blue-600 to-indigo-600' :
+                                            index % 4 === 1 ? 'bg-gradient-to-br from-emerald-500 to-teal-600' :
+                                                index % 4 === 2 ? 'bg-gradient-to-br from-orange-500 to-red-600' :
+                                                    'bg-gradient-to-br from-purple-600 to-pink-600'
+                                        }`}>
+
+                                        {/* Background Image if available */}
+                                        {getEventImage(ev) ? (
+                                            <>
+                                                <img
+                                                    src={getEventImage(ev)}
+                                                    alt="Event Header"
+                                                    className="absolute inset-0 w-full h-full object-cover"
+                                                />
+                                                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent"></div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {/* Abstract Shapes overlay */}
+                                                <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                                                <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-xl translate-y-1/2 -translate-x-1/2"></div>
+                                            </>
+                                        )}
+
+                                        {/* Date Badge */}
+                                        <div className={`absolute top-4 left-4 ${ev.type === '@Emprender' ? 'bg-slate-950/80 border-slate-800' : 'bg-white/20 border-white/20'} backdrop-blur-md border rounded-2xl p-2 text-center min-w-[3rem] flex flex-col shadow-lg`}>
+                                            <span className={`text-[9px] font-black uppercase tracking-wider ${ev.type === '@Emprender' ? 'text-white' : 'text-white/90'}`}>
+                                                {ev.date ? new Date(ev.date + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short' }).replace('.', '') : '---'}
+                                            </span>
+                                            <span className="text-xl font-black text-white leading-none mb-0.5">
+                                                {ev.date ? new Date(ev.date + 'T12:00:00').getDate() : '?'}
+                                            </span>
                                         </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => handleEdit(ev)}
-                                            className="p-2 bg-slate-50 dark:bg-white/5 text-slate-500 rounded-xl"
-                                        >
-                                            <Pencil size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(ev.id)}
-                                            className="p-2 bg-slate-50 dark:bg-white/5 text-slate-500 rounded-xl"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => setTrackingModalOpen(trackingModalOpen === ev.id ? null : ev.id)}
-                                            className={`p-2 rounded-xl transition-colors ${(Array.isArray(ev.tracking) && ev.tracking.some(t => t.completed)) || (!Array.isArray(ev.tracking) && Object.values(ev.tracking).some(Boolean))
-                                                ? 'bg-primary-50 text-primary-600'
-                                                : 'bg-slate-50 text-slate-400'
-                                                }`}
-                                        >
-                                            <CheckCircle size={20} />
-                                        </button>
-                                    </div>
 
-                                    {
-                                        ev.name && (
-                                            <p className="text-sm text-slate-600 dark:text-slate-300 mb-2 pl-1 border-l-2 border-primary-200 dark:border-primary-800 ml-1 py-1 pr-2">
-                                                {ev.name}
-                                            </p>
-                                        )
-                                    }
-
-                                    {
-                                        ev.indicator && (
-                                            <div className="mb-4">
-                                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded border border-slate-100 dark:border-white/5 uppercase tracking-wide">
-                                                    {ev.indicator}
-                                                </span>
-                                            </div>
-                                        )
-                                    }
-
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        {
-                                            ev.responsibles.map((resp, i) => (
-                                                <span key={i} className={`text-[10px] font-bold px-2 py-1 rounded-md border ${getResbonsibleColor(resp)}`}>
-                                                    {resp.split(' ')[0]} {resp.split(' ')[1]?.[0]}.
-                                                </span>
-                                            ))
-                                        }
-                                    </div>
-                                    <div className="flex items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-white/5">
-                                        <div className="flex items-center gap-1.5">
-                                            <Home size={14} />
-                                            <span>{ev.location || 'Por definir'}</span>
-                                        </div>
+                                        {/* Guest Badge */}
                                         {ev.guest && (
-                                            <div className="flex items-center gap-1.5 text-orange-600 dark:text-orange-400">
-                                                <span>⭐ {ev.guest}</span>
+                                            <div className="absolute top-4 right-4 bg-black/30 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-1.5">
+                                                <span>⭐</span>
+                                                <span className="max-w-[100px] truncate">{ev.guest}</span>
+                                            </div>
+                                        )}
+
+                                        {/* Completed Indicator */}
+                                        {isTrackingComplete && (
+                                            <div className="absolute bottom-4 right-4 bg-emerald-500 text-white p-1.5 rounded-full shadow-lg shadow-emerald-500/20">
+                                                <CheckCircle size={16} strokeWidth={3} />
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* Mobile Tracking Modal */}
+                                    {/* Card Content */}
+                                    <div className="p-5 flex flex-col gap-4">
+                                        <div>
+                                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-lg ${getIndicatorColor(ev.indicator).replace(' border ', ' ').replace('bg-opacity-20', 'bg-opacity-10')
+                                                    }`}>
+                                                    {ev.type}
+                                                </span>
+                                                {ev.indicator && (
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300">
+                                                        {ev.indicator}
+                                                    </span>
+                                                )}
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${ev.scope === 'Interno'
+                                                    ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-500/20'
+                                                    : 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-500/20'
+                                                    }`}>
+                                                    {ev.scope}
+                                                </span>
+                                            </div>
+                                            <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight">
+                                                {ev.name || 'Evento sin nombre'}
+                                            </h3>
+                                            <div className="flex flex-col gap-1.5 mt-2">
+                                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+                                                    <Clock size={14} className="text-slate-400 flex-shrink-0" />
+                                                    <span>
+                                                        {ev.startTime && ev.endTime ? `${ev.startTime} - ${ev.endTime}` : ev.startTime || 'Hora por definir'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+                                                    <MapPin size={14} className="text-slate-400 flex-shrink-0" />
+                                                    <span className="truncate">{ev.location || 'Por definir'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="h-px bg-slate-100 dark:bg-white/5 w-full"></div>
+
+                                        {/* Footer */}
+                                        <div className="flex items-center justify-between">
+                                            <div className="relative z-10">
+                                                <AvatarGroup
+                                                    avatars={ev.responsibles.map(resp => ({
+                                                        src: getAvatarUrl(resp) || `https://ui-avatars.com/api/?name=${encodeURIComponent(resp)}&background=random&color=fff`,
+                                                        alt: resp,
+                                                        label: resp
+                                                    }))}
+                                                    maxVisible={4}
+                                                    size={32}
+                                                    overlap={8}
+                                                />
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setTrackingModalOpen(ev.id)}
+                                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${trackingTotal > 0 && trackingCount === trackingTotal
+                                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-500/20'
+                                                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
+                                                        }`}
+                                                >
+                                                    {trackingTotal > 0 ? `${trackingCount}/${trackingTotal}` : 'Ver'}
+                                                </button>
+
+                                                <div className="relative group/menu">
+                                                    <button className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors bg-slate-50 dark:bg-white/5 rounded-xl">
+                                                        <div className="flex gap-0.5">
+                                                            <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                            <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                            <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                        </div>
+                                                    </button>
+                                                    {/* Dropdown Menu (adjusted for mobile) */}
+                                                    <div className="absolute right-0 bottom-full mb-2 w-32 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-white/5 p-1 hidden group-hover/menu:block hover:block active:block focus-within:block z-20">
+                                                        <button
+                                                            onClick={() => handleEdit(ev)}
+                                                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
+                                                        >
+                                                            <Pencil size={12} /> Editar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(ev.id)}
+                                                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2"
+                                                        >
+                                                            <Trash2 size={12} /> Eliminar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Tracking Modal Logic Reuse */}
                                     {trackingModalOpen === ev.id && (
                                         <>
                                             <div className="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm transition-opacity" onClick={() => setTrackingModalOpen(null)}></div>
@@ -919,7 +1036,8 @@ function EventDashboard() {
                                         </>
                                     )}
                                 </div>
-                            ))
+                            );
+                        })
                         }
                     </div >
                 </div >
