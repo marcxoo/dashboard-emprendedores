@@ -1,9 +1,29 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, LogOut, Calendar, Home, CheckCircle, Filter, ChevronDown, CalendarDays, ArrowLeft, Check, Plus, Pencil, Trash2, Save, Search, Clock, MapPin } from 'lucide-react';
+import { Menu, X, LogOut, Calendar, Home, CheckCircle, Filter, ChevronDown, CalendarDays, ArrowLeft, Plus, Pencil, Trash2, Save, Search, Clock, MapPin } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { responsibleOptions } from '../data/eventsData';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import AvatarGroup from './ui/AvatarGroup';
+import { useMemo } from 'react';
+
+const TEAM_AVATARS = {
+    'ANGIE': 'https://sga.unemi.edu.ec/media/fotos/2025/02/20/foto_aholguinb2025220152859.jpeg',
+    'MARCOS': 'https://sga.unemi.edu.ec/media/fotos/2025/09/09/foto_mlojas202599123822.png',
+    'CARLOS': 'https://sga.unemi.edu.ec/media/fotos/2023/06/29/foto_202362981126.jpg',
+    'XUXA': 'https://sga.unemi.edu.ec/media/fotos/2023/01/22/foto_2023122124839.jpg',
+    'JAEL': 'https://www.unemi.edu.ec/wp-content/uploads/2025/09/ZAMBRANO-MIELES-JAEL-DOLORES-scaled.jpg'
+};
+
+const getAvatarUrl = (name) => {
+    const upperName = name.toUpperCase();
+    for (const [key, url] of Object.entries(TEAM_AVATARS)) {
+        if (upperName.includes(key)) return url;
+    }
+    return null;
+};
 
 function EventDashboard() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -26,13 +46,13 @@ function EventDashboard() {
         endTime: '',
         location: '',
         indicator: 'Eventos de capacitación',
-        tracking: {
-            emailsSent: false,
-            auditoriumRequested: false,
-            invitationsSent: false,
-            confirmedAttendance: false,
-            resourcesReady: false
-        }
+        tracking: [
+            { id: '1', label: 'Correos Enviados', completed: false },
+            { id: '2', label: 'Auditorio Solicitado', completed: false },
+            { id: '3', label: 'Invitaciones Enviadas', completed: false },
+            { id: '4', label: 'Confirmar Asistencia', completed: false },
+            { id: '5', label: 'Recursos Listos', completed: false }
+        ]
     });
 
     const { user, logout } = useAuth();
@@ -53,7 +73,27 @@ function EventDashboard() {
         if (error) {
             console.error('Error fetching events:', error);
         } else {
-            setEvents(data || []);
+            // Normalize tracking data
+            const normalizedData = (data || []).map(ev => {
+                if (!Array.isArray(ev.tracking)) {
+                    // Convert legacy object to array
+                    const legacyMap = {
+                        emailsSent: 'Correos Enviados',
+                        auditoriumRequested: 'Auditorio Solicitado',
+                        invitationsSent: 'Invitaciones Enviadas',
+                        confirmedAttendance: 'Confirmar Asistencia',
+                        resourcesReady: 'Recursos Listos'
+                    };
+                    const newTracking = Object.keys(ev.tracking).map((key, index) => ({
+                        id: `legacy-${index}`,
+                        label: legacyMap[key] || key,
+                        completed: ev.tracking[key]
+                    }));
+                    return { ...ev, tracking: newTracking };
+                }
+                return ev;
+            });
+            setEvents(normalizedData);
         }
         setLoading(false);
     };
@@ -63,14 +103,23 @@ function EventDashboard() {
         navigate('/');
     };
 
-    const toggleTracking = async (eventId, field) => {
+    const toggleTracking = async (eventId, itemId) => {
         const event = events.find(e => e.id === eventId);
         if (!event) return;
 
-        const updatedTracking = {
-            ...event.tracking,
-            [field]: !event.tracking[field]
-        };
+        let updatedTracking;
+
+        // Backward compatibility check
+        if (!Array.isArray(event.tracking)) {
+            // Convert old object to array if needed (though fetchEvents should handle this ideally)
+            // For now, assuming data is normalized or we are handling array
+            console.error("Tracking format error: expected array");
+            return;
+        }
+
+        updatedTracking = event.tracking.map(item =>
+            item.id === itemId ? { ...item, completed: !item.completed } : item
+        );
 
         // Optimistic update
         setEvents(prev => prev.map(ev => {
@@ -133,13 +182,13 @@ function EventDashboard() {
             endTime: '',
             location: '',
             indicator: 'Eventos de capacitación',
-            tracking: {
-                emailsSent: false,
-                auditoriumRequested: false,
-                invitationsSent: false,
-                confirmedAttendance: false,
-                resourcesReady: false
-            }
+            tracking: [
+                { id: '1', label: 'Correos Enviados', completed: false },
+                { id: '2', label: 'Auditorio Solicitado', completed: false },
+                { id: '3', label: 'Invitaciones Enviadas', completed: false },
+                { id: '4', label: 'Confirmar Asistencia', completed: false },
+                { id: '5', label: 'Recursos Listos', completed: false }
+            ]
         });
         setCurrentEvent(null);
     };
@@ -373,7 +422,7 @@ function EventDashboard() {
                                 <span className="text-xs font-bold uppercase tracking-wider">Completados</span>
                             </div>
                             <span className="text-3xl font-black text-slate-900 dark:text-white">
-                                {events.filter(e => Object.values(e.tracking).some(t => t)).length}
+                                {events.filter(e => Array.isArray(e.tracking) ? e.tracking.some(t => t.completed) : Object.values(e.tracking).some(t => t)).length}
                             </span>
                         </div>
                         <div className="p-5 rounded-3xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 shadow-sm">
@@ -476,160 +525,174 @@ function EventDashboard() {
                         </div>
                     </div>
 
-                    {/* Desktop View: Table (Floating Rows) */}
-                    <div className="hidden md:block">
-                        <div className="overflow-x-auto pb-4">
-                            <table className="w-full text-left border-separate border-spacing-y-4">
-                                <thead>
-                                    <tr className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 px-4">
-                                        <th className="px-6 py-2 w-20 text-center">Fecha</th>
-                                        <th className="px-6 py-2">Evento y Orador</th>
-                                        <th className="px-6 py-2 w-48">Indicador</th>
-                                        <th className="px-6 py-2 w-32 text-center">Alcance</th>
-                                        <th className="px-6 py-2 w-64">Responsables</th>
-                                        <th className="px-6 py-2 w-40">Horario</th>
-                                        <th className="px-6 py-2 w-40">Lugar</th>
-                                        <th className="px-6 py-2 text-center w-32">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-slate-600 dark:text-slate-300">
-                                    {filteredEvents.map((ev, index) => (
-                                        <tr
-                                            key={ev.id}
-                                            className="bg-white dark:bg-slate-800 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:scale-[1.005] transition-all duration-300 group rounded-2xl relative z-0 hover:z-10"
-                                        >
-                                            {/* Date Column - Visual Calendar */}
-                                            <td className="p-4 rounded-l-2xl border-l-4 border-transparent hover:border-primary-500 transition-colors">
-                                                <div className="flex flex-col items-center justify-center bg-slate-100 dark:bg-white/5 rounded-2xl p-2 w-16 h-16 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-inner">
-                                                    <span className="text-[10px] font-black uppercase text-slate-500 dark:text-red-400 tracking-wider">
-                                                        {ev.date ? new Date(ev.date + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short' }).replace('.', '') : ''}
-                                                    </span>
-                                                    <span className="text-2xl font-black text-slate-900 dark:text-white leading-none">
-                                                        {ev.date ? new Date(ev.date + 'T12:00:00').getDate() : '-'}
-                                                    </span>
-                                                </div>
-                                            </td>
+                    {/* Desktop View: Grid Layout */}
+                    <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+                        {filteredEvents.map((ev, index) => {
+                            const isTrackingComplete = (Array.isArray(ev.tracking) && ev.tracking.length > 0 && ev.tracking.every(t => t.completed));
+                            const trackingCount = Array.isArray(ev.tracking) ? ev.tracking.filter(t => t.completed).length : 0;
+                            const trackingTotal = Array.isArray(ev.tracking) ? ev.tracking.length : 0;
 
-                                            <td className="p-4">
-                                                <div className="flex flex-col gap-1.5">
-                                                    <span className="font-black text-orange-500 dark:text-orange-300 text-lg leading-tight whitespace-normal">
-                                                        {ev.type}
-                                                    </span>
-                                                    {ev.name && (
-                                                        <span className="text-sm font-bold text-slate-500 dark:text-slate-400 leading-snug whitespace-normal">
-                                                            {ev.name}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
+                            return (
+                                <div
+                                    key={ev.id}
+                                    className="group relative bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 dark:border-white/5 flex flex-col"
+                                >
+                                    {/* Image / Header Gradient Area */}
+                                    <div className={`h-48 relative overflow-hidden rounded-t-[2rem] ${index % 4 === 0 ? 'bg-gradient-to-br from-blue-600 to-indigo-600' :
+                                        index % 4 === 1 ? 'bg-gradient-to-br from-emerald-500 to-teal-600' :
+                                            index % 4 === 2 ? 'bg-gradient-to-br from-orange-500 to-red-600' :
+                                                'bg-gradient-to-br from-purple-600 to-pink-600'
+                                        }`}>
+                                        {/* Abstract Shapes overlay */}
+                                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
 
-                                            <td className="p-4">
-                                                <div className={`text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg text-center leading-snug whitespace-normal border bg-opacity-50 dark:bg-opacity-20 ${getIndicatorColor(ev.indicator)}`}>
-                                                    {ev.indicator || '-'}
-                                                </div>
-                                            </td>
+                                        {/* Date Badge */}
+                                        <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md border border-white/20 rounded-2xl p-2.5 text-center min-w-[3.5rem] flex flex-col shadow-lg">
+                                            <span className="text-[10px] font-black uppercase text-white/80 tracking-wider">
+                                                {ev.date ? new Date(ev.date + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short' }).replace('.', '') : '---'}
+                                            </span>
+                                            <span className="text-2xl font-black text-white leading-none mb-0.5">
+                                                {ev.date ? new Date(ev.date + 'T12:00:00').getDate() : '?'}
+                                            </span>
+                                        </div>
 
-                                            <td className="p-4 text-center">
-                                                <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${ev.scope === 'Interno'
-                                                    ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-500/30'
-                                                    : 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-500/30'
+                                        {/* Stats / Attendee Badge */}
+                                        <div className="absolute top-4 right-4 flex gap-2">
+                                            {ev.guest && (
+                                                <div className="bg-black/30 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-1.5">
+                                                    <span>⭐</span>
+                                                    <span className="max-w-[80px] truncate">{ev.guest}</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Completed Indicator */}
+                                        {isTrackingComplete && (
+                                            <div className="absolute bottom-4 right-4 bg-emerald-500 text-white p-1.5 rounded-full shadow-lg shadow-emerald-500/20 animate-in zoom-in spin-in-180 duration-500">
+                                                <CheckCircle size={16} strokeWidth={3} />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Card Body */}
+                                    <div className="p-6 flex flex-col flex-1">
+                                        <div className="mb-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-lg ${getIndicatorColor(ev.indicator).replace(' border ', ' ').replace('bg-opacity-20', 'bg-opacity-10')
+                                                    }`}>
+                                                    {ev.type}
+                                                </span>
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${ev.scope === 'Interno'
+                                                    ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-500/20'
+                                                    : 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-500/20'
                                                     }`}>
                                                     {ev.scope}
                                                 </span>
-                                            </td>
+                                            </div>
+                                            <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-tight mb-2 line-clamp-2 min-h-[3.5rem]" title={ev.name}>
+                                                {ev.name || 'Evento sin nombre'}
+                                            </h3>
 
-                                            <td className="p-4">
-                                                <div className="flex flex-col gap-2">
-                                                    {ev.responsibles.map((resp, i) => (
-                                                        <div key={i} className="flex items-center gap-2 group/resp">
-                                                            <div className={`w-1.5 h-1.5 rounded-full ${getResbonsibleColor(resp).split(' ')[0].replace('bg-', 'bg-').replace('-100', '-500')}`}></div>
-                                                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 group-hover/resp:text-slate-900 dark:group-hover/resp:text-white transition-colors">
-                                                                {resp}
-                                                            </span>
+                                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+                                                <MapPin size={14} className="text-slate-400" />
+                                                <span className="truncate">{ev.location || 'Por definir'}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Divider */}
+                                        <div className="h-px bg-slate-100 dark:bg-white/5 w-full my-1"></div>
+
+                                        {/* Footer Info */}
+                                        <div className="mt-auto pt-4 flex items-center justify-between">
+                                            <div className="relative z-10"> {/* Removed flex -space-x-2 and added relative z-10 for robust stacking */}
+                                                <AvatarGroup
+                                                    avatars={ev.responsibles.map(resp => ({
+                                                        src: getAvatarUrl(resp) || `https://ui-avatars.com/api/?name=${encodeURIComponent(resp)}&background=random&color=fff`,
+                                                        alt: resp,
+                                                        label: resp
+                                                    }))}
+                                                    maxVisible={5}
+                                                    size={34}
+                                                    overlap={8}
+                                                />
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setTrackingModalOpen(ev.id)}
+                                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${trackingTotal > 0 && trackingCount === trackingTotal
+                                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-500/20'
+                                                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
+                                                        }`}
+                                                >
+                                                    {trackingTotal > 0 ? `${trackingCount}/${trackingTotal}` : 'Ver'}
+                                                </button>
+
+                                                <div className="relative group/menu">
+                                                    <button className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                                                        <div className="flex gap-0.5">
+                                                            <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                            <div className="w-1 h-1 rounded-full bg-current"></div>
+                                                            <div className="w-1 h-1 rounded-full bg-current"></div>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            </td>
-
-                                            <td className="p-4">
-                                                {(ev.date || ev.startTime) ? (
-                                                    <div className="flex flex-col gap-2">
-                                                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 dark:text-slate-300">
-                                                            <span className="capitalize">
-                                                                {ev.date ? new Date(ev.date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' }) : ''}
-                                                            </span>
-                                                        </div>
-                                                        {(ev.startTime || ev.endTime) && (
-                                                            <div className="inline-flex items-center gap-2 bg-slate-100 dark:bg-white/5 px-3 py-1.5 rounded-lg w-fit border border-slate-200 dark:border-white/10">
-                                                                <Clock size={12} className="text-slate-500 dark:text-slate-400" />
-                                                                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                                                                    {ev.startTime || '--:--'} - {ev.endTime || '--:--'}
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                    </button>
+                                                    {/* Dropdown Menu */}
+                                                    <div className="absolute right-0 bottom-full mb-2 w-32 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-white/5 p-1 hidden group-hover/menu:block hover:block z-20 animate-in fade-in zoom-in-95 duration-200">
+                                                        <button
+                                                            onClick={() => handleEdit(ev)}
+                                                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
+                                                        >
+                                                            <Pencil size={12} /> Editar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(ev.id)}
+                                                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2"
+                                                        >
+                                                            <Trash2 size={12} /> Eliminar
+                                                        </button>
                                                     </div>
-                                                ) : <span className="text-slate-300">-</span>}
-                                            </td>
-
-                                            <td className="p-4">
-                                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-bold">
-                                                    <div className="p-1.5 rounded-lg bg-orange-50 dark:bg-orange-500/10 text-orange-500">
-                                                        <MapPin size={14} />
-                                                    </div>
-                                                    <span className="line-clamp-2 max-w-[120px]">{ev.location || 'Por definir'}</span>
                                                 </div>
-                                            </td>
-
-                                            <td className="p-4 rounded-r-2xl">
-                                                <div className="flex items-center justify-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setTrackingModalOpen(trackingModalOpen === ev.id ? null : ev.id);
-                                                        }}
-                                                        className={`p-2 rounded-lg transition-all ${Object.values(ev.tracking).some(Boolean)
-                                                            ? 'bg-primary-50 dark:bg-primary-500/20 text-primary-600 dark:text-primary-400'
-                                                            : 'bg-slate-100 dark:bg-white/5 text-slate-400'
-                                                            }`}
-                                                        title="Seguimiento"
-                                                    >
-                                                        <CheckCircle size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleEdit(ev)}
-                                                        className="p-2 bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/20 rounded-lg transition-colors"
-                                                        title="Editar"
-                                                    >
-                                                        <Pencil size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(ev.id)}
-                                                        className="p-2 bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/20 rounded-lg transition-colors"
-                                                        title="Eliminar"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-
-                                                {/* Global Tracking Modal Trigger - Logic removed from here */}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        {
-                            filteredEvents.length === 0 && (
-                                <div className="p-16 text-center">
-                                    <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                                        <Filter size={24} />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">No se encontraron eventos</h3>
-                                    <p className="text-slate-500 dark:text-slate-400">Intenta cambiar el filtro de responsable.</p>
                                 </div>
-                            )
-                        }
-                    </div >
+                            );
+                        })}
+
+                        {/* Empty State Card */}
+                        <button
+                            onClick={handleAddNew}
+                            className="group h-full min-h-[300px] rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-primary-400 dark:hover:border-primary-600 hover:bg-primary-50/50 dark:hover:bg-primary-900/10 transition-all duration-300 flex flex-col items-center justify-center gap-4 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400"
+                        >
+                            <div className="w-16 h-16 rounded-full bg-slate-50 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-900 group-hover:shadow-xl group-hover:scale-110 transition-all duration-300 flex items-center justify-center border-2 border-slate-100 dark:border-slate-700 group-hover:border-primary-200 dark:group-hover:border-primary-500/30">
+                                <Plus size={32} />
+                            </div>
+                            <span className="font-bold text-sm">Crear Nuevo Evento</span>
+                        </button>
+
+                        {filteredEvents.length === 0 && (
+                            <div className="col-span-full py-20 text-center">
+                                <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-400 rotate-12">
+                                    <Search size={32} />
+                                </div>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">No se encontraron eventos</h3>
+                                <p className="text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                                    Intenta ajustar los filtros o tu búsqueda para encontrar lo que necesitas.
+                                </p>
+                                <button
+                                    onClick={() => {
+                                        setSearchTerm('');
+                                        setSelectedResponsible('Todos');
+                                        setSelectedMonth('Todos');
+                                    }}
+                                    className="mt-6 text-primary-600 dark:text-primary-400 font-bold hover:underline"
+                                >
+                                    Limpiar filtros
+                                </button>
+                            </div>
+                        )}
+                    </div>
 
                     {/* Mobile View: Cards */}
                     < div className="md:hidden space-y-4 pb-20" >
@@ -673,7 +736,7 @@ function EventDashboard() {
                                         </button>
                                         <button
                                             onClick={() => setTrackingModalOpen(trackingModalOpen === ev.id ? null : ev.id)}
-                                            className={`p-2 rounded-xl transition-colors ${Object.values(ev.tracking).some(Boolean)
+                                            className={`p-2 rounded-xl transition-colors ${(Array.isArray(ev.tracking) && ev.tracking.some(t => t.completed)) || (!Array.isArray(ev.tracking) && Object.values(ev.tracking).some(Boolean))
                                                 ? 'bg-primary-50 text-primary-600'
                                                 : 'bg-slate-50 text-slate-400'
                                                 }`}
@@ -724,39 +787,133 @@ function EventDashboard() {
                                     {/* Mobile Tracking Modal */}
                                     {trackingModalOpen === ev.id && (
                                         <>
-                                            <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm" onClick={() => setTrackingModalOpen(null)}></div>
-                                            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 rounded-t-3xl z-50 p-6 animate-in slide-in-from-bottom-full duration-300">
-                                                <div className="flex justify-between items-center mb-6">
-                                                    <h4 className="font-bold text-lg text-slate-900 dark:text-white">Seguimiento</h4>
-                                                    <button onClick={() => setTrackingModalOpen(null)} className="p-2 bg-slate-100 dark:bg-slate-700 rounded-full">
-                                                        <X size={20} />
-                                                    </button>
-                                                </div>
-                                                <div className="space-y-3">
-                                                    {[
-                                                        { key: 'emailsSent', label: 'Correos Enviados' },
-                                                        { key: 'auditoriumRequested', label: 'Auditorio Solicitado' },
-                                                        { key: 'invitationsSent', label: 'Invitaciones Enviadas' },
-                                                        { key: 'resourcesReady', label: 'Recursos Listos' },
-                                                    ].map((item) => (
-                                                        <label key={item.key} className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl cursor-pointer active:scale-98 transition-transform">
-                                                            <div className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${ev.tracking[item.key]
-                                                                ? 'bg-primary-500 border-primary-500 text-white'
-                                                                : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700'
-                                                                }`}>
-                                                                {ev.tracking[item.key] && <Check size={14} strokeWidth={4} />}
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={ev.tracking[item.key]}
-                                                                    onChange={() => toggleTracking(ev.id, item.key)}
-                                                                    className="hidden"
-                                                                />
+                                            <div className="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm transition-opacity" onClick={() => setTrackingModalOpen(null)}></div>
+                                            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-[2.5rem] z-50 p-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.2)] animate-in slide-in-from-bottom-full duration-300 border-t border-slate-200 dark:border-white/10 max-h-[85vh] flex flex-col">
+
+                                                {/* Mobile Header */}
+                                                <div className="relative p-6 pb-8 bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 rounded-t-[2.5rem] flex-shrink-0">
+                                                    {/* Pull Indicator */}
+                                                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mb-4"></div>
+
+                                                    <div className="flex justify-between items-start mb-4 mt-2">
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <span className="px-2.5 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-[10px] font-black uppercase tracking-wider">
+                                                                    Seguimiento
+                                                                </span>
+                                                                {(Array.isArray(ev.tracking) ? ev.tracking : []).every(t => t.completed) && (Array.isArray(ev.tracking) && ev.tracking.length > 0) && (
+                                                                    <span className="flex items-center gap-1 text-emerald-500 font-bold text-[10px] uppercase tracking-wide">
+                                                                        <CheckCircle size={12} /> Listo
+                                                                    </span>
+                                                                )}
                                                             </div>
-                                                            <span className="font-bold text-slate-700 dark:text-slate-200">
-                                                                {item.label}
-                                                            </span>
-                                                        </label>
-                                                    ))}
+                                                            <h3 className="text-xl font-black text-slate-900 dark:text-white leading-tight pr-8">
+                                                                {ev.name || ev.type}
+                                                            </h3>
+                                                        </div>
+                                                        <button onClick={() => setTrackingModalOpen(null)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-400">
+                                                            <X size={20} />
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Progress */}
+                                                    {(() => {
+                                                        const items = Array.isArray(ev.tracking) ? ev.tracking : [];
+                                                        const total = items.length;
+                                                        const done = items.filter(i => i.completed).length;
+                                                        const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+
+                                                        return (
+                                                            <div className="space-y-2">
+                                                                <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                                                                    <span>Tu Progreso</span>
+                                                                    <span className="text-primary-600 dark:text-primary-400">{pct}%</span>
+                                                                </div>
+                                                                <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                                    <div
+                                                                        className="h-full bg-primary-500 transition-all duration-500 ease-out rounded-full"
+                                                                        style={{ width: `${pct}%` }}
+                                                                    ></div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </div>
+
+                                                <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                                                    <div className="space-y-3 pb-6">
+                                                        {Array.isArray(ev.tracking) && ev.tracking.map((item) => (
+                                                            <div key={item.id} className={`group flex items-center gap-4 p-4 rounded-2xl border transition-all ${item.completed
+                                                                ? 'bg-slate-50 dark:bg-slate-800/50 border-transparent opacity-75'
+                                                                : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-white/5 shadow-sm'
+                                                                }`}>
+                                                                <Checkbox
+                                                                    id={`mobile-${item.id}`}
+                                                                    checked={item.completed}
+                                                                    onCheckedChange={() => toggleTracking(ev.id, item.id)}
+                                                                    className="w-6 h-6 border-2 border-slate-300 dark:border-slate-600 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500 rounded-lg"
+                                                                />
+
+                                                                <div className="flex-1 min-w-0">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={item.label}
+                                                                        onChange={(e) => {
+                                                                            const newValue = e.target.value;
+                                                                            setEvents(prev => prev.map(event => {
+                                                                                if (event.id === ev.id) {
+                                                                                    const newTracking = event.tracking.map(t =>
+                                                                                        t.id === item.id ? { ...t, label: newValue } : t
+                                                                                    );
+                                                                                    return { ...event, tracking: newTracking };
+                                                                                }
+                                                                                return event;
+                                                                            }));
+                                                                        }}
+                                                                        onBlur={async () => {
+                                                                            const { error } = await supabase
+                                                                                .from('events_2026')
+                                                                                .update({ tracking: ev.tracking })
+                                                                                .eq('id', ev.id);
+                                                                        }}
+                                                                        className={`w-full bg-transparent border-none p-0 text-base font-bold transition-colors ${item.completed
+                                                                            ? 'text-slate-400 dark:text-slate-500 line-through decoration-slate-400/50 decoration-2'
+                                                                            : 'text-slate-700 dark:text-slate-200'
+                                                                            }`}
+                                                                    />
+                                                                </div>
+
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        if (!confirm('¿Eliminar paso?')) return;
+                                                                        const newTracking = ev.tracking.filter(t => t.id !== item.id);
+                                                                        setEvents(prev => prev.map(event => event.id === ev.id ? { ...event, tracking: newTracking } : event));
+                                                                        await supabase.from('events_2026').update({ tracking: newTracking }).eq('id', ev.id);
+                                                                    }}
+                                                                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                                >
+                                                                    <Trash2 size={18} />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+
+                                                    <button
+                                                        onClick={async () => {
+                                                            const newStep = {
+                                                                id: crypto.randomUUID(),
+                                                                label: 'Nuevo paso',
+                                                                completed: false
+                                                            };
+                                                            const newTracking = [...(ev.tracking || []), newStep];
+                                                            setEvents(prev => prev.map(event => event.id === ev.id ? { ...event, tracking: newTracking } : event));
+                                                            await supabase.from('events_2026').update({ tracking: newTracking }).eq('id', ev.id);
+                                                        }}
+                                                        className="w-full py-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-2 mb-6"
+                                                    >
+                                                        <Plus size={18} />
+                                                        Agregar Paso
+                                                    </button>
                                                 </div>
                                             </div>
                                         </>
@@ -962,57 +1119,154 @@ function EventDashboard() {
                     )
                 }
             </main >
-            {/* Global Tracking Modal */}
-            {trackingModalOpen && (
-                <>
-                    <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm transition-opacity" onClick={() => setTrackingModalOpen(null)}></div>
-                    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl z-50 p-6 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-white/10">
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <h4 className="font-black text-xl text-slate-900 dark:text-white">Seguimiento</h4>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Control de estado logístico</p>
-                            </div>
-                            <button onClick={() => setTrackingModalOpen(null)} className="p-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-500 dark:text-slate-400">
-                                <X size={20} />
-                            </button>
-                        </div>
+            {/* Desktop Global Tracking Modal */}
+            {trackingModalOpen && (() => {
+                const ev = events.find(e => e.id === trackingModalOpen);
+                if (!ev) return null;
 
-                        <div className="space-y-3">
-                            {[
-                                { key: 'emailsSent', label: 'Correos Enviados' },
-                                { key: 'auditoriumRequested', label: 'Auditorio Solicitado' },
-                                { key: 'invitationsSent', label: 'Invitaciones Enviadas' },
-                                { key: 'resourcesReady', label: 'Recursos Listos' },
-                            ].map((item) => {
-                                const currentEv = events.find(e => e.id === trackingModalOpen);
-                                if (!currentEv) return null;
+                const trackingItems = Array.isArray(ev.tracking) ? ev.tracking : [];
+                const completedCount = trackingItems.filter(t => t.completed).length;
+                const totalCount = trackingItems.length;
+                const progress = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
 
-                                return (
-                                    <label key={item.key} className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-2xl cursor-pointer active:scale-98 transition-all group border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
-                                        <div className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${currentEv.tracking[item.key]
-                                            ? 'bg-primary-500 border-primary-500 text-white shadow-lg shadow-primary-500/20'
-                                            : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
-                                            }`}>
-                                            {currentEv.tracking[item.key] && <Check size={14} strokeWidth={4} />}
-                                            <input
-                                                type="checkbox"
-                                                checked={currentEv.tracking[item.key]}
-                                                onChange={() => toggleTracking(currentEv.id, item.key)}
-                                                className="hidden"
-                                            />
+                return (
+                    <>
+                        <div className="fixed inset-0 bg-slate-900/60 z-[60] backdrop-blur-sm transition-all duration-300" onClick={() => setTrackingModalOpen(null)}></div>
+                        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2rem] z-[70] p-0 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-white/10 overflow-hidden">
+
+                            {/* Header with Progress */}
+                            <div className="bg-slate-50 dark:bg-white/5 p-8 pb-10 border-b border-slate-100 dark:border-white/5 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-6 z-20">
+                                    <button onClick={() => setTrackingModalOpen(null)} className="p-2.5 bg-white dark:bg-slate-800 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
+                                        <X size={20} strokeWidth={2.5} />
+                                    </button>
+                                </div>
+
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="px-3 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-black uppercase tracking-wider">
+                                            Seguimiento
                                         </div>
-                                        <span className={`font-bold transition-colors ${currentEv.tracking[item.key]
-                                            ? 'text-slate-900 dark:text-white'
-                                            : 'text-slate-600 dark:text-slate-400'}`}>
-                                            {item.label}
-                                        </span>
-                                    </label>
-                                );
-                            })}
+                                        {progress === 100 && (
+                                            <div className="flex items-center gap-1 text-emerald-500 font-bold text-xs uppercase tracking-wide animate-in fade-in slide-in-from-left-2">
+                                                <CheckCircle size={14} /> completado
+                                            </div>
+                                        )}
+                                    </div>
+                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white leading-tight mb-6 pr-12">
+                                        {ev.name || ev.type}
+                                    </h3>
+
+                                    {/* Progress Bar */}
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-end text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                                            <span>Progreso</span>
+                                            <span className="text-primary-600 dark:text-primary-400">{progress}%</span>
+                                        </div>
+                                        <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-primary-500 transition-all duration-500 ease-out rounded-full shadow-[0_0_10px_rgba(var(--primary-500),0.3)]"
+                                                style={{ width: `${progress}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Decorative Background Blob */}
+                                <div className="absolute -top-12 -left-12 w-64 h-64 bg-primary-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                            </div>
+
+                            <div className="p-6 max-h-[50vh] overflow-y-auto custom-scrollbar">
+                                <div className="space-y-3">
+                                    {trackingItems.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className={`group relative flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${item.completed
+                                                ? 'bg-slate-50 dark:bg-slate-800/50 border-transparent opacity-75 hover:opacity-100'
+                                                : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-white/5 hover:border-primary-200 dark:hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/5 hover:-translate-y-0.5'
+                                                }`}
+                                        >
+                                            {/* Status Line Indicator */}
+                                            <div className={`absolute left-0 top-4 bottom-4 w-1 rounded-r-full transition-colors ${item.completed ? 'bg-emerald-400' : 'bg-slate-200 dark:bg-slate-700 group-hover:bg-primary-400'
+                                                }`}></div>
+
+                                            <div className="pl-2">
+                                                <Checkbox
+                                                    id={`desktop-${item.id}`}
+                                                    checked={item.completed}
+                                                    onCheckedChange={() => toggleTracking(ev.id, item.id)}
+                                                    className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500 rounded-md transition-all"
+                                                />
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <input
+                                                    type="text"
+                                                    value={item.label}
+                                                    onChange={(e) => {
+                                                        const newValue = e.target.value;
+                                                        setEvents(prev => prev.map(event => {
+                                                            if (event.id === ev.id) {
+                                                                const newTracking = event.tracking.map(t =>
+                                                                    t.id === item.id ? { ...t, label: newValue } : t
+                                                                );
+                                                                return { ...event, tracking: newTracking };
+                                                            }
+                                                            return event;
+                                                        }));
+                                                    }}
+                                                    onBlur={async () => {
+                                                        const { error } = await supabase
+                                                            .from('events_2026')
+                                                            .update({ tracking: ev.tracking })
+                                                            .eq('id', ev.id);
+                                                    }}
+                                                    className={`w-full bg-transparent border-none p-0 text-sm font-bold focus:ring-0 placeholder-slate-400 transition-colors ${item.completed
+                                                        ? 'text-slate-400 dark:text-slate-500 line-through decoration-slate-400/50 decoration-2'
+                                                        : 'text-slate-700 dark:text-slate-200'
+                                                        }`}
+                                                />
+                                            </div>
+
+                                            <button
+                                                onClick={async (e) => {
+                                                    e.stopPropagation();
+                                                    if (!confirm('¿Eliminar paso?')) return;
+                                                    const newTracking = ev.tracking.filter(t => t.id !== item.id);
+                                                    setEvents(prev => prev.map(event => event.id === ev.id ? { ...event, tracking: newTracking } : event));
+                                                    await supabase.from('events_2026').update({ tracking: newTracking }).eq('id', ev.id);
+                                                }}
+                                                className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl opacity-0 group-hover:opacity-100 transition-all transform scale-90 hover:scale-100"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <button
+                                    onClick={async () => {
+                                        const newStep = {
+                                            id: crypto.randomUUID(),
+                                            label: 'Nuevo paso',
+                                            completed: false
+                                        };
+                                        const newTracking = [...(ev.tracking || []), newStep];
+                                        setEvents(prev => prev.map(event => event.id === ev.id ? { ...event, tracking: newTracking } : event));
+                                        await supabase.from('events_2026').update({ tracking: newTracking }).eq('id', ev.id);
+                                    }}
+                                    className="w-full mt-6 py-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-sm font-bold uppercase tracking-wide hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-primary-300 dark:hover:border-primary-700 hover:text-primary-600 dark:hover:text-primary-400 transition-all flex items-center justify-center gap-2 group"
+                                >
+                                    <div className="p-1 rounded-md bg-slate-100 dark:bg-slate-800 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
+                                        <Plus size={16} className="group-hover:scale-110 transition-transform" />
+                                    </div>
+                                    Agregar Nuevo Paso
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </>
-            )}
+                    </>
+                );
+            })()}
         </div >
     );
 }

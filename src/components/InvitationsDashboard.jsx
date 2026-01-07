@@ -1,9 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useNavigate } from 'react-router-dom';
 import { Menu, X, LogOut, Send, Mail, MessageCircle, Search, Filter, Copy, ExternalLink, ChevronDown, Check, User, Sparkles } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { Checkbox } from './ui/checkbox';
+import { Label } from './ui/label';
+import EntrepreneurDetail from './EntrepreneurDetail';
 
 export default function InvitationsDashboard() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -16,6 +19,23 @@ export default function InvitationsDashboard() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const [selectedEntrepreneurs, setSelectedEntrepreneurs] = useState(new Set());
+
+    // State for Details Modal
+    const [selectedDetailEntrepreneur, setSelectedDetailEntrepreneur] = useState(null);
+    const longPressTimer = useRef(null);
+
+    const handleTouchStart = (entrepreneur) => {
+        longPressTimer.current = setTimeout(() => {
+            setSelectedDetailEntrepreneur(entrepreneur);
+        }, 500); // 500ms for long press
+    };
+
+    const handleTouchEnd = () => {
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+            longPressTimer.current = null;
+        }
+    };
 
     // State for Message Configuration
     const [messageTemplate, setMessageTemplate] = useState('taller_rentabilidad');
@@ -230,11 +250,11 @@ export default function InvitationsDashboard() {
     };
 
     return (
-        <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 font-sans">
+        <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 font-sans transition-colors duration-300">
             {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-slate-800 z-50 flex items-center px-4 justify-between shadow-md border-b border-slate-200 dark:border-slate-700">
+            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md z-50 flex items-center px-4 justify-between border-b border-slate-200 dark:border-white/5">
                 <div className="font-bold text-xl tracking-tight flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center text-white">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg shadow-green-500/20">
                         <Send size={16} />
                     </div>
                     <span className="text-slate-800 dark:text-white">Invitaciones</span>
@@ -246,12 +266,12 @@ export default function InvitationsDashboard() {
 
             {/* Sidebar Overlay */}
             {isSidebarOpen && (
-                <div className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>
+                <div className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsSidebarOpen(false)}></div>
             )}
 
             {/* Sidebar */}
             <aside className={`
-                fixed lg:fixed left-0 top-0 z-50 h-screen w-72 backdrop-blur-3xl bg-white dark:bg-slate-900/95 border-r border-slate-200 dark:border-white/5 shadow-2xl transition-transform duration-300 ease-in-out
+                fixed lg:fixed left-0 top-0 z-50 h-screen w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/5 shadow-2xl transition-transform duration-300 ease-out
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 pt-16 lg:pt-0 flex flex-col
             `}>
@@ -262,31 +282,36 @@ export default function InvitationsDashboard() {
                         </div>
                         <div>
                             <h1 className="font-bold text-xl leading-tight text-slate-900 dark:text-white tracking-tight">Invitaciones</h1>
-                            <p className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wider">Dashboard</p>
+                            <p className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">Dashboard</p>
                         </div>
                     </div>
                 </div>
 
-                <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
-                    <button className="w-full flex items-center gap-4 px-4 py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-xl shadow-green-600/20 border border-white/10 transition-all hover:shadow-green-600/30 group">
-                        <div className="p-2 bg-white/20 rounded-lg group-hover:bg-white/30 transition-colors">
+                <nav className="flex-1 p-6 space-y-3 overflow-y-auto scrollbar-thin">
+                    <button className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl shadow-slate-900/10 dark:shadow-white/5 transition-all hover:scale-[1.02] active:scale-[0.98] group relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                        <div className="p-2 bg-white/20 dark:bg-black/10 rounded-xl group-hover:bg-white/30 transition-colors">
                             <Send size={20} />
                         </div>
                         <div className="text-left">
                             <span className="block font-bold">Enviar Mensajes</span>
-                            <span className="text-xs text-green-100 opacity-80">Gestión de campañas</span>
+                            <span className="text-xs opacity-70 font-medium">Gestión de campañas</span>
                         </div>
                     </button>
+
+                    <div className="px-4 py-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-center text-sm font-medium">
+                        Más módulos pronto...
+                    </div>
                 </nav>
 
                 <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
                     <div className="flex flex-col gap-3">
-                        <button onClick={() => navigate('/portal')} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-white hover:shadow-md dark:hover:bg-white/5 transition-all text-sm font-semibold border border-transparent hover:border-slate-200 dark:hover:border-white/10">
-                            <LogOut className="rotate-180" size={18} />
+                        <button onClick={() => navigate('/portal')} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-white hover:shadow-md dark:hover:bg-white/5 transition-all text-sm font-bold group">
+                            <LogOut className="rotate-180 text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300 transition-colors" size={18} />
                             Portal Principal
                         </button>
-                        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 dark:text-red-400 hover:bg-red-50 hover:shadow-md dark:hover:bg-red-500/10 transition-all text-sm font-semibold border border-transparent hover:border-red-100">
-                            <LogOut size={18} />
+                        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 dark:text-red-400 hover:bg-red-50 hover:shadow-md dark:hover:bg-red-500/10 transition-all text-sm font-bold group">
+                            <LogOut size={18} className="text-red-400 group-hover:text-red-500 transition-colors" />
                             Cerrar Sesión
                         </button>
                     </div>
@@ -294,111 +319,125 @@ export default function InvitationsDashboard() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 lg:ml-72 min-h-screen pt-16 lg:pt-0 bg-slate-50 dark:bg-slate-950 transition-all duration-300">
-                <div className="p-6 lg:p-10 max-w-[1400px] mx-auto space-y-8 pb-32">
+            <main className="flex-1 lg:ml-72 min-h-screen pt-20 lg:pt-8 bg-slate-50 dark:bg-slate-950 transition-all duration-300">
+                <div className="p-4 lg:p-10 max-w-[1600px] mx-auto space-y-8 pb-32">
 
                     {/* Header Desktop */}
-                    <div className="hidden lg:flex items-end justify-between mb-2">
+                    <div className="hidden lg:flex items-end justify-between mb-6">
                         <div>
-                            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Panel de Envíos</h1>
-                            <p className="text-slate-500 dark:text-slate-400">Gestiona y envía invitaciones a tu base de emprendedores.</p>
+                            <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Panel de Envíos</h1>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">Gestiona y envía invitaciones a tu base de emprendedores.</p>
                         </div>
-                        <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 rounded-full shadow-sm border border-slate-200 dark:border-slate-800">
-                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Sistema Operativo</span>
+                        <div className="flex items-center gap-3 px-5 py-2.5 bg-white dark:bg-slate-900 rounded-full shadow-sm border border-slate-200 dark:border-slate-800">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-20"></div>
+                                <span className="relative w-2.5 h-2.5 block rounded-full bg-green-500"></span>
+                            </div>
+                            <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Sistema Operativo</span>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
 
                         {/* LEFT COLUMN: Configuration (Sticky) */}
-                        <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-8">
+                        <div className="xl:col-span-4 space-y-6 xl:sticky xl:top-8">
                             {/* 1. Configuration Section */}
-                            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 lg:p-8 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-3xl -z-10 group-hover:bg-green-500/10 transition-colors"></div>
+                            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 lg:p-8 border border-slate-100 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
+                                {/* Decorational Background */}
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-green-500/5 to-emerald-500/5 rounded-full blur-3xl -z-10 group-hover:bg-green-500/10 transition-colors duration-500"></div>
 
-                                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-8 flex items-center gap-3">
-                                    <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold border border-slate-200 dark:border-slate-700 shadow-sm">1</div>
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-4">
+                                    <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-black border border-slate-200 dark:border-slate-700 shadow-sm text-lg">1</div>
                                     Configuración
                                 </h2>
 
-                                <div className="space-y-6">
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Plantilla de Mensaje</label>
+                                <div className="space-y-8">
+                                    <div className="space-y-3">
+                                        <Label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Plantilla de Mensaje</Label>
                                         <div className="relative group">
                                             <select
                                                 value={messageTemplate}
                                                 onChange={(e) => setMessageTemplate(e.target.value)}
-                                                className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl appearance-none outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-white dark:hover:bg-slate-800"
+                                                className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl appearance-none outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all font-bold text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-white dark:hover:bg-slate-800"
                                             >
-                                                <option value="taller_rentabilidad">Taller Rentabilidad Garantizada</option>
-                                                <option value="custom">Mensaje Personalizado</option>
+                                                <option value="taller_rentabilidad">🌱 Taller Rentabilidad Garantizada</option>
+                                                <option value="custom">✍️ Mensaje Personalizado</option>
                                             </select>
-                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none group-hover:translate-y-[-40%] transition-transform">
-                                                <ChevronDown className="text-slate-400" size={20} />
+                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none group-hover:translate-y-[-10%] transition-transform">
+                                                <ChevronDown className="text-slate-400" size={20} strokeWidth={3} />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Adjuntar Formulario</label>
+                                    <div className="space-y-3">
+                                        <Label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Adjuntar Formulario</Label>
                                         <div className="relative group">
                                             <select
                                                 value={attachedSurveyId}
                                                 onChange={(e) => setAttachedSurveyId(e.target.value)}
-                                                className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl appearance-none outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-white dark:hover:bg-slate-800"
+                                                className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl appearance-none outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all font-bold text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-white dark:hover:bg-slate-800"
                                             >
                                                 <option value="">-- Sin formulario extra --</option>
                                                 {customSurveys.map(s => (
-                                                    <option key={s.id} value={s.id}>{s.title}</option>
+                                                    <option key={s.id} value={s.id}>📝 {s.title}</option>
                                                 ))}
                                             </select>
-                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-green-500 transition-colors">
-                                                <Sparkles size={20} />
+                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-green-500 transition-colors bg-white dark:bg-slate-800 rounded-full p-1 shadow-sm">
+                                                <Sparkles size={16} />
                                             </div>
                                         </div>
                                     </div>
 
                                     {messageTemplate === 'custom' && (
-                                        <div className="space-y-4 animate-fade-in p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                        <div className="space-y-4 animate-in slide-in-from-top-4 fade-in duration-300 p-5 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-slate-200 dark:border-slate-700/50 border-dashed">
                                             <input
                                                 type="text"
                                                 placeholder="Asunto del correo..."
                                                 value={customSubject}
                                                 onChange={e => setCustomSubject(e.target.value)}
-                                                className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-green-500 transition-all font-medium"
+                                                className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-green-500 transition-all font-bold placeholder:font-medium"
                                             />
                                             <textarea
-                                                placeholder="Escribe tu mensaje aquí..."
+                                                placeholder="Hola [Nombre], te escribo para..."
                                                 value={customBody}
                                                 onChange={e => setCustomBody(e.target.value)}
                                                 rows={4}
-                                                className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-green-500 transition-all font-medium resize-none"
+                                                className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-green-500 transition-all font-medium resize-none placeholder:font-medium"
                                             />
-                                            <p className="text-xs text-slate-500 text-center">Se adjuntará el link si seleccionaste uno.</p>
+                                            <p className="text-[10px] font-bold text-slate-400 text-center uppercase tracking-wide">Se adjuntará el link automáticamente si seleccionaste uno.</p>
                                         </div>
                                     )}
 
                                     {/* Mock Email Preview */}
-                                    <div className="mt-8 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg">
-                                        <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center gap-2">
+                                    <div className="mt-8 rounded-3xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900">
+                                        <div className="bg-slate-100 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                                             <div className="flex gap-1.5">
-                                                <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                                                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                                                <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                                                <div className="w-2.5 h-2.5 rounded-full bg-red-400/80"></div>
+                                                <div className="w-2.5 h-2.5 rounded-full bg-amber-400/80"></div>
+                                                <div className="w-2.5 h-2.5 rounded-full bg-green-400/80"></div>
                                             </div>
-                                            <div className="ml-4 text-xs font-medium text-slate-500">Vista Previa</div>
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vista Previa</div>
                                         </div>
-                                        <div className="bg-white dark:bg-slate-900 p-6 space-y-4">
-                                            <div className="flex gap-2 text-sm border-b border-slate-100 dark:border-slate-800 pb-2">
-                                                <span className="text-slate-400 font-medium w-16 text-right">To:</span>
-                                                <span className="text-slate-800 dark:text-slate-200 font-medium bg-slate-100 dark:bg-slate-800 px-2 rounded-md">Emprendedor</span>
+                                        <div className="p-6 space-y-4 bg-white dark:bg-slate-900 relative">
+                                            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                                                <Mail size={100} />
                                             </div>
-                                            <div className="flex gap-2 text-sm border-b border-slate-100 dark:border-slate-800 pb-2">
-                                                <span className="text-slate-400 font-medium w-16 text-right">Subject:</span>
-                                                <span className="text-slate-900 dark:text-white font-semibold truncate">{getMessageContent({}).subject}</span>
+
+                                            <div className="space-y-2 pb-4 border-b border-slate-50 dark:border-white/5">
+                                                <div className="flex items-center gap-3 text-xs">
+                                                    <span className="text-slate-400 font-bold w-12 text-right">Para:</span>
+                                                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
+                                                        <User size={12} className="text-slate-500" />
+                                                        <span className="text-slate-700 dark:text-slate-300 font-bold">Emprendedor Ejemplo</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-start gap-3 text-xs">
+                                                    <span className="text-slate-400 font-bold w-12 text-right mt-0.5">Asunto:</span>
+                                                    <span className="text-slate-900 dark:text-white font-bold flex-1 leading-snug">{getMessageContent({}).subject}</span>
+                                                </div>
                                             </div>
-                                            <div className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed pt-2 opacity-90 h-64 overflow-y-auto custom-scrollbar">
+
+                                            <div className="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed py-2 h-64 overflow-y-auto scrollbar-thin font-medium">
                                                 {getMessageContent({ persona_contacto: "[Nombre]" }).body}
                                             </div>
                                         </div>
@@ -408,156 +447,202 @@ export default function InvitationsDashboard() {
                         </div>
 
                         {/* RIGHT COLUMN: Selection & Table */}
-                        <div className="lg:col-span-7 space-y-6">
+                        <div className="xl:col-span-8 space-y-6">
                             {/* 2. Selection Section */}
-                            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 lg:p-8 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none min-h-[600px] flex flex-col">
-                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                                        <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold border border-slate-200 dark:border-slate-700 shadow-sm">2</div>
-                                        Destinatarios
-                                        <span className="ml-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full font-bold border border-green-200 dark:border-green-800">
-                                            {filteredEntrepreneurs.length}
-                                        </span>
-                                    </h2>
-                                    <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                                        <div className="relative flex-1 md:flex-none">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                            <input
-                                                type="text"
-                                                placeholder="Buscar por nombre..."
-                                                value={searchTerm}
-                                                onChange={e => setSearchTerm(e.target.value)}
-                                                className="pl-10 pr-4 py-2.5 w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-500 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/10 transition-all"
-                                            />
+                            <div className="flex flex-col h-full">
+                                {/* Header / Controls */}
+                                <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 lg:p-8 border border-slate-100 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none mb-6">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                        <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-4">
+                                            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-black border border-slate-200 dark:border-slate-700 shadow-sm text-lg">2</div>
+                                            Destinatarios
+                                            <span className="ml-2 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-xs rounded-xl font-black border border-green-100 dark:border-green-500/20 min-w-[2rem] text-center">
+                                                {filteredEntrepreneurs.length}
+                                            </span>
+                                        </h2>
+
+                                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                                            <div className="relative flex-1 md:min-w-[280px]">
+                                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} strokeWidth={2.5} />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Buscar por nombre, correo..."
+                                                    value={searchTerm}
+                                                    onChange={e => setSearchTerm(e.target.value)}
+                                                    className="pl-11 pr-4 py-3 w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-200 placeholder:text-slate-400 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all"
+                                                />
+                                            </div>
+                                            <div className="relative">
+                                                <select
+                                                    value={selectedCategory}
+                                                    onChange={e => setSelectedCategory(e.target.value)}
+                                                    className="pl-4 pr-10 py-3 w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all appearance-none cursor-pointer"
+                                                >
+                                                    <option value="">Todas las categorías</option>
+                                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                                </select>
+                                                <Filter className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                                            </div>
                                         </div>
-                                        <select
-                                            value={selectedCategory}
-                                            onChange={e => setSelectedCategory(e.target.value)}
-                                            className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/10 transition-all font-medium"
-                                        >
-                                            <option value="">Todas las categorías</option>
-                                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                        </select>
+                                    </div>
+
+                                    {/* Select All Toggle */}
+                                    <div className="mt-6 flex items-center gap-3 pt-6 border-t border-slate-100 dark:border-white/5">
+                                        <div className="flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-white/5 p-2 rounded-xl transition-colors cursor-pointer select-none" onClick={handleSelectAll}>
+                                            <Checkbox
+                                                checked={filteredEntrepreneurs.length > 0 && selectedEntrepreneurs.size === filteredEntrepreneurs.length}
+                                                onCheckedChange={handleSelectAll}
+                                                id="select-all"
+                                                className="data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 w-6 h-6 rounded-lg border-2 border-slate-300 dark:border-slate-600"
+                                            />
+                                            <Label htmlFor="select-all" className="cursor-pointer font-bold text-slate-600 dark:text-slate-300">
+                                                Seleccionar Todos ({filteredEntrepreneurs.length})
+                                            </Label>
+                                        </div>
+
+                                        {selectedEntrepreneurs.size > 0 && (
+                                            <span className="text-sm font-medium text-slate-400 animate-in fade-in slide-in-from-left-2">
+                                                • {selectedEntrepreneurs.size} seleccionados
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Table Header */}
-                                <div className="flex-1 overflow-hidden flex flex-col -mx-4 lg:-mx-4">
-                                    <div className="overflow-x-auto custom-scrollbar flex-1 pb-20 px-4 lg:px-4">
-                                        <table className="w-full text-left border-collapse">
-                                            <thead className="sticky top-0 bg-white dark:bg-slate-900 z-10 shadow-sm">
-                                                <tr className="border-b border-slate-100 dark:border-white/5 text-xs text-slate-500 uppercase tracking-wider">
-                                                    <th className="p-4 w-10">
-                                                        <div className="relative flex items-center justify-center">
-                                                            <input type="checkbox"
-                                                                checked={selectedEntrepreneurs.size === filteredEntrepreneurs.length && filteredEntrepreneurs.length > 0}
-                                                                onChange={handleSelectAll}
-                                                                className="peer w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 checked:bg-green-500 checked:border-green-500 transition-all appearance-none cursor-pointer"
-                                                            />
-                                                            <Check size={14} className="absolute text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
-                                                        </div>
-                                                    </th>
-                                                    <th className="p-4">Emprendedor</th>
-                                                    <th className="p-4">Contacto</th>
-                                                    <th className="p-4 text-right">Acción</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                                {filteredEntrepreneurs.slice(0, 50).map(e => (
-                                                    <tr key={e.id} className={`hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group ${selectedEntrepreneurs.has(e.id) ? 'bg-green-50/50 dark:bg-green-900/10' : ''}`}>
-                                                        <td className="p-4">
-                                                            <div className="relative flex items-center justify-center">
-                                                                <input type="checkbox"
-                                                                    checked={selectedEntrepreneurs.has(e.id)}
-                                                                    onChange={() => toggleSelection(e.id)}
-                                                                    className="peer w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 checked:bg-green-500 checked:border-green-500 transition-all appearance-none cursor-pointer"
-                                                                />
-                                                                <Check size={14} className="absolute text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
-                                                            </div>
-                                                        </td>
-                                                        <td className="p-4">
-                                                            <div className="font-bold text-slate-800 dark:text-white text-sm">{e.nombre_emprendimiento}</div>
-                                                            <div className="text-xs text-slate-500 inline-flex items-center gap-1 mt-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-                                                                {e.categoria_principal}
-                                                            </div>
-                                                        </td>
-                                                        <td className="p-4">
-                                                            <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{e.persona_contacto}</div>
-                                                            <div className="text-xs text-slate-500 flex flex-col gap-0.5 mt-0.5">
-                                                                <span className="opacity-90">{e.telefono}</span>
-                                                                <span className="opacity-70">{e.correo}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="p-4 text-right">
-                                                            <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                                                                <button
-                                                                    onClick={() => handleWhatsAppClick(e)}
-                                                                    className="p-2.5 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 rounded-xl hover:bg-green-500 hover:text-white dark:hover:bg-green-500 transition-all hover:scale-110 shadow-sm"
-                                                                    title="Enviar WhatsApp"
-                                                                >
-                                                                    <MessageCircle size={18} />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleEmailClick(e)}
-                                                                    className="p-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-500 hover:text-white dark:hover:bg-blue-500 transition-all hover:scale-110 shadow-sm"
-                                                                    title="Enviar Correo"
-                                                                >
-                                                                    <Mail size={18} />
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                                {filteredEntrepreneurs.length === 0 && (
-                                                    <tr>
-                                                        <td colSpan={4} className="p-12 text-center text-slate-500">
-                                                            <div className="flex flex-col items-center gap-3">
-                                                                <Search size={40} className="text-slate-300" strokeWidth={1.5} />
-                                                                <p>No se encontraron resultados.</p>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                        {filteredEntrepreneurs.length > 50 && (
-                                            <div className="p-6 text-center text-xs text-slate-400 border-t border-slate-100 dark:border-white/5">
-                                                Mostrando los primeros 50 de {filteredEntrepreneurs.length} resultados. Usa el buscador para ver más.
+                                {/* List Results */}
+                                <div className="space-y-3 pb-32">
+                                    {filteredEntrepreneurs.slice(0, 50).map((e, index) => {
+                                        const isSelected = selectedEntrepreneurs.has(e.id);
+                                        return (
+                                            <div
+                                                key={e.id}
+                                                onTouchStart={() => handleTouchStart(e)}
+                                                onTouchEnd={handleTouchEnd}
+                                                onMouseDown={() => handleTouchStart(e)}
+                                                onMouseUp={handleTouchEnd}
+                                                onMouseLeave={handleTouchEnd}
+                                                className={`group relative bg-white dark:bg-slate-900 p-4 rounded-3xl border transition-all duration-300 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 cursor-pointer select-none
+                                                ${isSelected
+                                                        ? 'border-green-500/50 shadow-lg shadow-green-500/10 dark:shadow-none bg-green-50/10 dark:bg-green-900/10'
+                                                        : 'border-slate-100 dark:border-white/5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-slate-200 dark:hover:border-white/10'
+                                                    }`}
+                                            >
+                                                {/* Selection Checkbox */}
+                                                <div className="pl-2" onClick={(ev) => ev.stopPropagation()}>
+                                                    <Checkbox
+                                                        checked={isSelected}
+                                                        onCheckedChange={() => toggleSelection(e.id)}
+                                                        className="w-6 h-6 rounded-lg data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 border-2 border-slate-200 dark:border-slate-700"
+                                                    />
+                                                </div>
+
+                                                {/* Avatar / Initials */}
+                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-black shrink-0 transition-colors
+                                                    ${isSelected
+                                                        ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700'
+                                                    }
+                                                `}>
+                                                    {e.nombre_emprendimiento?.charAt(0) || 'E'}
+                                                </div>
+
+                                                {/* Info */}
+                                                <div className="flex-1 text-center sm:text-left min-w-0">
+                                                    <h3 className={`font-bold text-lg leading-tight mb-1 truncate ${isSelected ? 'text-green-700 dark:text-green-400' : 'text-slate-900 dark:text-white'}`}>
+                                                        {e.nombre_emprendimiento}
+                                                    </h3>
+                                                    {e.actividad_economica && (
+                                                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 line-clamp-2 mb-2 leading-relaxed opacity-90">
+                                                            {e.actividad_economica}
+                                                        </p>
+                                                    )}
+                                                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1 sm:gap-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                                        <span className="flex items-center gap-1">
+                                                            <User size={12} /> {e.persona_contacto}
+                                                        </span>
+                                                        <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
+                                                        <span className="bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded-lg text-slate-600 dark:text-slate-300">
+                                                            {e.categoria_principal}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Actions */}
+                                                <div className="flex items-center gap-2 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all sm:translate-x-4 sm:group-hover:translate-x-0" onClick={(ev) => ev.stopPropagation()}>
+                                                    <button
+                                                        onClick={() => handleWhatsAppClick(e)}
+                                                        className="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-green-600 dark:text-green-400 rounded-2xl hover:bg-green-500 hover:text-white dark:hover:bg-green-500 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20 transition-all hover:scale-110 active:scale-95 group/btn"
+                                                        title="WhatsApp"
+                                                    >
+                                                        <MessageCircle size={20} strokeWidth={2.5} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEmailClick(e)}
+                                                        className="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-blue-600 dark:text-blue-400 rounded-2xl hover:bg-blue-500 hover:text-white dark:hover:bg-blue-500 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all hover:scale-110 active:scale-95"
+                                                        title="Email"
+                                                    >
+                                                        <Mail size={20} strokeWidth={2.5} />
+                                                    </button>
+                                                </div>
                                             </div>
-                                        )}
-                                    </div>
+                                        );
+                                    })}
+
+                                    {filteredEntrepreneurs.length === 0 && (
+                                        <div className="py-20 text-center">
+                                            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-400">
+                                                <Search size={32} />
+                                            </div>
+                                            <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">No se encontraron resultados</h3>
+                                            <p className="text-slate-500 dark:text-slate-400">Intenta ajustar tu búsqueda.</p>
+                                        </div>
+                                    )}
+
+                                    {filteredEntrepreneurs.length > 50 && (
+                                        <div className="py-8 text-center">
+                                            <span className="px-4 py-2 bg-slate-100 dark:bg-slate-800/50 rounded-full text-xs font-bold text-slate-500 dark:text-slate-400">
+                                                Mostrando los primeros 50 de {filteredEntrepreneurs.length} resultados
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                {/* Entrepreneur Detail Modal */}
+                <EntrepreneurDetail
+                    entrepreneur={selectedDetailEntrepreneur}
+                    onClose={() => setSelectedDetailEntrepreneur(null)}
+                />
+
                 {/* Floating Bulk Action Bar */}
-                {selectedEntrepreneurs.size > 0 && (
-                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-slide-up-fade">
-                        <div className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-2 py-2 pr-3 rounded-2xl shadow-2xl shadow-slate-900/40 dark:shadow-black/20 flex items-center gap-4 border border-white/10 dark:border-slate-200">
-                            <div className="bg-white/10 dark:bg-black/5 px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2">
-                                <Check size={16} />
-                                {selectedEntrepreneurs.size}
-                            </div>
-                            <div className="text-sm font-medium mr-2 hidden sm:block">Emp. Seleccionados</div>
-                            <div className="h-8 w-[1px] bg-white/20 dark:bg-black/10"></div>
-                            <button
-                                onClick={handleBulkEmail}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-green-500 hover:bg-green-400 text-white rounded-xl font-bold transition-all shadow-lg shadow-green-500/30 active:scale-95 text-sm"
-                            >
-                                <Mail size={18} />
-                                <span>Enviar BCC</span>
-                            </button>
-                            <button
-                                onClick={() => setSelectedEntrepreneurs(new Set())}
-                                className="p-2 hover:bg-white/10 dark:hover:bg-black/5 rounded-full transition-colors"
-                            >
-                                <X size={18} />
-                            </button>
+                <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ${selectedEntrepreneurs.size > 0 ? 'translate-y-0 opacity-100' : 'translate-y-[200%] opacity-0'}`}>
+                    <div className="bg-slate-900/90 dark:bg-white/95 backdrop-blur-xl text-white dark:text-slate-900 pl-2 pr-2 py-2 rounded-[2rem] shadow-2xl shadow-slate-900/50 dark:shadow-black/20 flex items-center gap-4 border border-white/10 dark:border-slate-200">
+                        <div className="bg-slate-800 dark:bg-slate-100 px-4 py-2.5 rounded-[1.5rem] text-sm font-black flex items-center gap-2 min-w-[3.5rem] justify-center text-white dark:text-slate-900">
+                            {selectedEntrepreneurs.size}
                         </div>
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Seleccionados</span>
+                            <span className="text-sm font-black leading-none">Acciones en lote</span>
+                        </div>
+                        <div className="h-8 w-[1px] bg-white/10 dark:bg-slate-200 mx-2"></div>
+                        <button
+                            onClick={handleBulkEmail}
+                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-[1.5rem] font-bold transition-all shadow-lg shadow-green-600/30 hover:shadow-green-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+                        >
+                            <Mail size={18} strokeWidth={2.5} />
+                            <span>Enviar BCC</span>
+                        </button>
+                        <button
+                            onClick={() => setSelectedEntrepreneurs(new Set())}
+                            className="p-3 hover:bg-white/10 dark:hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-white dark:text-slate-400 dark:hover:text-red-500"
+                            title="Cancelar selección"
+                        >
+                            <X size={20} strokeWidth={2.5} />
+                        </button>
                     </div>
-                )}
+                </div>
             </main>
         </div>
     );
