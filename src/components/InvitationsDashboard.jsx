@@ -457,9 +457,9 @@ export default function InvitationsDashboard() {
                                     </span>
                                 </h2>
 
-                                <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                                <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto justify-end">
                                     {/* Floating Search Pill */}
-                                    <div className="relative flex-1 lg:min-w-[280px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full">
+                                    <div className="relative flex-1 sm:min-w-[200px] lg:min-w-[220px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full">
                                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} strokeWidth={2.5} />
                                         <input
                                             type="text"
