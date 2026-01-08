@@ -183,6 +183,7 @@ export class Database {
         event_time: data.eventTime,
         event_location: data.eventLocation,
         questions: data.questions,
+        survey_type: data.survey_type,
         active: data.active ?? true
       }]);
 
@@ -228,6 +229,7 @@ export class Database {
     if (updates.eventTime !== undefined) dbUpdates.event_time = updates.eventTime;
     if (updates.eventLocation !== undefined) dbUpdates.event_location = updates.eventLocation;
     if (updates.questions !== undefined) dbUpdates.questions = updates.questions;
+    if (updates.survey_type !== undefined) dbUpdates.survey_type = updates.survey_type;
     if (updates.active !== undefined) dbUpdates.active = updates.active;
 
     const { error } = await supabase

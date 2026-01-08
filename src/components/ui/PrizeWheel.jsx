@@ -12,10 +12,14 @@ const WHEEL_COLORS = [
     '#F97316', // Orange
 ];
 
+const MAX_VISIBLE_SEGMENTS = 60;
+
 export default function PrizeWheel({ prizes = [], onWin, onSpinChange }) {
     const [isSpinning, setIsSpinning] = useState(false);
     const [winnerIndex, setWinnerIndex] = useState(null);
     const [activeLight, setActiveLight] = useState(0);
+    // Initialize with safe default to prevent infinite loop on first render
+    const [visibleItems, setVisibleItems] = useState(["Participante 1", "Participante 2", "Participante 3", "Participante 4"]);
 
     // Animations controls
     const wheelControls = useAnimation();
@@ -33,11 +37,30 @@ export default function PrizeWheel({ prizes = [], onWin, onSpinChange }) {
     }, [isSpinning]);
 
     // --- DATA PREPARATION ---
-    const rawItems = prizes.length > 0 ? prizes : ["Participante 1", "Participante 2", "Participante 3", "Participante 4"];
-    let items = [...rawItems];
-    // Ensure sufficient segments
+    useEffect(() => {
+        // If prizes are provided, use them. Otherwise keep default.
+        if (prizes.length > 0) {
+            setVisibleItems(prizes.slice(0, MAX_VISIBLE_SEGMENTS));
+        } else {
+            // Fallback if prizes becomes empty dynamically
+            setVisibleItems(["Participante 1", "Participante 2", "Participante 3", "Participante 4"]);
+        }
+    }, [prizes]);
+
+    let items = [...visibleItems];
+
+    // Safety check: needed because even with default state, specific race conditions could leave it empty.
+    if (items.length === 0) {
+        items = ["Loading..."];
+    }
+
+    // Ensure sufficient segments for small datasets
     while (items.length < 8) {
-        items = [...items, ...rawItems];
+        items = [...items, ...items]; // simple doubling
+        if (items.length > MAX_VISIBLE_SEGMENTS) {
+            items = items.slice(0, MAX_VISIBLE_SEGMENTS);
+            break;
+        }
     }
     const numSegments = items.length;
     const segmentAngle = 360 / numSegments;
@@ -51,11 +74,63 @@ export default function PrizeWheel({ prizes = [], onWin, onSpinChange }) {
         if (onSpinChange) onSpinChange(true);
         setWinnerIndex(null);
 
-        const winningIndex = Math.floor(Math.random() * numSegments);
-        const winnerName = items[winningIndex];
+        // 1. Determine True Winner from FULL pool
+        const fullPool = prizes.length > 0 ? prizes : items;
+        const realWinnerIndex = Math.floor(Math.random() * fullPool.length);
+        const winnerName = fullPool[realWinnerIndex];
+
+        // 2. Prepare Display Set (if large dataset)
+        let targetIndex = 0;
+        let newDisplaySet = [...items];
+
+        if (prizes.length > MAX_VISIBLE_SEGMENTS) {
+            // Large dataset strategy:
+            // Pick a random slot in the visual wheel to be the winner
+            targetIndex = Math.floor(Math.random() * newDisplaySet.length);
+
+            // Replace that slot with the true winner
+            newDisplaySet = [...newDisplaySet];
+            newDisplaySet[targetIndex] = winnerName;
+
+            // Randomize other slots for "shuffling" effect? 
+            // Better: keeping them stable prevents jarring visual jump, 
+            // effectively we just swapped one person for the winner. 
+            // Or we can fill with random neighbors from the pool
+            for (let i = 0; i < newDisplaySet.length; i++) {
+                if (i !== targetIndex) {
+                    // Fill with random others to simulate distinct set
+                    const randomIdx = Math.floor(Math.random() * fullPool.length);
+                    newDisplaySet[i] = fullPool[randomIdx];
+                }
+            }
+
+            setVisibleItems(newDisplaySet);
+            // Wait a tick for render? React state update is batched. 
+            // The animation start is async-ish, but let's assume immediate re-render info for calculation.
+        } else {
+            // Small dataset: find the winner's index in the current visible set
+            // Note: If duplicates exist (due to doubling), pick a random instance or first
+            const indices = newDisplaySet.map((item, idx) => item === winnerName ? idx : -1).filter(idx => idx !== -1);
+            if (indices.length > 0) {
+                targetIndex = indices[Math.floor(Math.random() * indices.length)];
+            } else {
+                // Fallback (shouldn't happen if logic matches)
+                targetIndex = 0;
+            }
+        }
+
+        // recalculate based on potentially new items state (in logic only, React render lags slightly but logic holds)
+        // We use 'newDisplaySet' for calculations
+        const currentSegments = newDisplaySet.length;
+        const currentSegmentAngle = 360 / currentSegments;
 
         // Target: Top (North)
-        const segmentCenter = (winningIndex * segmentAngle) + (segmentAngle / 2);
+        // Correct angle logic: center of segment 'targetIndex' should align with 270deg (Top)
+        // because 0deg is East in SVG, rotate -90 makes 0deg North? 
+        // Let's stick to previous working math:
+        // previous: 270 - segmentCenter. 
+
+        const segmentCenter = (targetIndex * currentSegmentAngle) + (currentSegmentAngle / 2);
         let desiredEndRotation = 270 - segmentCenter;
 
         while (desiredEndRotation <= rotation) {
@@ -75,7 +150,7 @@ export default function PrizeWheel({ prizes = [], onWin, onSpinChange }) {
                 duration: 10,
                 ease: [0.15, 0, 0.15, 1], // Casino ease
                 onUpdate: (latest) => {
-                    const degPerSegment = 360 / numSegments;
+                    const degPerSegment = 360 / currentSegments;
                     const normalizedRotate = (latest + 90) % 360;
                     const currentSegment = Math.floor(normalizedRotate / degPerSegment);
 
@@ -91,7 +166,7 @@ export default function PrizeWheel({ prizes = [], onWin, onSpinChange }) {
         });
 
         setRotation(desiredEndRotation);
-        setWinnerIndex(winningIndex);
+        setWinnerIndex(targetIndex);
 
         // Final tick
         await pointerControls.start({
@@ -197,17 +272,17 @@ export default function PrizeWheel({ prizes = [], onWin, onSpinChange }) {
                                     <text
                                         x="50" y="50"
                                         fill={textColor}
-                                        fontSize={items.length > 20 ? "3.5" : "5"}
-                                        fontWeight="900"
+                                        fontSize={item.length > 22 ? "2.2" : item.length > 15 ? "2.8" : "4"}
+                                        fontWeight="800"
                                         textAnchor="end"
                                         alignmentBaseline="middle"
-                                        transform={`rotate(${startAngle + segmentAngle / 2}, 50, 50) translate(44, 0)`}
+                                        transform={`rotate(${startAngle + segmentAngle / 2}, 50, 50) translate(46, 0)`}
                                         style={{
-                                            fontFamily: 'Arial Black, sans-serif',
+                                            fontFamily: 'Arial, sans-serif',
                                             textShadow: textColor === 'white' ? '1px 1px 2px rgba(0,0,0,0.5)' : 'none',
                                         }}
                                     >
-                                        {item.length > 20 ? item.substring(0, 20) + '..' : item.toUpperCase()}
+                                        {item.length > 28 ? item.substring(0, 26) + '..' : item}
                                     </text>
                                 </g>
                             );

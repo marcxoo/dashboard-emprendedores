@@ -30,6 +30,7 @@ function SurveyEventDashboard() {
         title: '',
         description: '',
         limit: 30,
+        survey_type: 'standard', // 'standard', 'raffle', 'invitation'
         questions: [
             { id: 1, type: 'text', label: 'Nombre Completo', required: true, options: [] },
             { id: 2, type: 'email', label: 'Correo Electrónico', required: true, options: [] }
@@ -101,6 +102,7 @@ function SurveyEventDashboard() {
             title: '',
             description: '',
             limit: 30,
+            survey_type: 'standard',
             eventDate: '',
             eventTime: '',
             eventLocation: '',
@@ -228,6 +230,7 @@ function SurveyEventDashboard() {
             title: survey.title,
             description: survey.description || '',
             limit: survey.limit,
+            survey_type: survey.survey_type || 'standard',
             eventDate: survey.eventDate || '',
             eventTime: survey.eventTime || '',
             eventLocation: survey.eventLocation || '',
@@ -322,7 +325,9 @@ function SurveyEventDashboard() {
     };
 
     return (
-        <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
+        <div className="flex min-h-screen bg-[#F8FAFC] dark:bg-slate-900 selection:bg-primary-100 selection:text-primary-900">
+            {/* Background Pattern */}
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-40" style={{ backgroundImage: 'radial-gradient(#CBD5E1 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
 
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-secondary z-50 flex items-center px-4 justify-between shadow-md">
@@ -342,63 +347,80 @@ function SurveyEventDashboard() {
 
             {/* Sidebar */}
             <aside className={`
-                fixed lg:fixed left-0 top-0 z-50 h-screen w-72 backdrop-blur-3xl bg-white dark:bg-slate-900/90 border-r border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-200 shadow-2xl transition-transform duration-300 ease-in-out
-                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-                pt-16 lg:pt-0 flex flex-col
+                fixed lg:fixed left-4 top-4 bottom-4 z-50 w-72 backdrop-blur-2xl bg-white/80 dark:bg-slate-900/80 border border-white/40 dark:border-white/5 text-slate-600 dark:text-slate-200 shadow-2xl shadow-slate-200/50 dark:shadow-black/50 transition-transform duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) rounded-3xl flex flex-col overflow-hidden
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-[120%] lg:translate-x-0'}
             `}>
                 {/* Brand */}
-                <div className="hidden lg:block p-6 border-b border-slate-200 dark:border-white/10">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/20 border border-white/20">
-                            <span className="font-bold text-xl text-white">F</span>
+                <div className="p-8 border-b border-slate-100 dark:border-white/5 relative overflow-hidden group cursor-default">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600"></div>
+                    <div className="absolute -right-6 -top-6 w-24 h-24 bg-primary-100/50 dark:bg-primary-900/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+
+                    <div className="relative flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-lg shadow-primary-500/30 border border-white/20 transform group-hover:rotate-6 transition-transform duration-500">
+                            <span className="font-black text-2xl text-white tracking-tighter">E</span>
                         </div>
                         <div>
-                            <h1 className="font-bold text-lg leading-tight text-slate-900 dark:text-white">Emprende<span className="text-primary-600">Forms</span></h1>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Gestión de Formularios</p>
+                            <h1 className="font-extrabold text-xl leading-none text-slate-900 dark:text-white tracking-tight">Emprende<span className="text-primary-600">Forms</span></h1>
+                            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-wider">Gestión Pro</p>
                         </div>
                     </div>
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-                    <button
-                        onClick={() => { resetForm(); setViewingResultsId(null); setView('list'); }}
-                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${view === 'list'
-                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20 border border-transparent'
-                            : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'}`}
-                    >
-                        <LayoutGrid size={22} className={`transition-transform group-hover:scale-105 ${view === 'list' ? 'text-white' : 'text-slate-500 group-hover:text-primary-600'}`} />
-                        <span className="font-medium tracking-wide">Mis Formularios</span>
-                    </button>
-                    <button
-                        onClick={() => { resetForm(); setViewingResultsId(null); setView('create'); }}
-                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${view === 'create'
-                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20 border border-transparent'
-                            : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'}`}
-                    >
-                        <Plus size={22} className={`transition-transform group-hover:scale-105 ${view === 'create' ? 'text-white' : 'text-slate-500 group-hover:text-primary-600'}`} />
-                        <span className="font-medium tracking-wide">Crear Nueva</span>
-                    </button>
+                    <div className="px-4 py-2">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Principal</p>
+                        <div className="space-y-2">
+                            <button
+                                onClick={() => { resetForm(); setViewingResultsId(null); setView('list'); }}
+                                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 group relative overflow-hidden ${view === 'list'
+                                    ? 'bg-primary-50 text-primary-700 shadow-md shadow-primary-100/50 border border-primary-100'
+                                    : 'text-slate-500 hover:bg-white hover:shadow-sm hover:text-slate-800 border border-transparent'}`}
+                            >
+                                {view === 'list' && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-500"></div>}
+                                <LayoutGrid size={20} strokeWidth={view === 'list' ? 2.5 : 2} className={`transition-transform group-hover:scale-110 ${view === 'list' ? 'text-primary-600' : 'text-slate-400 group-hover:text-primary-500'}`} />
+                                <span className={`font-bold tracking-wide text-sm ${view === 'list' ? 'translate-x-1' : ''} transition-transform`}>Mis Formularios</span>
+                                {customSurveys.length > 0 && <span className="ml-auto text-xs font-bold bg-white text-slate-500 px-2 py-0.5 rounded-full shadow-sm">{customSurveys.length}</span>}
+                            </button>
+                            <button
+                                onClick={() => { resetForm(); setViewingResultsId(null); setView('create'); }}
+                                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 group relative overflow-hidden ${view === 'create'
+                                    ? 'bg-primary-50 text-primary-700 shadow-md shadow-primary-100/50 border border-primary-100'
+                                    : 'text-slate-500 hover:bg-white hover:shadow-sm hover:text-slate-800 border border-transparent'}`}
+                            >
+                                {view === 'create' && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-500"></div>}
+                                <Plus size={20} strokeWidth={view === 'create' ? 2.5 : 2} className={`transition-transform group-hover:rotate-90 ${view === 'create' ? 'text-primary-600' : 'text-slate-400 group-hover:text-primary-500'}`} />
+                                <span className={`font-bold tracking-wide text-sm ${view === 'create' ? 'translate-x-1' : ''} transition-transform`}>Crear Nueva</span>
+                            </button>
+                        </div>
+                    </div>
                 </nav>
 
                 {/* User Profile */}
-                <div className="p-4 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20">
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 mb-3 backdrop-blur-sm shadow-sm">
-                        <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center border border-slate-200 text-slate-600">
-                            <Users size={18} />
+                <div className="p-4 bg-slate-50/50 dark:bg-black/20 backdrop-blur-md">
+                    <div className="bg-white/60 dark:bg-white/5 rounded-2xl p-4 border border-white/50 dark:border-white/5 shadow-sm mb-4">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-200 to-slate-100 flex items-center justify-center border-2 border-white shadow-sm">
+                                <Users size={18} className="text-slate-600" />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{user?.name || 'Admin User'}</p>
+                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">Administrador</p>
+                            </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="font-bold text-sm text-slate-900 dark:text-gray-200 truncate">{user?.name || 'Admin'}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email || 'admin@emprende.com'}</p>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => navigate('/portal')}
+                                className="flex-1 py-2 rounded-xl bg-white text-xs font-bold text-slate-600 shadow-sm border border-slate-100 hover:bg-slate-50 transition-colors"
+                            >
+                                Portal
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="w-8 h-8 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 transition-colors"
+                            >
+                                <LogOut size={14} />
+                            </button>
                         </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <button onClick={() => navigate('/portal')} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-slate-600 dark:text-slate-200 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 transition-all text-sm font-medium">
-                            Portal
-                        </button>
-                        <button onClick={handleLogout} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-red-500 dark:text-red-400 bg-white dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-500/10 border border-red-100 dark:border-red-500/20 transition-all text-sm font-medium">
-                            <LogOut size={16} /> Salir
-                        </button>
                     </div>
                 </div>
             </aside>
@@ -415,12 +437,13 @@ function SurveyEventDashboard() {
 
                 <div className="p-4 lg:p-8 max-w-5xl mx-auto w-full">
                     {view === 'create' && (
-                        <form onSubmit={handleCreateSurvey} className="space-y-8 animate-fade-in">
+                        <form onSubmit={handleCreateSurvey} className="space-y-8 animate-fade-in pb-20">
                             {/* General Info Card */}
-                            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-white/5 p-8 relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-500 to-primary-600"></div>
-                                <div className="space-y-6">
-                                    <div>
+                            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-[2rem] shadow-xl shadow-slate-200/50 dark:shadow-black/50 border border-white/50 dark:border-white/5 p-8 relative overflow-hidden group">
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 opacity-60 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                <div className="space-y-8">
+                                    <div className="relative">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1">Título del Evento</label>
                                         <textarea
                                             ref={titleRef}
                                             required
@@ -431,59 +454,102 @@ function SurveyEventDashboard() {
                                                 e.target.style.height = e.target.scrollHeight + 'px';
                                             }}
                                             rows={1}
-                                            className="w-full text-3xl font-bold border-b-2 border-transparent hover:border-slate-200 focus:border-primary-500 bg-transparent outline-none transition-colors placeholder-slate-300 text-slate-900 dark:text-white pb-2 resize-none overflow-hidden"
-                                            placeholder="Título del Formulario"
-                                            style={{ minHeight: '3rem' }}
+                                            className="w-full text-4xl font-black bg-transparent border-none outline-none placeholder-slate-300 text-slate-800 dark:text-white resize-none overflow-hidden p-0 focus:ring-0 leading-tight"
+                                            placeholder="Escribe un título..."
+                                            style={{ minHeight: '3.5rem' }}
                                         />
                                     </div>
-                                    <div>
+                                    <div className="relative">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1">Descripción</label>
                                         <textarea
                                             value={formData.description}
                                             onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                            className="w-full text-base border-b border-transparent hover:border-slate-200 focus:border-primary-500 bg-transparent outline-none transition-colors placeholder-slate-400 text-slate-600 dark:text-slate-300 resize-none h-24"
-                                            placeholder="Descripción del formulario..."
+                                            className="w-full text-lg bg-transparent border-none outline-none placeholder-slate-300 text-slate-600 dark:text-slate-300 resize-none h-24 p-0 focus:ring-0 leading-relaxed"
+                                            placeholder="Describe el propósito de este formulario..."
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <div className="flex flex-col">
-                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Fecha del Evento</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pt-6 border-t border-slate-100 dark:border-white/5">
+                                        <div className="flex flex-col group/field">
+                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 group-focus-within/field:text-primary-500 transition-colors">Fecha</label>
                                             <input
                                                 type="date"
                                                 value={formData.eventDate}
                                                 onChange={e => setFormData({ ...formData, eventDate: e.target.value })}
-                                                className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                                className="w-full px-4 py-3 border-2 border-slate-100 dark:border-slate-700/50 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium"
                                             />
                                         </div>
-                                        <div className="flex flex-col">
-                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Hora</label>
+                                        <div className="flex flex-col group/field">
+                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 group-focus-within/field:text-primary-500 transition-colors">Hora</label>
                                             <input
                                                 type="time"
                                                 value={formData.eventTime}
                                                 onChange={e => setFormData({ ...formData, eventTime: e.target.value })}
-                                                className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                                className="w-full px-4 py-3 border-2 border-slate-100 dark:border-slate-700/50 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium"
                                             />
                                         </div>
-                                        <div className="flex flex-col">
-                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Lugar</label>
+                                        <div className="flex flex-col group/field">
+                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 group-focus-within/field:text-primary-500 transition-colors">Lugar</label>
                                             <input
                                                 type="text"
-                                                placeholder="Ej. Auditorio Central"
+                                                placeholder="Ej. Auditorio"
                                                 value={formData.eventLocation}
                                                 onChange={e => setFormData({ ...formData, eventLocation: e.target.value })}
-                                                className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                                className="w-full px-4 py-3 border-2 border-slate-100 dark:border-slate-700/50 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-medium"
                                             />
                                         </div>
-                                        <div className="flex flex-col">
-                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Límite de Cupos</label>
-                                            <input
-                                                type="number"
-                                                min="1"
-                                                required
-                                                value={formData.limit}
-                                                onChange={e => setFormData({ ...formData, limit: parseInt(e.target.value) })}
-                                                className="w-32 px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 focus:bg-white dark:focus:bg-slate-600 focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none text-xl font-bold text-slate-900 dark:text-white transition-all text-center placeholder-slate-400"
-                                            />
+                                        <div className="flex flex-col group/field">
+                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 group-focus-within/field:text-primary-500 transition-colors">Cupos</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    required
+                                                    value={formData.limit}
+                                                    onChange={e => setFormData({ ...formData, limit: parseInt(e.target.value) })}
+                                                    className="w-full px-4 py-3 border-2 border-slate-100 dark:border-slate-700/50 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-bold text-center"
+                                                />
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                    <Users size={16} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-6 mt-2 border-t border-slate-100 dark:border-white/5">
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 block ml-1">Tipo de Experiencia</label>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            {[
+                                                { id: 'standard', label: 'Estándar', desc: 'Registro simple', icon: FileText, color: 'bg-slate-500' },
+                                                { id: 'invitation', label: 'Invitación Taller', desc: 'Registro + Recursos', icon: Check, color: 'bg-purple-500' },
+                                                { id: 'raffle', label: 'Asistencia + Ruleta', desc: 'Para Emprendex', icon: Trophy, color: 'bg-yellow-500' }
+                                            ].map(type => {
+                                                const Icon = type.icon;
+                                                const isSelected = formData.survey_type === type.id;
+                                                return (
+                                                    <div
+                                                        key={type.id}
+                                                        onClick={() => setFormData({ ...formData, survey_type: type.id })}
+                                                        className={`cursor-pointer relative overflow-hidden rounded-2xl border-2 p-5 transition-all duration-300 group/type ${isSelected
+                                                            ? 'border-primary-500 bg-primary-50/50 dark:bg-primary-900/20 shadow-lg shadow-primary-500/10'
+                                                            : 'border-slate-100 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-start justify-between mb-2">
+                                                            <div className={`p-2 rounded-xl transition-colors ${isSelected ? 'bg-white text-primary-600 shadow-sm' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
+                                                                <Icon size={20} />
+                                                            </div>
+                                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-primary-500' : 'border-slate-200 dark:border-slate-600'}`}>
+                                                                {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-primary-500 shadow-sm"></div>}
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <h4 className={`font-bold text-base mb-1 ${isSelected ? 'text-primary-900 dark:text-white' : 'text-slate-700 dark:text-slate-200'}`}>{type.label}</h4>
+                                                            <p className={`text-xs ${isSelected ? 'text-primary-700/80 dark:text-primary-300/80' : 'text-slate-400'}`}>{type.desc}</p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 </div>
@@ -491,96 +557,110 @@ function SurveyEventDashboard() {
 
                             {/* Questions List */}
                             <div className="space-y-6">
+                                <div className="flex items-center justify-between px-2">
+                                    <h3 className="text-lg font-bold text-slate-700 dark:text-white flex items-center gap-2">
+                                        <span className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 text-sm">{formData.questions.length}</span>
+                                        Preguntas
+                                    </h3>
+                                    <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700 ml-6"></div>
+                                </div>
+
                                 {formData.questions.map((q, idx) => (
                                     <div
                                         key={q.id}
-                                        className="group bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 p-6 relative transition-all hover:shadow-md"
+                                        className="group bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm border border-slate-200 dark:border-white/5 p-1 pl-1 relative transition-all hover:shadow-xl hover:-translate-y-1 hover:border-primary-200 dark:hover:border-primary-900/50"
                                         draggable
                                         onDragStart={(e) => handleDragStart(e, idx)}
                                         onDragEnter={(e) => handleDragEnter(e, idx)}
                                         onDragEnd={handleDragEnd}
                                         onDragOver={(e) => e.preventDefault()}
                                     >
-                                        {/* Drag Handle */}
-                                        <div className="drag-handle absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-move bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-600 transition-opacity flex items-center gap-2 shadow-sm">
-                                            <GripVertical size={14} className="text-slate-400" />
-                                            <span className="text-xs font-medium text-slate-500">Arrastrar</span>
-                                        </div>
-
-                                        <div className="flex flex-col md:flex-row gap-6 mb-6">
-                                            <div className="flex-1 bg-slate-50 dark:bg-slate-900/50 rounded-xl px-4 py-2 border border-slate-100 focus-within:border-primary-300 focus-within:ring-4 focus-within:ring-primary-50 transition-all">
-                                                <input
-                                                    type="text"
-                                                    value={q.label}
-                                                    onChange={(e) => updateQuestion(q.id, 'label', e.target.value)}
-                                                    className="w-full bg-transparent border-none focus:ring-0 outline-none font-medium text-slate-900 dark:text-white placeholder-slate-400 text-lg"
-                                                    placeholder="Escribe tu pregunta"
-                                                />
+                                        <div className="p-6 md:p-8">
+                                            {/* Drag Handle */}
+                                            <div className="drag-handle absolute top-4 right-4 opacity-0 group-hover:opacity-100 cursor-move p-2 text-slate-300 hover:text-slate-500 transition-colors">
+                                                <GripVertical size={20} />
                                             </div>
-                                            <div className="w-full md:w-64">
-                                                <div className="relative">
-                                                    <select
-                                                        value={q.type}
-                                                        onChange={(e) => updateQuestion(q.id, 'type', e.target.value)}
-                                                        className="w-full px-4 py-3 appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-primary-100 outline-none text-slate-700 dark:text-slate-200 pr-10 font-medium shadow-sm"
-                                                    >
-                                                        {QUESTION_TYPES.map(type => (
-                                                            <option key={type.value} value={type.value}>{type.label}</option>
-                                                        ))}
-                                                    </select>
-                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                                        <MoreVertical size={18} />
+
+                                            <div className="flex flex-col md:flex-row gap-6 mb-8 pr-8">
+                                                <div className="flex-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1">Pregunta</label>
+                                                    <input
+                                                        type="text"
+                                                        value={q.label}
+                                                        onChange={(e) => updateQuestion(q.id, 'label', e.target.value)}
+                                                        className="w-full text-xl font-bold bg-transparent border-b-2 border-slate-100 hover:border-slate-300 focus:border-primary-500 outline-none py-2 text-slate-800 dark:text-white placeholder-slate-300 transition-colors"
+                                                        placeholder="¿Qué quieres preguntar?"
+                                                    />
+                                                </div>
+                                                <div className="w-full md:w-64">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1">Tipo de Respuesta</label>
+                                                    <div className="relative">
+                                                        <select
+                                                            value={q.type}
+                                                            onChange={(e) => updateQuestion(q.id, 'type', e.target.value)}
+                                                            className="w-full pl-4 pr-10 py-3 appearance-none bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-primary-100 outline-none text-slate-700 dark:text-slate-200 font-semibold cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                                        >
+                                                            {QUESTION_TYPES.map(type => (
+                                                                <option key={type.value} value={type.value}>{type.label}</option>
+                                                            ))}
+                                                        </select>
+                                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                            <MoreVertical size={18} />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* Dynamic Options */}
-                                        {(q.type === 'multiple_choice' || q.type === 'checkbox') && (
-                                            <div className="ml-1 pl-4 space-y-3 mb-6 border-l-2 border-slate-100">
-                                                {q.options?.map((opt, optIdx) => (
-                                                    <div key={optIdx} className="flex items-center gap-3 group/opt">
-                                                        <div className={`w-4 h-4 border-2 ${q.type === 'multiple_choice' ? 'rounded-full' : 'rounded-md'} border-slate-300 dark:border-slate-600`}></div>
-                                                        <input
-                                                            type="text"
-                                                            value={opt}
-                                                            onChange={(e) => updateOption(q.id, optIdx, e.target.value)}
-                                                            className="flex-1 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-primary-500 outline-none py-1 text-sm text-slate-700 dark:text-slate-300 transition-colors"
-                                                        />
-                                                        <button type="button" onClick={() => removeOption(q.id, optIdx)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover/opt:opacity-100 transition-opacity">
-                                                            <X size={16} />
+                                            {/* Dynamic Options */}
+                                            {(q.type === 'multiple_choice' || q.type === 'checkbox') && (
+                                                <div className="bg-slate-50/50 dark:bg-black/20 rounded-2xl p-6 mb-8 border border-slate-100 dark:border-white/5">
+                                                    <div className="space-y-3">
+                                                        {q.options?.map((opt, optIdx) => (
+                                                            <div key={optIdx} className="flex items-center gap-4 group/opt">
+                                                                <div className={`w-5 h-5 flex-shrink-0 border-2 ${q.type === 'multiple_choice' ? 'rounded-full' : 'rounded-md'} border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-800`}></div>
+                                                                <input
+                                                                    type="text"
+                                                                    value={opt}
+                                                                    onChange={(e) => updateOption(q.id, optIdx, e.target.value)}
+                                                                    className="flex-1 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-primary-500 outline-none py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors"
+                                                                    placeholder={`Opción ${optIdx + 1}`}
+                                                                />
+                                                                <button type="button" onClick={() => removeOption(q.id, optIdx)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover/opt:opacity-100 transition-all p-1 hover:bg-red-50 rounded-lg">
+                                                                    <X size={16} />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => addOption(q.id)}
+                                                            className="text-sm text-primary-600 hover:text-primary-700 font-bold flex items-center gap-2 pl-1 py-2 mt-2 hover:translate-x-1 transition-transform"
+                                                        >
+                                                            <Plus size={16} className="bg-primary-100 rounded-md p-0.5" /> Agregar otra opción
                                                         </button>
                                                     </div>
-                                                ))}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => addOption(q.id)}
-                                                    className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 pl-1 py-1"
-                                                >
-                                                    <Plus size={14} /> Agregar opción
-                                                </button>
-                                            </div>
-                                        )}
+                                                </div>
+                                            )}
 
-                                        <div className="flex items-center justify-end gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                                            <div className="flex items-center gap-3 border-r border-slate-200 dark:border-white/10 pr-6">
-                                                <label className="text-sm text-slate-600 dark:text-slate-400 font-medium cursor-pointer select-none" onClick={() => updateQuestion(q.id, 'required', !q.required)}>Obligatorio</label>
+                                            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/5">
+                                                <div className="flex items-center gap-4">
+                                                    <label className="flex items-center gap-3 cursor-pointer group/toggle">
+                                                        <div className={`w-12 h-7 rounded-full p-1 transition-all duration-300 ${q.required ? 'bg-primary-500 shadow-inner' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                                                            <div className={`w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ${q.required ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                                                        </div>
+                                                        <span className="text-sm font-bold text-slate-500 group-hover/toggle:text-slate-700 dark:group-hover/toggle:text-slate-300 transition-colors">Obligatorio</span>
+                                                        <input type="checkbox" className="hidden" checked={q.required} onChange={() => updateQuestion(q.id, 'required', !q.required)} />
+                                                    </label>
+                                                </div>
                                                 <button
                                                     type="button"
-                                                    onClick={() => updateQuestion(q.id, 'required', !q.required)}
-                                                    className={`w-10 h-6 rounded-full p-1 transition-colors duration-300 ${q.required ? 'bg-primary-600' : 'bg-slate-200 dark:bg-slate-700'}`}
+                                                    onClick={() => removeQuestion(q.id)}
+                                                    className="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all font-medium text-sm group/del"
+                                                    title="Eliminar pregunta"
                                                 >
-                                                    <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300 ${q.required ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                                                    <Trash2 size={16} className="group-hover/del:scale-110 transition-transform" />
+                                                    <span>Eliminar</span>
                                                 </button>
                                             </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeQuestion(q.id)}
-                                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                title="Eliminar pregunta"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -590,28 +670,29 @@ function SurveyEventDashboard() {
                                 <button
                                     type="button"
                                     onClick={addQuestion}
-                                    className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-sm hover:shadow-md hover:border-primary-200 transition-all text-slate-600 dark:text-slate-300 font-bold group"
+                                    className="flex items-center gap-3 px-8 py-4 bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl shadow-sm hover:shadow-lg hover:border-primary-400 hover:-translate-y-1 transition-all text-slate-500 dark:text-slate-300 font-bold group w-full md:w-auto justify-center"
                                 >
-                                    <div className="w-6 h-6 rounded-full bg-slate-100 group-hover:bg-primary-100 text-slate-500 group-hover:text-primary-600 flex items-center justify-center transition-colors">
-                                        <Plus size={14} strokeWidth={3} />
+                                    <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-primary-100 text-slate-500 group-hover:text-primary-600 flex items-center justify-center transition-colors">
+                                        <Plus size={18} strokeWidth={3} />
                                     </div>
-                                    Agregar Pregunta
+                                    Agregar Nueva Pregunta
                                 </button>
                             </div>
 
-                            <div className="sticky bottom-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl shadow-slate-200/50 flex flex-col sm:flex-row justify-between items-center z-30 gap-4 sm:gap-0">
-                                <div className="flex items-center gap-2 text-sm text-slate-500 font-medium px-2 w-full sm:w-auto justify-center sm:justify-start">
-                                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                                    {formData.questions.length} preguntas configuradas
+                            {/* Floating Footer */}
+                            <div className="fixed bottom-6 w-[calc(100%-2rem)] lg:w-[calc(100%-20rem)] left-1/2 lg:left-[calc(50%+9rem)] -translate-x-1/2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-2xl border border-white/50 dark:border-white/10 shadow-2xl shadow-slate-900/20 flex flex-col sm:flex-row justify-between items-center z-30 gap-4 sm:gap-0 transition-all duration-300">
+                                <div className="flex items-center gap-3 text-sm font-bold text-slate-600 dark:text-slate-300 px-4">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
+                                    <span>{formData.questions.length} preguntas configuradas</span>
                                 </div>
                                 <div className="flex gap-3 w-full sm:w-auto">
-                                    <button type="button" onClick={() => { resetForm(); setView('list'); }} className="flex-1 sm:flex-none px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 transition-colors">
+                                    <button type="button" onClick={() => { resetForm(); setView('list'); }} className="flex-1 sm:flex-none px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className={`flex-1 sm:flex-none px-8 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-bold rounded-xl transition-all shadow-lg shadow-primary-600/30 hover:shadow-primary-600/40 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed transform-none' : ''}`}
+                                        className={`flex-1 sm:flex-none px-8 py-3 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-bold rounded-xl transition-all shadow-lg shadow-primary-600/30 hover:shadow-primary-600/40 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed transform-none' : ''}`}
                                     >
                                         {isSubmitting ? (
                                             <>
@@ -694,18 +775,20 @@ function SurveyEventDashboard() {
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
-                                                <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5 text-xs uppercase tracking-wider text-slate-500">
-                                                    <th className="p-4 font-bold whitespace-nowrap">Fecha</th>
+                                                <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                    <th className="p-5 whitespace-nowrap">Fecha</th>
                                                     {survey.questions.map(q => (
-                                                        <th key={q.id} className="p-4 font-bold whitespace-nowrap min-w-[150px]">{q.label}</th>
+                                                        <th key={q.id} className="p-5 whitespace-nowrap min-w-[180px]">{q.label}</th>
                                                     ))}
-                                                    <th className="p-4 font-bold whitespace-nowrap text-right">Acciones</th>
+                                                    <th className="p-5 whitespace-nowrap text-right sticky right-0 z-20 bg-gradient-to-l from-white via-white to-transparent dark:from-slate-800 dark:via-slate-800 pl-8">
+                                                        <span className="bg-white dark:bg-slate-800 relative z-10 px-2">Acciones</span>
+                                                    </th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                            <tbody className="divide-y divide-slate-50 dark:divide-white/5">
                                                 {responses.length === 0 ? (
                                                     <tr>
-                                                        <td colSpan={survey.questions.length + 1} className="p-8 text-center text-slate-500">
+                                                        <td colSpan={survey.questions.length + 2} className="p-12 text-center text-slate-400 font-medium">
                                                             Aún no hay respuestas para mostrar.
                                                         </td>
                                                     </tr>
@@ -713,36 +796,41 @@ function SurveyEventDashboard() {
                                                     responses.map((r, idx) => {
                                                         const dateVal = r.created_at || r.createdAt || r.submittedAt;
                                                         return (
-                                                            <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-sm">
-                                                                <td className="p-4 whitespace-nowrap text-slate-500 font-medium">
+                                                            <tr key={idx} className="group hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors duration-300">
+                                                                <td className="p-5 whitespace-nowrap text-slate-500 font-bold text-xs">
                                                                     {dateVal ? (
-                                                                        <>
-                                                                            {new Date(dateVal).toLocaleDateString()} {new Date(dateVal).toLocaleTimeString()}
-                                                                        </>
+                                                                        <div className="flex flex-col">
+                                                                            <span className="text-slate-700 dark:text-slate-300">{new Date(dateVal).toLocaleDateString()}</span>
+                                                                            <span className="text-slate-400 text-[10px]">{new Date(dateVal).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                                        </div>
                                                                     ) : 'Fecha inválida'}
                                                                 </td>
                                                                 {survey.questions.map(q => (
-                                                                    <td key={q.id} className="p-4 max-w-xs truncate font-medium text-slate-900 dark:text-white" title={Array.isArray(r.answers[q.label]) ? r.answers[q.label].join(', ') : r.answers[q.label]}>
+                                                                    <td key={q.id} className="p-5 max-w-[250px] truncate text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" title={Array.isArray(r.answers[q.label]) ? r.answers[q.label].join(', ') : r.answers[q.label]}>
                                                                         {Array.isArray(r.answers[q.label])
                                                                             ? r.answers[q.label].join(', ')
                                                                             : r.answers[q.label]}
                                                                     </td>
                                                                 ))}
-                                                                <td className="p-4 text-right whitespace-nowrap">
-                                                                    <div className="flex items-center justify-end gap-2">
+                                                                <td className="p-4 text-right whitespace-nowrap sticky right-0 z-10">
+                                                                    {/* Gradient Mask for smooth fade */}
+                                                                    <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-transparent to-white dark:to-slate-800 pointer-events-none -ml-8"></div>
+                                                                    <div className="bg-white dark:bg-slate-800 group-hover:bg-blue-50/50 dark:group-hover:bg-blue-900/10 transition-colors duration-300 h-full w-full absolute inset-0 -z-10"></div>
+
+                                                                    <div className="relative z-10 flex items-center justify-end gap-1">
                                                                         <button
                                                                             onClick={() => handleEditResponse(r)}
-                                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                                                            title="Editar respuesta"
+                                                                            className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-100/50 dark:bg-slate-700/50 dark:hover:bg-blue-900/30 transition-all hover:scale-110 active:scale-95"
+                                                                            title="Editar"
                                                                         >
-                                                                            <Pencil size={16} />
+                                                                            <Pencil size={14} strokeWidth={2.5} />
                                                                         </button>
                                                                         <button
                                                                             onClick={() => handleDeleteResponse(r.id)}
-                                                                            className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                                            title="Eliminar respuesta"
+                                                                            className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-red-600 hover:bg-red-100/50 dark:bg-slate-700/50 dark:hover:bg-red-900/30 transition-all hover:scale-110 active:scale-95"
+                                                                            title="Eliminar"
                                                                         >
-                                                                            <Trash2 size={16} />
+                                                                            <Trash2 size={14} strokeWidth={2.5} />
                                                                         </button>
                                                                     </div>
                                                                 </td>
@@ -759,102 +847,131 @@ function SurveyEventDashboard() {
                     })()}
 
                     {view === 'list' && !viewingResultsId && (
-                        <div className="grid gap-6 animate-fade-in">
+                        <div className="grid gap-8 animate-fade-in pb-12">
                             {customSurveys.length === 0 ? (
-                                <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10">
-                                    <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <FileText size={32} />
+                                <div className="text-center py-32 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-[2.5rem] border border-dashed border-slate-300 dark:border-white/10 group">
+                                    <div className="w-24 h-24 bg-gradient-to-tr from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500 shadow-xl shadow-blue-500/10">
+                                        <FileText size={40} className="group-hover:rotate-6 transition-transform" />
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No hay formularios activos</h3>
-                                    <p className="text-slate-500 mb-6">Crea tu primer formulario o evento para empezar a recibir registros.</p>
-                                    <button onClick={() => setView('create')} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                        Crear Formulario
+                                    <h3 className="text-3xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">Crea tu primer evento</h3>
+                                    <p className="text-lg text-slate-500 mb-10 max-w-md mx-auto leading-relaxed">Configura formularios personalizados para talleres, ruletas y registros de asistencia en segundos.</p>
+                                    <button onClick={() => setView('create')} className="px-8 py-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-2xl hover:bg-slate-800 dark:hover:bg-slate-200 transition-all font-bold text-lg shadow-xl hover:shadow-2xl hover:-translate-y-1">
+                                        + Nuevo Formulario
                                     </button>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                                     {customSurveys.map(survey => {
                                         const responsesCount = survey.responses?.length || 0;
                                         const percentage = Math.min((responsesCount / survey.limit) * 100, 100);
                                         const isFull = responsesCount >= survey.limit;
 
                                         return (
-                                            <div key={survey.id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 overflow-hidden flex flex-col">
-                                                <div className="p-6 flex-1">
-                                                    <div className="flex justify-between items-start gap-4 mb-4">
-                                                        <h3 className="font-bold text-lg text-slate-900 dark:text-white line-clamp-2 break-all">{survey.title}</h3>
+                                            <div key={survey.id} className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-[2rem] shadow-xl shadow-slate-200/40 dark:shadow-black/40 border border-white/50 dark:border-white/5 overflow-hidden flex flex-col hover:-translate-y-2 hover:shadow-2xl hover:shadow-slate-300/50 dark:hover:shadow-black/60 transition-all duration-500 relative">
+                                                {/* Top gradient accent */}
+                                                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-primary-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                                                <div className="p-8 flex-1 relative">
+                                                    <div className="absolute top-6 right-6 flex gap-2">
                                                         {isFull ? (
-                                                            <span className="flex-shrink-0 px-2 py-1 bg-red-100 text-red-600 text-xs font-bold rounded-lg whitespace-nowrap">Completo</span>
+                                                            <span className="inline-flex items-center px-3 py-1 bg-red-50 text-red-600 text-[10px] font-black rounded-lg uppercase tracking-wider border border-red-100 shadow-sm">
+                                                                Completo
+                                                            </span>
                                                         ) : (
-                                                            <span className="flex-shrink-0 px-2 py-1 bg-green-100 text-green-600 text-xs font-bold rounded-lg whitespace-nowrap">Activo</span>
+                                                            <span className="relative inline-flex items-center px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black rounded-lg uppercase tracking-wider border border-green-100 shadow-sm overflow-hidden">
+                                                                <span className="relative z-10 flex items-center gap-1.5">
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                                                    Activo
+                                                                </span>
+                                                            </span>
                                                         )}
                                                     </div>
 
-                                                    <div className="space-y-4">
-                                                        <div>
-                                                            <div className="flex justify-between text-sm mb-1">
-                                                                <span className="text-slate-500">Registrados</span>
-                                                                <span className="font-medium text-slate-900 dark:text-white">{responsesCount} / {survey.limit}</span>
+                                                    <div className="mb-6 mt-2">
+                                                        <div className="mb-4">
+                                                            {survey.survey_type === 'raffle' ? (
+                                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-yellow-100/80 text-yellow-700 uppercase tracking-wide border border-yellow-200/50 backdrop-blur-sm">
+                                                                    <Trophy size={12} className="text-yellow-600" /> Ruleta
+                                                                </span>
+                                                            ) : survey.survey_type === 'invitation' ? (
+                                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-purple-100/80 text-purple-700 uppercase tracking-wide border border-purple-200/50 backdrop-blur-sm">
+                                                                    <Check size={12} className="text-purple-600" /> Invitación
+                                                                </span>
+                                                            ) : (
+                                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-slate-100/80 text-slate-600 uppercase tracking-wide border border-slate-200/50 backdrop-blur-sm">
+                                                                    <FileText size={12} className="text-slate-500" /> Estándar
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <h3 className="font-black text-2xl text-slate-800 dark:text-white line-clamp-2 leading-tight tracking-tight group-hover:text-primary-600 transition-colors">{survey.title}</h3>
+                                                    </div>
+
+                                                    <div className="space-y-5">
+                                                        <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-4 border border-slate-100 dark:border-white/5">
+                                                            <div className="flex justify-between text-xs font-bold uppercase tracking-widest mb-3">
+                                                                <span className="text-slate-400">Progreso</span>
+                                                                <span className="text-slate-700 dark:text-white">{responsesCount} / {survey.limit}</span>
                                                             </div>
-                                                            <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                            <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
                                                                 <div
-                                                                    className={`h-full rounded-full transition-all duration-500 ${isFull ? 'bg-red-500' : 'bg-blue-500'}`}
+                                                                    className={`h-full rounded-full transition-all duration-1000 ease-out shadow-lg ${isFull ? 'bg-gradient-to-r from-red-500 to-red-400' : 'bg-gradient-to-r from-primary-500 to-cyan-400'}`}
                                                                     style={{ width: `${percentage}%` }}
                                                                 ></div>
                                                             </div>
                                                         </div>
 
-                                                        <div className="flex items-center gap-2 text-sm text-slate-500">
-                                                            <Calendar size={14} />
-                                                            <span>{new Date(survey.createdAt).toLocaleDateString()}</span>
+                                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                                                            <Calendar size={14} className="text-slate-300" />
+                                                            <span>Creado: {new Date(survey.createdAt).toLocaleDateString()}</span>
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                <div className="p-4 bg-slate-50 dark:bg-black/20 border-t border-slate-200 dark:border-white/5 flex gap-2">
+                                                <div className={`p-4 bg-slate-50/80 dark:bg-black/40 border-t border-slate-100 dark:border-white/5 grid ${survey.survey_type === 'raffle' ? 'grid-cols-5' : 'grid-cols-4'} gap-2 backdrop-blur-sm`}>
                                                     <button
                                                         onClick={() => copyToClipboard(survey.id)}
-                                                        className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg text-sm font-medium transition-all duration-300
+                                                        className={`col-span-1 py-3 rounded-xl flex items-center justify-center transition-all duration-300 relative group/btn
                                                             ${copiedId === survey.id
-                                                                ? 'bg-green-100 text-green-700 border border-green-200'
-                                                                : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200'
+                                                                ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                                                                : 'bg-white dark:bg-slate-700 text-slate-400 hover:text-primary-600 hover:bg-white hover:shadow-lg hover:-translate-y-1'
                                                             }`}
+                                                        title="Copiar Link"
                                                     >
-                                                        {copiedId === survey.id ? (
-                                                            <>
-                                                                <Check size={16} /> ¡Copiado!
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <Link size={16} /> Copiar Link
-                                                            </>
-                                                        )}
+                                                        {copiedId === survey.id ? <Check size={20} className="animate-bounce" /> : <Link size={20} />}
                                                     </button>
-                                                    <button
-                                                        onClick={() => window.open(`/raffle/${survey.id}`, '_blank')}
-                                                        className="p-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-400 hover:text-yellow-500 transition-colors"
-                                                        title="Sorteo / Ruleta"
-                                                    >
-                                                        <Trophy size={16} />
-                                                    </button>
+
                                                     <button
                                                         onClick={() => setViewingResultsId(survey.id)}
-                                                        className="p-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-400 hover:text-primary-600 transition-colors"
+                                                        className="col-span-1 py-3 rounded-xl bg-white dark:bg-slate-700 text-slate-400 hover:text-blue-600 hover:bg-white hover:shadow-lg hover:-translate-y-1 flex items-center justify-center transition-all duration-300"
                                                         title="Ver Resultados"
                                                     >
-                                                        <Table size={16} />
+                                                        <Table size={20} />
                                                     </button>
+
+                                                    {survey.survey_type === 'raffle' && (
+                                                        <button
+                                                            onClick={() => navigate(`/raffle/${survey.id}`)}
+                                                            className="col-span-1 py-3 rounded-xl bg-white dark:bg-slate-700 text-slate-400 hover:text-yellow-500 hover:bg-white hover:shadow-lg hover:-translate-y-1 flex items-center justify-center transition-all duration-300"
+                                                            title="Ir a la Ruleta"
+                                                        >
+                                                            <Trophy size={20} />
+                                                        </button>
+                                                    )}
+
                                                     <button
                                                         onClick={() => handleEdit(survey)}
-                                                        className="p-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-400 hover:text-blue-500 transition-colors"
+                                                        className="col-span-1 py-3 rounded-xl bg-white dark:bg-slate-700 text-slate-400 hover:text-orange-500 hover:bg-white hover:shadow-lg hover:-translate-y-1 flex items-center justify-center transition-all duration-300"
+                                                        title="Editar Formulario"
                                                     >
-                                                        <Pencil size={16} />
+                                                        <Pencil size={20} />
                                                     </button>
+
                                                     <button
                                                         onClick={() => handleDelete(survey.id)}
-                                                        className="p-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+                                                        className="col-span-1 py-3 rounded-xl bg-white dark:bg-slate-700 text-slate-400 hover:text-red-500 hover:bg-white hover:shadow-lg hover:-translate-y-1 flex items-center justify-center transition-all duration-300 group/delete"
+                                                        title="Eliminar"
                                                     >
-                                                        <Trash2 size={16} />
+                                                        <Trash2 size={20} className="group-hover/delete:animate-shake" />
                                                     </button>
                                                 </div>
                                             </div>
@@ -875,19 +992,22 @@ function SurveyEventDashboard() {
 
                     return (
                         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditingResponse(null)}></div>
-                            <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-lg relative z-10 shadow-2xl animate-scale-in flex flex-col max-h-[90vh]">
-                                <div className="p-6 border-b border-slate-100 dark:border-white/10 flex justify-between items-center">
-                                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">Editar Respuesta</h3>
-                                    <button onClick={() => setEditingResponse(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                                        <X size={20} />
+                            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setEditingResponse(null)}></div>
+                            <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-lg relative z-10 shadow-2xl animate-scale-in flex flex-col max-h-[90vh] border border-white/20 overflow-hidden">
+                                <div className="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-black/20 backdrop-blur-md">
+                                    <div>
+                                        <h3 className="font-black text-xl text-slate-800 dark:text-white">Editar Respuesta</h3>
+                                        <p className="text-xs text-slate-500 font-medium mt-1">Modifica los datos del registro</p>
+                                    </div>
+                                    <button onClick={() => setEditingResponse(null)} className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                                        <X size={18} />
                                     </button>
                                 </div>
-                                <div className="p-6 overflow-y-auto custom-scrollbar">
-                                    <form onSubmit={handleSaveResponseEdit} className="space-y-4">
+                                <div className="p-8 overflow-y-auto custom-scrollbar">
+                                    <form onSubmit={handleSaveResponseEdit} className="space-y-6">
                                         {survey.questions.map(q => (
                                             <div key={q.id}>
-                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
                                                     {q.label}
                                                 </label>
                                                 {q.type === 'paragraph' ? (
@@ -897,7 +1017,7 @@ function SurveyEventDashboard() {
                                                             ...prev,
                                                             answers: { ...prev.answers, [q.label]: e.target.value }
                                                         }))}
-                                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                                        className="w-full px-4 py-3 rounded-2xl border-2 border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 outline-none transition-all font-medium resize-none"
                                                         rows={3}
                                                     />
                                                 ) : (
@@ -908,22 +1028,22 @@ function SurveyEventDashboard() {
                                                             ...prev,
                                                             answers: { ...prev.answers, [q.label]: e.target.value }
                                                         }))}
-                                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                                                        className="w-full px-4 py-3 rounded-2xl border-2 border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 outline-none transition-all font-medium"
                                                     />
                                                 )}
                                             </div>
                                         ))}
-                                        <div className="pt-4 flex gap-3">
+                                        <div className="pt-6 flex gap-4 border-t border-slate-100 dark:border-white/5 mt-8">
                                             <button
                                                 type="button"
                                                 onClick={() => setEditingResponse(null)}
-                                                className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                                                className="flex-1 py-3 rounded-xl border-2 border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                                             >
                                                 Cancelar
                                             </button>
                                             <button
                                                 type="submit"
-                                                className="flex-1 py-2.5 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-700 transition-colors shadow-lg shadow-primary-600/20"
+                                                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-white font-bold hover:shadow-lg hover:shadow-primary-500/30 hover:-translate-y-0.5 transition-all"
                                             >
                                                 Guardar Cambios
                                             </button>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, AlertCircle, Calendar, Clock, MapPin, ArrowRight } from 'lucide-react';
+import { CheckCircle, AlertCircle, Calendar, Clock, MapPin, ArrowRight, Trophy, Sparkles } from 'lucide-react';
+import PrizeWheel from './ui/PrizeWheel';
 
 function PublicSurveyView() {
     const { id } = useParams();
@@ -110,43 +111,80 @@ function PublicSurveyView() {
 
     if (submitted) {
         return (
-            <div className={`min-h-screen flex items-center justify-center bg-primary-600 p-4 transition-all duration-500 ${showWheel ? 'bg-slate-900' : ''}`}>
-                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center animate-scale-in overflow-hidden relative">
+            <div className={`min-h-screen flex items-center justify-center p-4 transition-all duration-700 relative overflow-hidden ${showWheel ? 'bg-slate-900' : 'bg-[#0f172a]'}`}>
+                {/* Advanced Dynamic Background */}
+                {!showWheel && (
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] bg-purple-500/20 rounded-full blur-[120px] animate-pulse-slow"></div>
+                        <div className="absolute top-[40%] -right-[10%] w-[60%] h-[60%] bg-blue-500/20 rounded-full blur-[100px] animate-pulse-slow delay-1000"></div>
+                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
+                    </div>
+                )}
+
+                <div className={`bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl p-8 md:p-12 max-w-lg w-full text-center animate-scale-in relative border border-white/20 overflow-hidden ${showWheel ? 'bg-slate-800/95 border-white/10 text-white' : ''}`}>
+
+                    {/* Decorative Top Gradient Line */}
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500"></div>
 
                     {!showWheel ? (
                         <>
-                            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <CheckCircle size={40} />
-                            </div>
-                            <h1 className="text-2xl font-bold text-slate-900 mb-2">¡Registro Exitoso!</h1>
-                            <p className="text-slate-600 mb-8 break-words break-all">
-                                Gracias por registrarte en <strong>{survey.title}</strong>. Hemos guardado tu información correctamente.
-                            </p>
-
-                            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-100 rounded-2xl p-6 relative overflow-hidden group cursor-pointer hover:shadow-lg transition-all" onClick={() => setShowWheel(true)}>
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-200 rounded-full -mr-10 -mt-10 opacity-20 group-hover:scale-150 transition-transform duration-500"></div>
-                                <div className="relative z-10">
-                                    <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:rotate-12 transition-transform">
-                                        <Trophy size={24} />
-                                    </div>
-                                    <h3 className="font-bold text-slate-800 mb-1">¡Gira la Ruleta!</h3>
-                                    <p className="text-xs text-slate-500 mb-4">Participa por premios exclusivos para emprendedores.</p>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); setShowWheel(true); }}
-                                        className="bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider hover:bg-slate-800 transition-colors"
-                                    >
-                                        Jugar Ahora
-                                    </button>
+                            <div className="relative mb-10 mt-4">
+                                <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-2xl opacity-60 animate-pulse"></div>
+                                <div className="relative w-28 h-28 bg-gradient-to-tr from-orange-400 to-orange-600 rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-orange-500/40 animate-bounce-small border-4 border-white dark:border-slate-800">
+                                    <CheckCircle size={56} className="text-white drop-shadow-md" strokeWidth={3} />
                                 </div>
                             </div>
+
+                            <div className="space-y-2 mb-10">
+                                <h1 className="text-4xl md:text-5xl font-black text-slate-800 dark:text-white tracking-tight leading-tight">
+                                    ¡Registro <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-orange-600">Exitoso!</span>
+                                </h1>
+                                <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">Tu cupo ha sido reservado.</p>
+                            </div>
+
+                            {/* Ticket Style Event Details */}
+                            <div className="relative bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 mb-10 border border-slate-100 dark:border-white/5 shadow-inner group transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
+                                {/* Ticket Cutouts */}
+                                <div className="absolute top-1/2 -left-3 w-6 h-6 bg-white dark:bg-slate-900 rounded-full border border-slate-100 dark:border-white/5 -translate-y-1/2"></div>
+                                <div className="absolute top-1/2 -right-3 w-6 h-6 bg-white dark:bg-slate-900 rounded-full border border-slate-100 dark:border-white/5 -translate-y-1/2"></div>
+
+                                <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-3">Estás registrado en</p>
+                                <h2 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white leading-tight mb-6 text-balance">
+                                    {survey.title}
+                                </h2>
+
+                                <div className="border-t-2 border-dashed border-slate-200 dark:border-slate-700 pt-6 flex flex-wrap justify-center gap-4">
+                                    {survey.eventDate && (
+                                        <div className="flex items-center gap-2 bg-white dark:bg-slate-700 py-2 px-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-600">
+                                            <Calendar size={18} className="text-purple-500" />
+                                            <span className="font-bold text-slate-700 dark:text-slate-200 capitalize">
+                                                {new Date(survey.eventDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {survey.eventTime && (
+                                        <div className="flex items-center gap-2 bg-white dark:bg-slate-700 py-2 px-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-600">
+                                            <Clock size={18} className="text-orange-500" />
+                                            <span className="font-bold text-slate-700 dark:text-slate-200">
+                                                {survey.eventTime.slice(0, 5)}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+
+
+                            {/* Wheel Teaser - Only for Raffle Type */}
+
                         </>
                     ) : (
                         <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
                             {!prize ? (
                                 <>
-                                    <div className="mb-6">
-                                        <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">¡Mucha Suerte! 🍀</h2>
-                                        <p className="text-slate-500 text-sm">Gira la ruleta y descubre tu premio</p>
+                                    <div className="mb-8">
+                                        <h2 className="text-3xl font-black text-white uppercase tracking-tight mb-2">¡Mucha Suerte! 🍀</h2>
+                                        <p className="text-slate-400 text-lg">Gira la ruleta y descubre tu premio</p>
                                     </div>
                                     <div className="transform scale-90 md:scale-100">
                                         <PrizeWheel
@@ -160,26 +198,36 @@ function PublicSurveyView() {
                                 </>
                             ) : (
                                 <div className="py-8 animate-in zoom-in duration-500">
-                                    <div className="relative inline-block mb-6">
-                                        <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-50 animate-pulse"></div>
-                                        <div className="relative w-24 h-24 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-2xl flex items-center justify-center text-white shadow-xl rotate-3 mx-auto">
-                                            <Sparkles size={48} className="animate-bounce" />
+                                    <div className="relative inline-block mb-8">
+                                        <div className="absolute inset-0 bg-yellow-400 blur-2xl opacity-40 animate-pulse"></div>
+                                        <div className="relative w-32 h-32 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-3xl flex items-center justify-center text-white shadow-2xl rotate-6 mx-auto border-4 border-white/20 backdrop-blur-sm">
+                                            <Sparkles size={64} className="animate-bounce drop-shadow-md" />
                                         </div>
                                     </div>
-                                    <h2 className="text-3xl font-black text-slate-900 mb-2">{prize === "Sigue Intentando" ? "¡Casi!" : "¡Ganaste!"}</h2>
-                                    <p className="text-lg font-medium text-slate-600 mb-8 border-b-2 border-slate-100 pb-8 border-dashed">
-                                        {prize === "Sigue Intentando" ? "Gracias por participar, ¡inténtalo en el próximo evento!" : <span>Tu premio es: <strong className="text-primary-600 block text-2xl mt-2">{prize}</strong></span>}
-                                    </p>
+
+                                    <h2 className="text-4xl font-black text-white mb-4 drop-shadow-lg">{prize === "Sigue Intentando" ? "¡Casi!" : "¡FELICIDADES!"}</h2>
+
+                                    <div className="bg-slate-700/50 rounded-2xl p-6 mb-8 border border-white/10 backdrop-blur-md">
+                                        <p className="text-slate-300 text-sm uppercase tracking-widest font-bold mb-2">Tu premio</p>
+                                        <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-yellow-400 to-orange-400">
+                                            {prize}
+                                        </div>
+                                    </div>
 
                                     {prize !== "Sigue Intentando" && (
-                                        <p className="text-xs text-slate-400 mb-6 bg-slate-50 p-3 rounded-lg">
-                                            Captura esta pantalla y muéstrala al organizador para reclamar tu premio.
-                                        </p>
+                                        <div className="flex items-start gap-3 text-left bg-blue-900/30 p-4 rounded-xl border border-blue-500/30 mb-8">
+                                            <div className="bg-blue-500/20 p-2 rounded-lg text-blue-300">
+                                                <CheckCircle size={20} />
+                                            </div>
+                                            <p className="text-sm text-blue-100 leading-relaxed">
+                                                <strong>¡Importante!</strong> Toma una captura de pantalla ahora mismo para reclamar tu premio con el organizador.
+                                            </p>
+                                        </div>
                                     )}
 
                                     <button
                                         onClick={() => window.location.reload()}
-                                        className="text-slate-500 text-sm font-bold hover:text-slate-800 underline decoration-2 underline-offset-4"
+                                        className="w-full bg-white text-slate-900 font-bold py-4 rounded-xl hover:bg-slate-100 transition-colors shadow-lg shadow-white/10"
                                     >
                                         Volver al inicio
                                     </button>
