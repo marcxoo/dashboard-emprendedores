@@ -251,9 +251,7 @@ function PublicSurveyView() {
                     <p className="text-slate-600 mb-6">
                         Lo sentimos, se ha alcanzado el límite de registros para <strong>{survey.title}</strong>.
                     </p>
-                    <div className="p-4 bg-slate-50 rounded-lg text-sm text-slate-500">
-                        Si crees que esto es un error, por favor contacta al organizador.
-                    </div>
+
                 </div>
             </div>
         );
