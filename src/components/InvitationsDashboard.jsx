@@ -254,7 +254,7 @@ export default function InvitationsDashboard() {
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md z-50 flex items-center px-4 justify-between border-b border-slate-200 dark:border-white/5">
                 <div className="font-bold text-xl tracking-tight flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg shadow-green-500/20">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
                         <Send size={16} />
                     </div>
                     <span className="text-slate-800 dark:text-white">Invitaciones</span>
@@ -277,12 +277,12 @@ export default function InvitationsDashboard() {
             `}>
                 <div className="hidden lg:block p-8 border-b border-slate-100 dark:border-white/5">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/30 ring-4 ring-green-50 dark:ring-green-900/20">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 ring-4 ring-orange-50 dark:ring-orange-900/20">
                             <Send size={24} className="text-white" />
                         </div>
                         <div>
                             <h1 className="font-bold text-xl leading-tight text-slate-900 dark:text-white tracking-tight">Invitaciones</h1>
-                            <p className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">Dashboard</p>
+                            <p className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">Dashboard</p>
                         </div>
                     </div>
                 </div>
@@ -330,8 +330,8 @@ export default function InvitationsDashboard() {
                         </div>
                         <div className="flex items-center gap-3 px-5 py-2.5 bg-white dark:bg-slate-900 rounded-full shadow-sm border border-slate-200 dark:border-slate-800">
                             <div className="relative">
-                                <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-20"></div>
-                                <span className="relative w-2.5 h-2.5 block rounded-full bg-green-500"></span>
+                                <div className="absolute inset-0 bg-orange-500 rounded-full animate-ping opacity-20"></div>
+                                <span className="relative w-2.5 h-2.5 block rounded-full bg-orange-500"></span>
                             </div>
                             <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Sistema Operativo</span>
                         </div>
@@ -341,103 +341,99 @@ export default function InvitationsDashboard() {
 
                         {/* LEFT COLUMN: Configuration (Sticky) */}
                         <div className="xl:col-span-4 space-y-6 xl:sticky xl:top-8">
-                            {/* 1. Configuration Section */}
-                            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 lg:p-8 border border-slate-100 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
+                            {/* 1. Configuration Card - SOFT UI */}
+                            <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-500">
                                 {/* Decorational Background */}
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-green-500/5 to-emerald-500/5 rounded-full blur-3xl -z-10 group-hover:bg-green-500/10 transition-colors duration-500"></div>
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-500/5 to-orange-600/5 rounded-full blur-3xl -z-10 group-hover:bg-orange-500/10 transition-colors duration-500"></div>
 
-                                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-4">
-                                    <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-black border border-slate-200 dark:border-slate-700 shadow-sm text-lg">1</div>
+                                <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-8 flex items-center gap-4">
+                                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-black shadow-sm text-lg text-orange-600">1</div>
                                     Configuración
                                 </h2>
 
                                 <div className="space-y-8">
                                     <div className="space-y-3">
-                                        <Label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Plantilla de Mensaje</Label>
+                                        <Label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-4">Plantilla de Mensaje</Label>
                                         <div className="relative group">
                                             <select
                                                 value={messageTemplate}
                                                 onChange={(e) => setMessageTemplate(e.target.value)}
-                                                className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl appearance-none outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all font-bold text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-white dark:hover:bg-slate-800"
+                                                className="w-full px-6 py-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-full appearance-none outline-none focus:ring-4 focus:ring-orange-500/10 transition-all font-bold text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                             >
                                                 <option value="taller_rentabilidad">🌱 Taller Rentabilidad Garantizada</option>
                                                 <option value="custom">✍️ Mensaje Personalizado</option>
                                             </select>
-                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none group-hover:translate-y-[-10%] transition-transform">
+                                            <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none group-hover:translate-y-[-10%] transition-transform">
                                                 <ChevronDown className="text-slate-400" size={20} strokeWidth={3} />
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="space-y-3">
-                                        <Label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Adjuntar Formulario</Label>
+                                        <Label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-4">Adjuntar Formulario</Label>
                                         <div className="relative group">
                                             <select
                                                 value={attachedSurveyId}
                                                 onChange={(e) => setAttachedSurveyId(e.target.value)}
-                                                className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl appearance-none outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all font-bold text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-white dark:hover:bg-slate-800"
+                                                className="w-full px-6 py-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-full appearance-none outline-none focus:ring-4 focus:ring-orange-500/10 transition-all font-bold text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                             >
                                                 <option value="">-- Sin formulario extra --</option>
                                                 {customSurveys.map(s => (
                                                     <option key={s.id} value={s.id}>📝 {s.title}</option>
                                                 ))}
                                             </select>
-                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-green-500 transition-colors bg-white dark:bg-slate-800 rounded-full p-1 shadow-sm">
+                                            <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-orange-500 transition-colors bg-white dark:bg-slate-800 rounded-full p-1 shadow-sm">
                                                 <Sparkles size={16} />
                                             </div>
                                         </div>
                                     </div>
 
                                     {messageTemplate === 'custom' && (
-                                        <div className="space-y-4 animate-in slide-in-from-top-4 fade-in duration-300 p-5 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-slate-200 dark:border-slate-700/50 border-dashed">
+                                        <div className="space-y-4 animate-in slide-in-from-top-4 fade-in duration-300 p-6 bg-slate-50 dark:bg-slate-800/30 rounded-[2rem]">
                                             <input
                                                 type="text"
                                                 placeholder="Asunto del correo..."
                                                 value={customSubject}
                                                 onChange={e => setCustomSubject(e.target.value)}
-                                                className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-green-500 transition-all font-bold placeholder:font-medium"
+                                                className="w-full px-6 py-3 bg-white dark:bg-slate-900 rounded-full text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-orange-500/20 transition-all font-bold placeholder:font-medium shadow-sm"
                                             />
                                             <textarea
                                                 placeholder="Hola [Nombre], te escribo para..."
                                                 value={customBody}
                                                 onChange={e => setCustomBody(e.target.value)}
                                                 rows={4}
-                                                className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 outline-none focus:border-green-500 transition-all font-medium resize-none placeholder:font-medium"
+                                                className="w-full px-6 py-4 bg-white dark:bg-slate-900 rounded-[1.5rem] text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-orange-500/20 transition-all font-medium resize-none placeholder:font-medium shadow-sm"
                                             />
                                             <p className="text-[10px] font-bold text-slate-400 text-center uppercase tracking-wide">Se adjuntará el link automáticamente si seleccionaste uno.</p>
                                         </div>
                                     )}
 
-                                    {/* Mock Email Preview */}
-                                    <div className="mt-8 rounded-3xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900">
-                                        <div className="bg-slate-100 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                                            <div className="flex gap-1.5">
-                                                <div className="w-2.5 h-2.5 rounded-full bg-red-400/80"></div>
-                                                <div className="w-2.5 h-2.5 rounded-full bg-amber-400/80"></div>
-                                                <div className="w-2.5 h-2.5 rounded-full bg-green-400/80"></div>
+                                    {/* Mock Email Preview - Soft UI */}
+                                    <div className="mt-8 rounded-[2rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none bg-white dark:bg-slate-900">
+                                        <div className="bg-slate-50/80 dark:bg-slate-800/50 px-6 py-4 flex items-center justify-between">
+                                            <div className="flex gap-2">
+                                                <div className="w-3 h-3 rounded-full bg-red-400/80"></div>
+                                                <div className="w-3 h-3 rounded-full bg-amber-400/80"></div>
+                                                <div className="w-3 h-3 rounded-full bg-green-400/80"></div>
                                             </div>
                                             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vista Previa</div>
                                         </div>
-                                        <div className="p-6 space-y-4 bg-white dark:bg-slate-900 relative">
-                                            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                                                <Mail size={100} />
-                                            </div>
-
-                                            <div className="space-y-2 pb-4 border-b border-slate-50 dark:border-white/5">
+                                        <div className="p-8 space-y-4 bg-white dark:bg-slate-900 relative">
+                                            <div className="space-y-3 pb-6 border-b border-slate-50 dark:border-white/5">
                                                 <div className="flex items-center gap-3 text-xs">
-                                                    <span className="text-slate-400 font-bold w-12 text-right">Para:</span>
-                                                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
-                                                        <User size={12} className="text-slate-500" />
-                                                        <span className="text-slate-700 dark:text-slate-300 font-bold">Emprendedor Ejemplo</span>
+                                                    <span className="text-slate-300 font-bold w-12 text-right">Para</span>
+                                                    <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-full">
+                                                        <User size={12} className="text-slate-400" />
+                                                        <span className="text-slate-600 dark:text-slate-300 font-bold">Emprendedor Ejemplo</span>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-start gap-3 text-xs">
-                                                    <span className="text-slate-400 font-bold w-12 text-right mt-0.5">Asunto:</span>
-                                                    <span className="text-slate-900 dark:text-white font-bold flex-1 leading-snug">{getMessageContent({}).subject}</span>
+                                                    <span className="text-slate-300 font-bold w-12 text-right mt-0.5">Asunto</span>
+                                                    <span className="text-slate-800 dark:text-white font-bold flex-1 leading-snug">{getMessageContent({}).subject}</span>
                                                 </div>
                                             </div>
 
-                                            <div className="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed py-2 h-64 overflow-y-auto scrollbar-thin font-medium">
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 whitespace-pre-wrap leading-relaxed py-2 h-64 overflow-y-auto scrollbar-thin font-medium">
                                                 {getMessageContent({ persona_contacto: "[Nombre]" }).body}
                                             </div>
                                         </div>
@@ -446,165 +442,154 @@ export default function InvitationsDashboard() {
                             </div>
                         </div>
 
-                        {/* RIGHT COLUMN: Selection & Table */}
-                        <div className="xl:col-span-8 space-y-6">
-                            {/* 2. Selection Section */}
-                            <div className="flex flex-col h-full">
-                                {/* Header / Controls */}
-                                <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 lg:p-8 border border-slate-100 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none mb-6">
-                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                                        <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-4">
-                                            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-black border border-slate-200 dark:border-slate-700 shadow-sm text-lg">2</div>
-                                            Destinatarios
-                                            <span className="ml-2 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-xs rounded-xl font-black border border-green-100 dark:border-green-500/20 min-w-[2rem] text-center">
-                                                {filteredEntrepreneurs.length}
-                                            </span>
-                                        </h2>
+                        {/* RIGHT COLUMN: Selection & Table - SOFT UI */}
+                        <div className="xl:col-span-8 space-y-8">
+                            {/* 2. Selection Header - Floating Pill Bar */}
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4">
+                                <h2 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-4">
+                                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-black shadow-sm text-lg text-orange-600">2</div>
+                                    Destinatarios
+                                    <span className="ml-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 text-xs rounded-full font-black min-w-[2rem] text-center">
+                                        {filteredEntrepreneurs.length}
+                                    </span>
+                                </h2>
 
-                                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                                            <div className="relative flex-1 md:min-w-[280px]">
-                                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} strokeWidth={2.5} />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Buscar por nombre, correo..."
-                                                    value={searchTerm}
-                                                    onChange={e => setSearchTerm(e.target.value)}
-                                                    className="pl-11 pr-4 py-3 w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-200 placeholder:text-slate-400 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all"
-                                                />
-                                            </div>
-                                            <div className="relative">
-                                                <select
-                                                    value={selectedCategory}
-                                                    onChange={e => setSelectedCategory(e.target.value)}
-                                                    className="pl-4 pr-10 py-3 w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all appearance-none cursor-pointer"
-                                                >
-                                                    <option value="">Todas las categorías</option>
-                                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                                </select>
-                                                <Filter className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-                                            </div>
-                                        </div>
+                                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                                    {/* Floating Search Pill */}
+                                    <div className="relative flex-1 md:min-w-[320px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full">
+                                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} strokeWidth={2.5} />
+                                        <input
+                                            type="text"
+                                            placeholder="Buscar..."
+                                            value={searchTerm}
+                                            onChange={e => setSearchTerm(e.target.value)}
+                                            className="pl-14 pr-6 py-4 w-full bg-white dark:bg-slate-900 rounded-full text-sm font-bold text-slate-800 dark:text-slate-200 placeholder:text-slate-300 outline-none focus:ring-4 focus:ring-orange-500/5 transition-all"
+                                        />
                                     </div>
 
-                                    {/* Select All Toggle */}
-                                    <div className="mt-6 flex items-center gap-3 pt-6 border-t border-slate-100 dark:border-white/5">
-                                        <div className="flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-white/5 p-2 rounded-xl transition-colors cursor-pointer select-none" onClick={handleSelectAll}>
-                                            <Checkbox
-                                                checked={filteredEntrepreneurs.length > 0 && selectedEntrepreneurs.size === filteredEntrepreneurs.length}
-                                                onCheckedChange={handleSelectAll}
-                                                id="select-all"
-                                                className="data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 w-6 h-6 rounded-lg border-2 border-slate-300 dark:border-slate-600"
-                                            />
-                                            <Label htmlFor="select-all" className="cursor-pointer font-bold text-slate-600 dark:text-slate-300">
-                                                Seleccionar Todos ({filteredEntrepreneurs.length})
-                                            </Label>
-                                        </div>
-
-                                        {selectedEntrepreneurs.size > 0 && (
-                                            <span className="text-sm font-medium text-slate-400 animate-in fade-in slide-in-from-left-2">
-                                                • {selectedEntrepreneurs.size} seleccionados
-                                            </span>
-                                        )}
+                                    {/* Floating Filter Pill */}
+                                    <div className="relative shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full">
+                                        <select
+                                            value={selectedCategory}
+                                            onChange={e => setSelectedCategory(e.target.value)}
+                                            className="pl-6 pr-12 py-4 w-full bg-white dark:bg-slate-900 rounded-full text-sm font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-4 focus:ring-orange-500/5 transition-all appearance-none cursor-pointer"
+                                        >
+                                            <option value="">Todas las categorías</option>
+                                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                        <Filter className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* List Results */}
-                                <div className="space-y-3 pb-32">
-                                    {filteredEntrepreneurs.slice(0, 50).map((e, index) => {
-                                        const isSelected = selectedEntrepreneurs.has(e.id);
-                                        return (
-                                            <div
-                                                key={e.id}
-                                                onTouchStart={() => handleTouchStart(e)}
-                                                onTouchEnd={handleTouchEnd}
-                                                onMouseDown={() => handleTouchStart(e)}
-                                                onMouseUp={handleTouchEnd}
-                                                onMouseLeave={handleTouchEnd}
-                                                className={`group relative bg-white dark:bg-slate-900 p-4 rounded-3xl border transition-all duration-300 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 cursor-pointer select-none
+                            {/* Select All - Clean & Minimal */}
+                            <div className="flex items-center justify-between px-6">
+                                <div className="flex items-center gap-3 cursor-pointer group select-none" onClick={handleSelectAll}>
+                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${filteredEntrepreneurs.length > 0 && selectedEntrepreneurs.size === filteredEntrepreneurs.length
+                                            ? 'bg-orange-500 border-orange-500'
+                                            : 'border-slate-300 group-hover:border-orange-400'
+                                        }`}>
+                                        {filteredEntrepreneurs.length > 0 && selectedEntrepreneurs.size === filteredEntrepreneurs.length && <Check size={14} className="text-white" strokeWidth={3} />}
+                                    </div>
+                                    <Label className="cursor-pointer font-bold text-slate-500 group-hover:text-orange-600 transition-colors">
+                                        Seleccionar Todos
+                                    </Label>
+                                </div>
+
+                                {selectedEntrepreneurs.size > 0 && (
+                                    <span className="px-4 py-1.5 bg-orange-500 text-white rounded-full text-xs font-bold animate-in fade-in slide-in-from-right-4 shadow-lg shadow-orange-500/30">
+                                        {selectedEntrepreneurs.size} seleccionados
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* List Results - Cards */}
+                            <div className="grid grid-cols-1 gap-4 pb-32 px-2">
+                                {filteredEntrepreneurs.slice(0, 50).map((e, index) => {
+                                    const isSelected = selectedEntrepreneurs.has(e.id);
+                                    return (
+                                        <div
+                                            key={e.id}
+                                            onTouchStart={() => handleTouchStart(e)}
+                                            onTouchEnd={handleTouchEnd}
+                                            onMouseDown={() => handleTouchStart(e)}
+                                            onMouseUp={handleTouchEnd}
+                                            onMouseLeave={handleTouchEnd}
+                                            className={`group relative p-4 rounded-[2rem] transition-all duration-300 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 cursor-pointer select-none
+                                            ${isSelected
+                                                    ? 'bg-white dark:bg-slate-900 shadow-[0_8px_30px_rgb(249,115,22,0.15)] scale-[1.01] z-10'
+                                                    : 'bg-white dark:bg-slate-900 shadow-[0_4px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1'
+                                                }`}
+                                        >
+                                            {/* Selection Checkbox - Circular */}
+                                            <div className="pl-2" onClick={(ev) => { ev.stopPropagation(); toggleSelection(e.id); }}>
+                                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-orange-500 border-orange-500' : 'border-slate-200 dark:border-slate-700 group-hover:border-orange-400'
+                                                    }`}>
+                                                    {isSelected && <Check size={14} className="text-white" strokeWidth={3} />}
+                                                </div>
+                                            </div>
+
+                                            {/* Avatar / Initials */}
+                                            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-black shrink-0 transition-colors shadow-sm
                                                 ${isSelected
-                                                        ? 'border-green-500/50 shadow-lg shadow-green-500/10 dark:shadow-none bg-green-50/10 dark:bg-green-900/10'
-                                                        : 'border-slate-100 dark:border-white/5 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-slate-200 dark:hover:border-white/10'
-                                                    }`}
-                                            >
-                                                {/* Selection Checkbox */}
-                                                <div className="pl-2" onClick={(ev) => ev.stopPropagation()}>
-                                                    <Checkbox
-                                                        checked={isSelected}
-                                                        onCheckedChange={() => toggleSelection(e.id)}
-                                                        className="w-6 h-6 rounded-lg data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 border-2 border-slate-200 dark:border-slate-700"
-                                                    />
-                                                </div>
+                                                    ? 'bg-orange-100 text-orange-600'
+                                                    : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 group-hover:bg-slate-100 dark:group-hover:bg-slate-700'
+                                                }
+                                            `}>
+                                                {e.nombre_emprendimiento?.charAt(0) || 'E'}
+                                            </div>
 
-                                                {/* Avatar / Initials */}
-                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-black shrink-0 transition-colors
-                                                    ${isSelected
-                                                        ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
-                                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700'
-                                                    }
-                                                `}>
-                                                    {e.nombre_emprendimiento?.charAt(0) || 'E'}
-                                                </div>
-
-                                                {/* Info */}
-                                                <div className="flex-1 text-center sm:text-left min-w-0">
-                                                    <h3 className={`font-bold text-lg leading-tight mb-1 truncate ${isSelected ? 'text-green-700 dark:text-green-400' : 'text-slate-900 dark:text-white'}`}>
-                                                        {e.nombre_emprendimiento}
-                                                    </h3>
-                                                    {e.actividad_economica && (
-                                                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 line-clamp-2 mb-2 leading-relaxed opacity-90">
-                                                            {e.actividad_economica}
-                                                        </p>
-                                                    )}
-                                                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1 sm:gap-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                                                        <span className="flex items-center gap-1">
-                                                            <User size={12} /> {e.persona_contacto}
-                                                        </span>
-                                                        <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
-                                                        <span className="bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded-lg text-slate-600 dark:text-slate-300">
-                                                            {e.categoria_principal}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Actions */}
-                                                <div className="flex items-center gap-2 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all sm:translate-x-4 sm:group-hover:translate-x-0" onClick={(ev) => ev.stopPropagation()}>
-                                                    <button
-                                                        onClick={() => handleWhatsAppClick(e)}
-                                                        className="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-green-600 dark:text-green-400 rounded-2xl hover:bg-green-500 hover:text-white dark:hover:bg-green-500 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20 transition-all hover:scale-110 active:scale-95 group/btn"
-                                                        title="WhatsApp"
-                                                    >
-                                                        <MessageCircle size={20} strokeWidth={2.5} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleEmailClick(e)}
-                                                        className="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-blue-600 dark:text-blue-400 rounded-2xl hover:bg-blue-500 hover:text-white dark:hover:bg-blue-500 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all hover:scale-110 active:scale-95"
-                                                        title="Email"
-                                                    >
-                                                        <Mail size={20} strokeWidth={2.5} />
-                                                    </button>
+                                            {/* Info */}
+                                            <div className="flex-1 text-center sm:text-left min-w-0">
+                                                <h3 className={`font-bold text-lg leading-tight mb-1 truncate ${isSelected ? 'text-orange-700 dark:text-orange-400' : 'text-slate-800 dark:text-white'}`}>
+                                                    {e.nombre_emprendimiento}
+                                                </h3>
+                                                {e.actividad_economica && (
+                                                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 line-clamp-1 mb-2">
+                                                        {e.actividad_economica}
+                                                    </p>
+                                                )}
+                                                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1 sm:gap-3 text-xs font-semibold text-slate-400 dark:text-slate-500">
+                                                    <span className="flex items-center gap-1">
+                                                        <User size={12} /> {e.persona_contacto}
+                                                    </span>
+                                                    <span className="hidden sm:inline text-slate-200 dark:text-slate-700">•</span>
+                                                    <span className="px-2 py-0.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                                                        {e.categoria_principal}
+                                                    </span>
                                                 </div>
                                             </div>
-                                        );
-                                    })}
 
-                                    {filteredEntrepreneurs.length === 0 && (
-                                        <div className="py-20 text-center">
-                                            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-400">
-                                                <Search size={32} />
+                                            {/* Actions */}
+                                            <div className="flex items-center gap-2 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all sm:translate-x-4 sm:group-hover:translate-x-0" onClick={(ev) => ev.stopPropagation()}>
+                                                <button
+                                                    onClick={() => handleWhatsAppClick(e)}
+                                                    className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center shadow-sm hover:shadow-orange-500/30"
+                                                    title="WhatsApp"
+                                                >
+                                                    <MessageCircle size={18} strokeWidth={2.5} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleEmailClick(e)}
+                                                    className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center shadow-sm hover:shadow-blue-500/30"
+                                                    title="Email"
+                                                >
+                                                    <Mail size={18} strokeWidth={2.5} />
+                                                </button>
                                             </div>
-                                            <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">No se encontraron resultados</h3>
-                                            <p className="text-slate-500 dark:text-slate-400">Intenta ajustar tu búsqueda.</p>
                                         </div>
-                                    )}
+                                    );
+                                })}
 
-                                    {filteredEntrepreneurs.length > 50 && (
-                                        <div className="py-8 text-center">
-                                            <span className="px-4 py-2 bg-slate-100 dark:bg-slate-800/50 rounded-full text-xs font-bold text-slate-500 dark:text-slate-400">
-                                                Mostrando los primeros 50 de {filteredEntrepreneurs.length} resultados
-                                            </span>
+                                {filteredEntrepreneurs.length === 0 && (
+                                    <div className="py-20 text-center">
+                                        <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                                            <Search size={40} />
                                         </div>
-                                    )}
-                                </div>
+                                        <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">Sin resultados</h3>
+                                        <p className="text-slate-400">Intenta con otro término.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -629,7 +614,7 @@ export default function InvitationsDashboard() {
                         <div className="h-8 w-[1px] bg-white/10 dark:bg-slate-200 mx-2"></div>
                         <button
                             onClick={handleBulkEmail}
-                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-[1.5rem] font-bold transition-all shadow-lg shadow-green-600/30 hover:shadow-green-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-500 hover:to-orange-500 text-white rounded-[1.5rem] font-bold transition-all shadow-lg shadow-orange-500/30 hover:shadow-orange-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
                         >
                             <Mail size={18} strokeWidth={2.5} />
                             <span>Enviar BCC</span>

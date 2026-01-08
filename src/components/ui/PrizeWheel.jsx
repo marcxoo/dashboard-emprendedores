@@ -12,7 +12,7 @@ const WHEEL_COLORS = [
     '#F97316', // Orange
 ];
 
-export default function PrizeWheel({ prizes = [], onWin }) {
+export default function PrizeWheel({ prizes = [], onWin, onSpinChange }) {
     const [isSpinning, setIsSpinning] = useState(false);
     const [winnerIndex, setWinnerIndex] = useState(null);
     const [activeLight, setActiveLight] = useState(0);
@@ -48,6 +48,7 @@ export default function PrizeWheel({ prizes = [], onWin }) {
     const spinToWinner = async () => {
         if (isSpinning) return;
         setIsSpinning(true);
+        if (onSpinChange) onSpinChange(true);
         setWinnerIndex(null);
 
         const winningIndex = Math.floor(Math.random() * numSegments);
@@ -71,7 +72,7 @@ export default function PrizeWheel({ prizes = [], onWin }) {
         await wheelControls.start({
             rotate: desiredEndRotation,
             transition: {
-                duration: 8,
+                duration: 10,
                 ease: [0.15, 0, 0.15, 1], // Casino ease
                 onUpdate: (latest) => {
                     const degPerSegment = 360 / numSegments;
@@ -99,6 +100,7 @@ export default function PrizeWheel({ prizes = [], onWin }) {
         });
 
         setIsSpinning(false);
+        if (onSpinChange) onSpinChange(false);
         if (onWin) onWin(winnerName);
     };
 
@@ -147,9 +149,9 @@ export default function PrizeWheel({ prizes = [], onWin }) {
                                 className="absolute top-0 left-1/2 w-6 h-[98%] -translate-x-1/2 pointer-events-none"
                                 style={{ transform: `rotate(${i * 15}deg)` }}
                             >
-                                <div className={`w-4 h-4 md:w-5 md:h-5 rounded-full mx-auto transition-all duration-75 border border-amber-900/40 ${isActive
-                                        ? "bg-[#fffbeb] shadow-[0_0_20px_4px_#f59e0b,0_0_8px_2px_#ffffff] scale-110 z-20"
-                                        : "bg-gradient-to-br from-amber-700 to-red-950 shadow-inner opacity-70"
+                                <div className={`w-4 h-4 md:w-5 md:h-5 rounded-full mx-auto transition-all duration-200 border border-amber-900/40 ${isActive
+                                    ? "bg-[#fffbeb] shadow-[0_0_20px_4px_#f59e0b,0_0_8px_2px_#ffffff] scale-110 z-20"
+                                    : "bg-gradient-to-br from-amber-700 to-red-950 shadow-inner opacity-70"
                                     }`}>
                                     {/* Glass Reflection Highlight */}
                                     {!isActive && <div className="absolute top-[20%] left-[20%] w-[30%] h-[30%] bg-white/30 rounded-full"></div>}
@@ -195,14 +197,17 @@ export default function PrizeWheel({ prizes = [], onWin }) {
                                     <text
                                         x="50" y="50"
                                         fill={textColor}
-                                        fontSize={items.length > 20 ? "3" : "4.5"}
+                                        fontSize={items.length > 20 ? "3.5" : "5"}
                                         fontWeight="900"
                                         textAnchor="end"
                                         alignmentBaseline="middle"
                                         transform={`rotate(${startAngle + segmentAngle / 2}, 50, 50) translate(44, 0)`}
-                                        style={{ fontFamily: 'Arial Black, sans-serif', textShadow: textColor === 'white' ? '1px 1px 2px rgba(0,0,0,0.5)' : 'none' }}
+                                        style={{
+                                            fontFamily: 'Arial Black, sans-serif',
+                                            textShadow: textColor === 'white' ? '1px 1px 2px rgba(0,0,0,0.5)' : 'none',
+                                        }}
                                     >
-                                        {item.length > 15 ? item.substring(0, 15) + '..' : item.toUpperCase()}
+                                        {item.length > 20 ? item.substring(0, 20) + '..' : item.toUpperCase()}
                                     </text>
                                 </g>
                             );
@@ -227,9 +232,9 @@ export default function PrizeWheel({ prizes = [], onWin }) {
                 disabled={isSpinning}
                 whileHover={!isSpinning ? { scale: 1.05, translateY: -2 } : {}}
                 whileTap={!isSpinning ? { scale: 0.95, translateY: 2 } : {}}
-                className={`mt-16 px-20 py-6 rounded-2xl font-black text-2xl tracking-widest uppercase shadow-[0_10px_0_#991b1b] transition-all border-4 border-yellow-400 ${isSpinning
-                        ? 'bg-gray-600 border-gray-500 text-gray-400 shadow-none translate-y-2'
-                        : 'bg-gradient-to-b from-red-500 to-red-700 text-white shadow-[0_8px_0_#7f1d1d,0_15px_20px_rgba(0,0,0,0.5)] hover:bg-red-500'
+                className={`mt-8 md:mt-12 px-16 py-5 md:px-24 md:py-8 rounded-2xl font-black text-2xl md:text-4xl tracking-widest uppercase shadow-[0_10px_0_#991b1b] transition-all border-4 border-yellow-400 ${isSpinning
+                    ? 'bg-gray-600 border-gray-500 text-gray-400 shadow-none translate-y-2'
+                    : 'bg-gradient-to-b from-red-500 to-red-700 text-white shadow-[0_8px_0_#7f1d1d,0_15px_20px_rgba(0,0,0,0.5)] hover:bg-red-500'
                     }`}
             >
                 {isSpinning ? 'GIRANDO...' : '¡GIRAR!'}
