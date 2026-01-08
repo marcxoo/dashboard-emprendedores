@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, Send, Mail, MessageCircle, Search, Filter, Copy, ExternalLink, ChevronDown, Check, User, Sparkles } from 'lucide-react';
+import { Menu, X, LogOut, Send, Mail, MessageCircle, Search, Filter, Copy, ExternalLink, ChevronDown, Check, User, Sparkles, FileText } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
@@ -18,6 +18,7 @@ export default function InvitationsDashboard() {
     // State for Filter/Selection
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
+    const [filterWithRuc, setFilterWithRuc] = useState(false);
     const [selectedEntrepreneurs, setSelectedEntrepreneurs] = useState(new Set());
 
     // State for Details Modal
@@ -61,9 +62,10 @@ export default function InvitationsDashboard() {
                     e.correo?.toLowerCase().includes(term)
                 );
             }
+            if (filterWithRuc && !e.ruc) return false;
             return true;
         });
-    }, [entrepreneurs, selectedCategory, searchTerm]);
+    }, [entrepreneurs, selectedCategory, searchTerm, filterWithRuc]);
 
     const handleSelectAll = () => {
         if (selectedEntrepreneurs.size === filteredEntrepreneurs.length) {
@@ -446,7 +448,7 @@ export default function InvitationsDashboard() {
                         {/* RIGHT COLUMN: Selection & Table - SOFT UI */}
                         <div className="xl:col-span-8 space-y-8">
                             {/* 2. Selection Header - Floating Pill Bar */}
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4">
+                            <div className="flex flex-col lg:flex-row items-center justify-between gap-6 px-4">
                                 <h2 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-4">
                                     <div className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-black shadow-sm text-lg text-orange-600">2</div>
                                     Destinatarios
@@ -455,9 +457,9 @@ export default function InvitationsDashboard() {
                                     </span>
                                 </h2>
 
-                                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                                <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                                     {/* Floating Search Pill */}
-                                    <div className="relative flex-1 md:min-w-[320px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full">
+                                    <div className="relative flex-1 lg:min-w-[280px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full">
                                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} strokeWidth={2.5} />
                                         <input
                                             type="text"
@@ -480,6 +482,19 @@ export default function InvitationsDashboard() {
                                         </select>
                                         <Filter className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                                     </div>
+
+                                    {/* RUC Filter Toggle */}
+                                    <button
+                                        onClick={() => setFilterWithRuc(!filterWithRuc)}
+                                        className={`px-5 py-4 rounded-full font-bold text-sm flex items-center gap-2 transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] whitespace-nowrap shrink-0 ${filterWithRuc
+                                            ? 'bg-orange-100 text-orange-700 ring-2 ring-orange-500/20'
+                                            : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                            }`}
+                                    >
+                                        <FileText size={18} strokeWidth={2.5} />
+                                        <span>Con RUC</span>
+                                        {filterWithRuc && <Check size={16} strokeWidth={3} className="ml-1" />}
+                                    </button>
                                 </div>
                             </div>
 
