@@ -97,7 +97,7 @@ export default function InvitationsDashboard() {
 
         if (messageTemplate === 'taller_rentabilidad') {
             subject = "[INVITACION]: Taller Práctico de Costos y Fijación del Precio Ideal";
-            body = `Hola ${name} 👋,\n\nEsperamos que te encuentres excelente.\n\nTe escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al curso:\n\n✨ *RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal* ✨\n\nDirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.\n\n📝 *Detalles del Evento:*\n📅 *Fecha:* 20 de Enero\n⏰ *Hora:* 10:00 - 13:00\n📍 *Lugar:* UNEMI - Bloque H, Aula 106\n👩‍🏫 *Capacitadora:* Msc. Dolores Mieles\n🧠 *Modalidad:* Presencial\n\n${surveyLink ? `👉 *Regístrate aquí:* ${surveyLink}\n\n` : ''}¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!\n\nSaludos,\nEquipo Emprende UNEMI`;
+            body = `Hola ${name} 👋,\n\nEsperamos que te encuentres excelente.\n\nTe escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller:\n\n✨ *RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal* ✨\n\nDirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.\n\n📝 *Detalles del Taller:*\n📅 *Fecha:* Martes, 20 de Enero\n⏰ *Hora:* 10:00 - 13:00\n📍 *Lugar:* UNEMI - Bloque H, Aula 106\n👩‍🏫 *Capacitadora:* Msc. Dolores Mieles\n🧠 *Modalidad:* Presencial\n\n⚠️ *Nota:* Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales.\n\n${surveyLink ? `👉 *Regístrate aquí:* ${surveyLink}\n\n` : ''}¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!\n\nSaludos,\nEquipo Emprendimiento UNEMI`;
         } else {
             subject = customSubject || "Invitación UNEMI Emprende";
             body = customBody || `Hola ${name},\n\nTe invitamos a participar en...`;
@@ -159,7 +159,7 @@ export default function InvitationsDashboard() {
 
         if (messageTemplate === 'taller_rentabilidad') {
             subject = "[INVITACION]: Taller Práctico de Costos y Fijación del Precio Ideal";
-            body = `Hola Emprendedor/a 👋,\n\nEsperamos que te encuentres excelente.\n\nTe escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al curso:\n\n✨ *RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal* ✨\n\nDirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.\n\n📝 *Detalles del Evento:*\n📅 *Fecha:* 20 de Enero\n⏰ *Hora:* 10:00 - 13:00\n📍 *Lugar:* UNEMI - Bloque H, Aula 106\n👩‍🏫 *Capacitadora:* Msc. Dolores Mieles\n🧠 *Modalidad:* Presencial\n\n${surveyLink ? `👉 *Regístrate aquí:* ${surveyLink}\n\n` : ''}¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!\n\nSaludos,\nEquipo Emprende UNEMI`;
+            body = `Hola Emprendedor/a 👋,\n\nEsperamos que te encuentres excelente.\n\nTe escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller:\n\n✨ *RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal* ✨\n\nDirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.\n\n📝 *Detalles del Taller:*\n📅 *Fecha:* Martes, 20 de Enero\n⏰ *Hora:* 10:00 - 13:00\n📍 *Lugar:* UNEMI - Bloque H, Aula 106\n👩‍🏫 *Capacitadora:* Msc. Dolores Mieles\n🧠 *Modalidad:* Presencial\n\n⚠️ *Nota:* Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales.\n\n${surveyLink ? `👉 *Regístrate aquí:* ${surveyLink}\n\n` : ''}¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!\n\nSaludos,\nEquipo Emprendimiento UNEMI`;
         } else {
             subject = customSubject || "Invitación UNEMI Emprende";
             body = customBody || `Hola Emprendedor/a,\n\nTe invitamos a participar en...`;
@@ -172,19 +172,20 @@ export default function InvitationsDashboard() {
                 <p>Hola Emprendedor/a 👋,</p>
                 <p>Esperamos que te encuentres excelente.</p>
                 ${messageTemplate === 'taller_rentabilidad' ? `
-                <p>Te escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al curso:</p>
+                <p>Te escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller:</p>
                 <p>✨ <strong>RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal</strong> ✨</p>
                 <p>Dirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.</p>
-                <p>📝 <strong>Detalles del Evento:</strong><br>
-                📅 <strong>Fecha:</strong> 20 de Enero<br>
+                <p>📝 <strong>Detalles del Taller:</strong><br>
+                📅 <strong>Fecha:</strong> Martes, 20 de Enero<br>
                 ⏰ <strong>Hora:</strong> 10:00 - 13:00<br>
                 📍 <strong>Lugar:</strong> UNEMI - Bloque H, Aula 106<br>
                 👩‍🏫 <strong>Capacitadora:</strong> Msc. Dolores Mieles<br>
-                🧠 <strong>Modalidad:</strong> Presencial</p>
+                🧠 <strong>Modalidad:</strong> Presencial<br>
+                ⚠️ <strong>Nota:</strong> Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales.</p>
                 ` : `<p>${body.replace(/\n/g, '<br>')}</p>`}
                 ${surveyLink ? `<p>👉 <strong>Regístrate aquí:</strong> <a href="${surveyLink}">${surveyLink}</a></p>` : ''}
                 <p>¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!</p>
-                <p>Saludos,<br>Equipo Emprende UNEMI</p>
+                <p>Saludos,<br>Equipo Emprendimiento UNEMI</p>
             </div>
         `;
 
@@ -486,8 +487,8 @@ export default function InvitationsDashboard() {
                             <div className="flex items-center justify-between px-6">
                                 <div className="flex items-center gap-3 cursor-pointer group select-none" onClick={handleSelectAll}>
                                     <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${filteredEntrepreneurs.length > 0 && selectedEntrepreneurs.size === filteredEntrepreneurs.length
-                                            ? 'bg-orange-500 border-orange-500'
-                                            : 'border-slate-300 group-hover:border-orange-400'
+                                        ? 'bg-orange-500 border-orange-500'
+                                        : 'border-slate-300 group-hover:border-orange-400'
                                         }`}>
                                         {filteredEntrepreneurs.length > 0 && selectedEntrepreneurs.size === filteredEntrepreneurs.length && <Check size={14} className="text-white" strokeWidth={3} />}
                                     </div>

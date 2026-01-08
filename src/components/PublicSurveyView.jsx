@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, AlertCircle, Calendar, Clock, MapPin, ArrowRight, Trophy, Sparkles } from 'lucide-react';
+import { CheckCircle, AlertCircle, Calendar, Clock, MapPin, ArrowRight, Trophy, Sparkles, Info } from 'lucide-react';
 import PrizeWheel from './ui/PrizeWheel';
 
 function PublicSurveyView() {
@@ -292,6 +292,15 @@ function PublicSurveyView() {
                         {survey.description && (
                             <p className="text-slate-600 text-sm md:text-lg leading-relaxed whitespace-pre-wrap mb-6 md:mb-8">{survey.description}</p>
                         )}
+
+                        {/* Note Alert */}
+                        <div className="mb-6 md:mb-8 bg-amber-50 text-amber-900 px-4 py-3 rounded-xl border border-amber-100 flex items-start gap-3">
+                            <Info size={18} className="text-amber-600 mt-0.5 shrink-0" />
+                            <p className="text-sm font-medium leading-relaxed">
+                                <span className="font-bold block mb-0.5">Nota:</span>
+                                Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales.
+                            </p>
+                        </div>
 
                         {/* Event Details Bar - Grid Layout with Dividers */}
                         {(survey.eventDate || survey.eventTime || survey.eventLocation) && (
