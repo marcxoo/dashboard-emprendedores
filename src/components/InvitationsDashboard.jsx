@@ -586,7 +586,7 @@ export default function InvitationsDashboard() {
                                     </div>
 
                                     {/* Status Filter Pill */}
-                                    <div className="relative shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full hidden sm:block">
+                                    <div className="relative shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full">
                                         <select
                                             value={invitationStatus}
                                             onChange={e => setInvitationStatus(e.target.value)}
