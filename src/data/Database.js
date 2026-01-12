@@ -117,7 +117,8 @@ export class Database {
       const { data: logs, error: logError } = await supabase
         .from('invitation_logs')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true })
+        .range(0, 4999);
 
       this.invitationLogs = logs || [];
 

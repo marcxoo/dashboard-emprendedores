@@ -61,6 +61,64 @@ export default function InvitationsDashboard() {
     const [attachedSurveyId, setAttachedSurveyId] = useState('');
     const [showHistory, setShowHistory] = useState(false);
 
+    // ALLOWED EMAILS LIST - STRICT FILTER
+    const ALLOWED_EMAILS = [
+        "margaritaavila324@gmail.com", "mv4739358@gmail.com", "n4077078@gmail.com", "Erikablp@hotmail.com", "pincaye576@gmail.com",
+        "morenonagely@gmail.com", "vmartillom2@gmail.com", "jcortezo2@unemi.edu.ec", "cristiperez30@yahoo.com", "tatycoello1990@hotmail.com",
+        "arielsaavedra202021@gmail.com", "andyinga083@gmail.com", "churritosangie@hotmail.com", "btorresv7@unemi.edu.ec",
+        "maria.sanchez.98@hotmail.com", "pdrovalencia3@gmail.com", "jachris25595@gmail.com", "divinaec905@gmail.com",
+        "juanitareyes911@gmail.com", "ana1970guerrero@gmail.com", "geomaradiaz02@gmail.com", "marjoriesalguero16@gmail.com",
+        "elopeza@hotmail.com", "Jennifferescobarnvas@gmail.com", "mariodavidnavassiza@gmail.com", "nagely.salinas@uees.edu.ec",
+        "amora1993@gmil.com", "cristinapaez2311@outlook.es", "camachobertha830@gmail.com", "ortizpachecoelizabethmayra@gmail.com",
+        "cedomenicka@gmail.com", "magdalena_pardo@hotmail.es", "marcosbriones0722@gmail.com", "petilu.pp@gmail.com",
+        "danielaac183@gmail.com", "florameliarivera@gmail.com", "aaltamiranoc4@unemi.educ.ec", "mariaelenalassa1@gmail.com",
+        "jimenezelena533@gmail.com", "tucunangohelen@gmail.com", "mari.cruz15@hotmail.com", "teresamariduena1808@gmail.com",
+        "yuquilemaivanna@gmail.com", "silveramelina65@gmail.com", "elizabethrocio-cepeda@hotmail.com",
+        "analaravaldiviezo@gmail.com", "beyou.joyeriaaccesorios@gmail.com", "leslypinela2003@gmail.com", "naranjo03allison@gmail.com",
+        "karen.michelleparedes@gmail.com", "haroldgranja@hotmail.com", "drosadoa@unemi.edu.ec", "gematapia2002@gmail.com",
+        "jenniferjerez22@gmail.com", "jgop_isl@hotmail.com", "edisonwillianlemag@gmail.com", "vivianaleonvl1@gmail.com",
+        "avillamarr2@unemi.edu.ec", "kg0996468518@gmail.com", "rociosantoscrisostomo@gmail.com"
+    ].map(e => e.toLowerCase().trim());
+
+    // Filter Logs: STRICT STRING MATCH for Jan 8 + Future Cutoff
+    const validInvitationLogs = useMemo(() => {
+        // Static Cutoff: Today at 11:00 AM (local/browser time interpretation)
+        const NEW_LOGS_START = new Date('2026-01-12T11:00:00');
+
+        const filtered = invitationLogs.filter(log => {
+            const createdStr = log.created_at || "";
+            const logDate = new Date(log.created_at);
+
+            // 1. MATCH JAN 8 (String contains date)
+            // DB confirms logs have format '2026-01-08T...'
+            if (createdStr.includes('2026-01-08')) {
+                return true;
+            }
+
+            // 2. MATCH FUTURE (New logs from today's session)
+            if (logDate > NEW_LOGS_START) {
+                return true;
+            }
+
+            // 3. Fallback: Hide everything else (e.g. Jan 12 morning tests)
+            return false;
+        });
+        // Deduplicate: Keep one log per entrepreneur
+        const uniqueMap = new Map();
+        // Sort by date descending
+        const sorted = filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        sorted.forEach(log => {
+            const key = log.entrepreneur_id;
+            if (!uniqueMap.has(key)) {
+                uniqueMap.set(key, log);
+            }
+        });
+
+        return Array.from(uniqueMap.values());
+
+    }, [invitationLogs, entrepreneurs]);
+
     // State for Manual Confirmation
     const [confirmingEntrepreneur, setConfirmingEntrepreneur] = useState(null);
 
@@ -98,7 +156,8 @@ export default function InvitationsDashboard() {
                     relevantTemplates = ['taller_rentabilidad'];
                 }
 
-                const hasBeenInvited = invitationLogs.some(log =>
+                // USE VALID LOGS HERE
+                const hasBeenInvited = validInvitationLogs.some(log =>
                     log.entrepreneur_id === e.id &&
                     relevantTemplates.includes(log.template)
                 );
@@ -109,7 +168,7 @@ export default function InvitationsDashboard() {
 
             return true;
         });
-    }, [entrepreneurs, selectedCategory, searchTerm, filterWithRuc, invitationStatus, invitationLogs, messageTemplate]);
+    }, [entrepreneurs, selectedCategory, searchTerm, filterWithRuc, invitationStatus, validInvitationLogs, messageTemplate]);
 
     const handleSelectAll = () => {
         if (selectedEntrepreneurs.size === filteredEntrepreneurs.length) {
@@ -203,14 +262,15 @@ export default function InvitationsDashboard() {
             return;
         }
 
-        // Generic Content for Bulk
+        // CONFIRMATION STEP
+        if (!window.confirm(`¿Estás seguro de generar el enlace y REGISTRAR el envío para ${recipients.length} emprendedores?`)) {
+            return;
+        }
+
         let subject = "";
         let body = "";
-
         let surveyLink = "";
-        if (attachedSurveyId) {
-            surveyLink = `${window.location.origin}/forms/${attachedSurveyId}`;
-        }
+        if (attachedSurveyId) surveyLink = `${window.location.origin}/forms/${attachedSurveyId}`;
 
         if (messageTemplate === 'taller_rentabilidad') {
             subject = "RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal";
@@ -221,7 +281,7 @@ export default function InvitationsDashboard() {
             if (surveyLink) body += `\n\nLink de registro: ${surveyLink}`;
         }
 
-        // HTML Body for Clipboard (Generic)
+        // HTML Body for Clipboard
         const htmlBody = `
             <div style="font-family: sans-serif; color: #000;">
                 <p>Hola Emprendedor/a 👋,</p>
@@ -246,35 +306,63 @@ export default function InvitationsDashboard() {
         `;
 
         const to = "emprendimiento_innovacion@unemi.edu.ec";
-        const bcc = emails.join(',');
+        // ONLY include BCC in URL if list is small (< 30) to avoid URL limit errors
+        const useUrlBcc = emails.length < 30;
+        const bccParam = useUrlBcc ? emails.join(',') : '';
 
-        // Open window immediately to avoid popup blocker (blank first)
+        // Open window immediately
         const win = window.open('about:blank', '_blank');
 
         try {
             const blobHtml = new Blob([htmlBody], { type: "text/html" });
             const blobText = new Blob([body], { type: "text/plain" });
-            const data = [new ClipboardItem({
-                ["text/html"]: blobHtml,
-                ["text/plain"]: blobText
-            })];
+            const data = [new ClipboardItem({ ["text/html"]: blobHtml, ["text/plain"]: blobText })];
             await navigator.clipboard.write(data);
-            addToast(`Copiado al portapapeles. Se abrirá Gmail (BCC: ${emails.length}).`, "success");
+
+            if (useUrlBcc) {
+                addToast(`Copiado al portapapeles. Se abrirá Gmail.`, "success");
+            } else {
+                addToast(`⚠️ Lista grande (${emails.length}): Correos copiados al portapapeles. PEGA en CCO/BCC.`, "warning");
+
+                // Copy EMAILS to clipboard is tricky if we already copied body (only 1 clipboard).
+                // We prioritize the BODY because emails are easier to export/copy usually?
+                // NO, users fail at extracting emails. Bodies are static.
+                // Change strategy: Copy EMAILS to clipboard if list is big. Copy BODY if list is small?
+                // Standard behavior: Copy Body (HTML). User has to paste emails manually?
+                // Let's force verify.
+
+                // Actually, let's copy EMAILS to clipboard for large lists. User can Copy/Paste body from the preview on screen if needed? 
+                // No, body is complex HTML.
+
+                // Compromise: We already copied body.
+                // We will alert user to handle emails.
+            }
+
         } catch (err) {
-            console.error("Error copying to clipboard:", err);
-            addToast("Error al copiar al portapapeles.", "error");
+            console.error("Error copy", err);
+            addToast("Error al copiar. Hazlo manualmente.", "error");
         }
 
-        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&bcc=${encodeURIComponent(bcc)}&su=${encodeURIComponent(subject)}`;
+        // If list is large, we can't put it in URL. 
+        // We really should copy EMAILS instead of BODY for large lists, because getting 240 emails is harder than writing "Hola".
+        if (!useUrlBcc) {
+            const emailString = emails.join(', ');
+            try {
+                await navigator.clipboard.writeText(emailString);
+                addToast("CORREOS copiados al portapapeles (Lista Grande).", "success");
+                alert("Al ser muchos destinatarios, he copiado los CORREOS al portapapeles.\n\n1. PEGA los correos en CCO (BCC).\n2. El mensaje deberás redactarlo o copiarlo desde la vista previa.");
+            } catch (e) { console.error(e); }
+        }
+
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&bcc=${encodeURIComponent(bccParam)}&su=${encodeURIComponent(subject)}`;
 
         if (win) {
             win.location.href = gmailUrl;
         } else {
-            // Fallback if blocker caught it (unlikely with synchronous open)
             window.open(gmailUrl, '_blank');
         }
 
-        // Log Bulk Invitations
+        // Log Invitations
         recipients.forEach(e => {
             addInvitationLog({
                 entrepreneur_id: e.id,
@@ -284,6 +372,8 @@ export default function InvitationsDashboard() {
                 status: 'initiated'
             });
         });
+
+        setSelectedEntrepreneurs(new Set());
     };
 
     const handleEmailClick = (entrepreneur) => {
@@ -415,7 +505,7 @@ export default function InvitationsDashboard() {
                             <div>
                                 <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Emails Enviados</p>
                                 <p className="text-2xl font-black text-slate-800 dark:text-white">
-                                    {invitationLogs.filter(l => l.channel === 'bulk_email').length}
+                                    {validInvitationLogs.filter(l => l.channel === 'bulk_email').length}
                                 </p>
                             </div>
                         </div>
@@ -426,7 +516,7 @@ export default function InvitationsDashboard() {
                             <div>
                                 <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">WhatsApp</p>
                                 <p className="text-2xl font-black text-slate-800 dark:text-white">
-                                    {invitationLogs.filter(l => l.channel === 'whatsapp').length}
+                                    {validInvitationLogs.filter(l => l.channel === 'whatsapp').length}
                                 </p>
                             </div>
                         </div>
@@ -437,7 +527,7 @@ export default function InvitationsDashboard() {
                             <div>
                                 <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Impactados</p>
                                 <p className="text-2xl font-black text-slate-800 dark:text-white">
-                                    {new Set(invitationLogs.map(l => l.entrepreneur_id)).size}
+                                    {new Set(validInvitationLogs.map(l => l.entrepreneur_id)).size}
                                 </p>
                             </div>
                         </div>
@@ -759,9 +849,9 @@ export default function InvitationsDashboard() {
 
                             {/* Content */}
                             <div className="flex-1 overflow-y-auto scrollbar-thin p-0">
-                                {(invitationLogs && invitationLogs.length > 0) ? (
+                                {(validInvitationLogs && validInvitationLogs.length > 0) ? (
                                     <div className="divide-y divide-slate-100 dark:divide-white/5">
-                                        {invitationLogs.map(log => {
+                                        {validInvitationLogs.map(log => {
                                             // Find recipient details
                                             const recipient = entrepreneurs.find(e => e.id === log.entrepreneur_id);
 
