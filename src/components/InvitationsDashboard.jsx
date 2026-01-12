@@ -245,116 +245,68 @@ export default function InvitationsDashboard() {
             return;
         }
 
-        // CONFIRMATION STEP
-        if (!window.confirm(`¿Estás seguro de generar el enlace y REGISTRAR el envío para ${recipients.length} emprendedores?`)) {
+        // Check how many have valid emails
+        const invalidCount = recipients.length - emails.length;
+        const warningMsg = invalidCount > 0
+            ? `\n\n⚠️ ${invalidCount} emprendedores no tienen correo válido y serán excluidos.`
+            : '';
+
+        // STEP 1: Initial confirmation
+        if (!window.confirm(`¿Preparar envío para ${emails.length} emprendedores?${warningMsg}\n\nSe copiarán los correos al portapapeles y se abrirá Gmail.`)) {
             return;
         }
 
         let subject = "";
-        let body = "";
         let surveyLink = "";
         if (attachedSurveyId) surveyLink = `${window.location.origin}/forms/${attachedSurveyId}`;
 
         if (messageTemplate === 'taller_rentabilidad') {
             subject = "RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal";
-            body = `Hola Emprendedor/a 👋,\n\nEsperamos que te encuentres excelente.\n\nTe escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller: RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal\n\nDirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.\n\n📝 Detalles del Taller:\n📅 Fecha: Martes, 20 de Enero 2026\n⏰ Hora: 10:00 - 13:00\n📍 Lugar: UNEMI - Bloque H, Aula 106\n👩‍🏫 Capacitadora: Msc. Dolores Mieles\n🧠 Modalidad: Presencial\n⚠️ Nota: Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales.\n\n🚨 Cupos limitados, no te quedes fuera y asegura tu participación.\n\n${surveyLink ? `👉 Regístrate aquí: ${surveyLink}\n\n` : ''}¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!\n\nSaludos,\nEquipo Emprendimiento UNEMI`;
         } else {
             subject = customSubject || "Invitación UNEMI Emprende";
-            body = customBody || `Hola Emprendedor/a,\n\nTe invitamos a participar en...`;
-            if (surveyLink) body += `\n\nLink de registro: ${surveyLink}`;
         }
 
-        // HTML Body for Clipboard
-        const htmlBody = `
-            <div style="font-family: sans-serif; color: #000;">
-                <p>Hola Emprendedor/a 👋,</p>
-                <p>Esperamos que te encuentres excelente.</p>
-                ${(messageTemplate === 'taller_rentabilidad' || messageTemplate === 'recordatorio_taller') ? `
-                <p>Te escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller: <strong>RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal</strong></p>
-                ${messageTemplate === 'recordatorio_taller' ? '<p>🚀 <strong>¡RECORDATORIO: MANAÑA ES EL GRAN DÍA!</strong> 🚀</p>' : ''}
-                <p>Dirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.</p>
-                <p>📝 <strong>Detalles del Taller:</strong><br>
-                📅 <strong>Fecha:</strong> Martes, 20 de Enero 2026<br>
-                ⏰ <strong>Hora:</strong> 10:00 - 13:00<br>
-                📍 <strong>Lugar:</strong> UNEMI - Bloque H, Aula 106<br>
-                👩‍🏫 <strong>Capacitadora:</strong> Msc. Dolores Mieles<br>
-                🧠 <strong>Modalidad:</strong> Presencial<br>
-                ⚠️ <strong>Nota:</strong> Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales.</p>
-                <p>🚨 <strong>Cupos limitados, no te quedes fuera y asegura tu participación.</strong></p>
-                ` : `<p>${body.replace(/\n/g, '<br>')}</p>`}
-                ${surveyLink ? `<p>👉 <strong>Regístrate aquí:</strong> <a href="${surveyLink}">${surveyLink}</a></p>` : ''}
-                <p>¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!</p>
-                <p>Saludos,<br>Equipo Emprendimiento UNEMI</p>
-            </div>
-        `;
-
-        const to = "emprendimiento_innovacion@unemi.edu.ec";
-        // ONLY include BCC in URL if list is small (< 30) to avoid URL limit errors
-        const useUrlBcc = emails.length < 30;
-        const bccParam = useUrlBcc ? emails.join(',') : '';
-
-        // Open window immediately
-        const win = window.open('about:blank', '_blank');
-
+        // STEP 2: Copy ALL emails to clipboard (regardless of list size)
+        const emailString = emails.join(', ');
         try {
-            const blobHtml = new Blob([htmlBody], { type: "text/html" });
-            const blobText = new Blob([body], { type: "text/plain" });
-            const data = [new ClipboardItem({ ["text/html"]: blobHtml, ["text/plain"]: blobText })];
-            await navigator.clipboard.write(data);
-
-            if (useUrlBcc) {
-                addToast(`Copiado al portapapeles. Se abrirá Gmail.`, "success");
-            } else {
-                addToast(`⚠️ Lista grande (${emails.length}): Correos copiados al portapapeles. PEGA en CCO/BCC.`, "warning");
-
-                // Copy EMAILS to clipboard is tricky if we already copied body (only 1 clipboard).
-                // We prioritize the BODY because emails are easier to export/copy usually?
-                // NO, users fail at extracting emails. Bodies are static.
-                // Change strategy: Copy EMAILS to clipboard if list is big. Copy BODY if list is small?
-                // Standard behavior: Copy Body (HTML). User has to paste emails manually?
-                // Let's force verify.
-
-                // Actually, let's copy EMAILS to clipboard for large lists. User can Copy/Paste body from the preview on screen if needed? 
-                // No, body is complex HTML.
-
-                // Compromise: We already copied body.
-                // We will alert user to handle emails.
-            }
-
-        } catch (err) {
-            console.error("Error copy", err);
+            await navigator.clipboard.writeText(emailString);
+            addToast(`✅ ${emails.length} correos copiados al portapapeles${invalidCount > 0 ? ` (${invalidCount} sin correo)` : ''}`, "success");
+        } catch (e) {
+            console.error("Clipboard error:", e);
             addToast("Error al copiar. Hazlo manualmente.", "error");
         }
 
-        // If list is large, we can't put it in URL. 
-        // We really should copy EMAILS instead of BODY for large lists, because getting 240 emails is harder than writing "Hola".
-        if (!useUrlBcc) {
-            const emailString = emails.join(', ');
-            try {
-                await navigator.clipboard.writeText(emailString);
-                addToast("CORREOS copiados al portapapeles (Lista Grande).", "success");
-                alert("Al ser muchos destinatarios, he copiado los CORREOS al portapapeles.\n\n1. PEGA los correos en CCO (BCC).\n2. El mensaje deberás redactarlo o copiarlo desde la vista previa.");
-            } catch (e) { console.error(e); }
-        }
+        // STEP 3: Open Gmail (with subject only, no BCC - user will paste)
+        const to = "emprendimiento_innovacion@unemi.edu.ec";
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}`;
+        window.open(gmailUrl, '_blank');
 
-        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&bcc=${encodeURIComponent(bccParam)}&su=${encodeURIComponent(subject)}`;
+        // STEP 4: Show instructions and ask for confirmation AFTER sending
+        const didSend = window.confirm(
+            `📧 INSTRUCCIONES:\n\n` +
+            `1. En Gmail, haz clic en "CCO" (BCC)\n` +
+            `2. Pega los correos con Cmd+V (o Ctrl+V)\n` +
+            `3. Redacta o pega el mensaje\n` +
+            `4. Envía el correo\n\n` +
+            `⚠️ Después de ENVIAR el correo, presiona "Aceptar".\n` +
+            `Si NO enviaste el correo, presiona "Cancelar".`
+        );
 
-        if (win) {
-            win.location.href = gmailUrl;
-        } else {
-            window.open(gmailUrl, '_blank');
-        }
-
-        // Log Invitations
-        recipients.forEach(e => {
-            addInvitationLog({
-                entrepreneur_id: e.id,
-                entrepreneur_name: e.nombre_emprendimiento,
-                channel: 'bulk_email',
-                template: messageTemplate,
-                status: 'initiated'
+        // STEP 5: Only log if user confirms they sent
+        if (didSend) {
+            recipients.forEach(e => {
+                addInvitationLog({
+                    entrepreneur_id: e.id,
+                    entrepreneur_name: e.nombre_emprendimiento,
+                    channel: 'bulk_email',
+                    template: messageTemplate,
+                    status: 'sent'
+                });
             });
-        });
+            addToast(`✅ Registradas ${recipients.length} invitaciones`, "success");
+        } else {
+            addToast("Envío cancelado. No se registraron invitaciones.", "warning");
+        }
 
         setSelectedEntrepreneurs(new Set());
     };
