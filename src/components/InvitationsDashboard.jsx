@@ -80,28 +80,11 @@ export default function InvitationsDashboard() {
         "avillamarr2@unemi.edu.ec", "kg0996468518@gmail.com", "rociosantoscrisostomo@gmail.com"
     ].map(e => e.toLowerCase().trim());
 
-    // Filter Logs: STRICT STRING MATCH for Jan 8 + Future Cutoff
+    // Filter Logs: Show all bulk_email logs (removes test whatsapp spam)
     const validInvitationLogs = useMemo(() => {
-        // Static Cutoff: Today at 11:00 AM (local/browser time interpretation)
-        const NEW_LOGS_START = new Date('2026-01-12T11:00:00');
-
         const filtered = invitationLogs.filter(log => {
-            const createdStr = log.created_at || "";
-            const logDate = new Date(log.created_at);
-
-            // 1. MATCH JAN 8 (String contains date)
-            // DB confirms logs have format '2026-01-08T...'
-            if (createdStr.includes('2026-01-08')) {
-                return true;
-            }
-
-            // 2. MATCH FUTURE (New logs from today's session)
-            if (logDate > NEW_LOGS_START) {
-                return true;
-            }
-
-            // 3. Fallback: Hide everything else (e.g. Jan 12 morning tests)
-            return false;
+            // Only show bulk_email channel (excludes whatsapp test spam)
+            return log.channel === 'bulk_email';
         });
         // Deduplicate: Keep one log per entrepreneur
         const uniqueMap = new Map();
