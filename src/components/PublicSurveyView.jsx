@@ -270,16 +270,51 @@ function PublicSurveyView() {
 
                     <div className="relative z-10">
                         {/* Status Badge - Moved above title */}
-                        <div className="mb-3 md:mb-4 flex items-center justify-between">
-                            <span className="inline-flex items-center px-2.5 py-0.5 md:px-3 md:py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-200">
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2 animate-pulse"></span>
-                                Registro Abierto
-                            </span>
+                        <div className="mb-6">
+                            {/* Urgent Banner */}
+                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-500 to-red-600 p-1 shadow-lg shadow-orange-500/20">
+                                <div className="absolute top-0 right-0 -mt-2 -mr-2 w-24 h-24 bg-white/20 blur-2xl rounded-full"></div>
+                                <div className="absolute bottom-0 left-0 -mb-2 -ml-2 w-20 h-20 bg-black/10 blur-xl rounded-full"></div>
+
+                                <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm rounded-xl p-4 md:p-5 relative">
+                                    <div className="flex items-start gap-4">
+                                        <div className="hidden md:flex flex-col items-center justify-center shrink-0">
+                                            <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center animate-pulse">
+                                                <AlertCircle size={24} strokeWidth={3} />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="font-black text-slate-900 dark:text-white text-lg uppercase tracking-tight flex items-center gap-2">
+                                                    🔥 ¡Últimos Cupos Disponibles!
+                                                </h3>
+                                                <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-red-200">Alta Demanda</span>
+                                            </div>
+
+                                            <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-3 leading-relaxed">
+                                                La capacidad del taller está al <strong className="text-orange-600">85%</strong>. No pierdas tu oportunidad de participar.
+                                            </p>
+
+                                            {/* Progress Bar */}
+                                            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden shadow-inner">
+                                                <div className="h-full bg-gradient-to-r from-orange-500 via-red-500 to-red-600 rounded-full w-[85%] relative">
+                                                    <div className="absolute inset-0 bg-white/30 w-full animate-[shimmer_2s_infinite] skew-x-12 translate-x-[-100%]"></div>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between mt-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                                <span>Reservados</span>
+                                                <span className="text-orange-600">¡Quedan pocos!</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             {/* Mobile Scroll Shortcut */}
                             <button
                                 onClick={() => document.getElementById('registration-form').scrollIntoView({ behavior: 'smooth' })}
-                                className="md:hidden text-xs font-bold text-primary-600 flex items-center gap-1 active:scale-95 transition-transform"
+                                className="md:hidden w-full mt-3 py-3 text-xs font-bold bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all border border-slate-100 hover:bg-slate-100"
                             >
                                 Ir al formulario <ArrowRight size={14} />
                             </button>
