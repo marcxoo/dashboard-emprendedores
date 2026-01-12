@@ -21,6 +21,7 @@ export function DataProvider({ children }) {
     });
     const [currentWeek, setCurrentWeek] = useState(getCurrentWeek());
     const [currentBlock, setCurrentBlock] = useState('lunes-martes');
+    const [invitationLogs, setInvitationLogs] = useState([]);
 
     const initialLoadStarted = useRef(false);
 
@@ -30,6 +31,7 @@ export function DataProvider({ children }) {
         setAssignments([...db.asignaciones]);
         setEarnings(Array.isArray(db.earnings) ? [...db.earnings] : []);
         setCustomSurveys(db.getCustomSurveys ? [...db.getCustomSurveys()] : []);
+        setInvitationLogs(db.getInvitationLogs ? [...db.getInvitationLogs()] : []);
     };
 
     useEffect(() => {
@@ -235,7 +237,18 @@ export function DataProvider({ children }) {
         deleteCustomSurvey,
         addSurveyResponse,
         getSurveyById,
-        addInvitationLog: async (data) => db.addInvitationLog(data),
+        downloadCustomSurveyResponses: (id) => db.downloadCustomSurveyResponses(id),
+        addInvitationLog: async (data) => {
+            const result = await db.addInvitationLog(data);
+            if (result) await refreshData();
+            return result;
+        },
+        addInvitationLogBatch: async (dataArray) => {
+            const result = await db.addInvitationLogBatch(dataArray);
+            if (result.success) await refreshData();
+            return result;
+        },
+        invitationLogs // Exposed from state
     };
 
     return (

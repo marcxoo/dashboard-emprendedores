@@ -1,8 +1,8 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, Send, Mail, MessageCircle, Search, Filter, Copy, ExternalLink, ChevronDown, Check, User, Sparkles, FileText } from 'lucide-react';
+import { Menu, X, LogOut, Send, Mail, MessageCircle, Search, Filter, Copy, ExternalLink, ChevronDown, Check, User, Sparkles, FileText, Clock } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
@@ -11,15 +11,31 @@ import EntrepreneurDetail from './EntrepreneurDetail';
 export default function InvitationsDashboard() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { user, logout } = useAuth();
-    const { entrepreneurs, customSurveys, addInvitationLog } = useData();
+    const { entrepreneurs, customSurveys, addInvitationLog, addInvitationLogBatch, invitationLogs } = useData();
     const { addToast } = useToast();
     const navigate = useNavigate();
 
     // State for Filter/Selection
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
-    const [filterWithRuc, setFilterWithRuc] = useState(false);
-    const [selectedEntrepreneurs, setSelectedEntrepreneurs] = useState(new Set());
+    const [invitationStatus, setInvitationStatus] = useState('all'); // 'all', 'invited', 'not_invited'
+    const [filterWithRuc, setFilterWithRuc] = useState(() => {
+        const saved = localStorage.getItem('invitations_filterWithRuc');
+        return saved ? JSON.parse(saved) : false;
+    });
+    const [selectedEntrepreneurs, setSelectedEntrepreneurs] = useState(() => {
+        const saved = localStorage.getItem('invitations_selectedEntrepreneurs');
+        return saved ? new Set(JSON.parse(saved)) : new Set();
+    });
+
+    // Persistence Effects
+    useEffect(() => {
+        localStorage.setItem('invitations_filterWithRuc', JSON.stringify(filterWithRuc));
+    }, [filterWithRuc]);
+
+    useEffect(() => {
+        localStorage.setItem('invitations_selectedEntrepreneurs', JSON.stringify([...selectedEntrepreneurs]));
+    }, [selectedEntrepreneurs]);
 
     // State for Details Modal
     const [selectedDetailEntrepreneur, setSelectedDetailEntrepreneur] = useState(null);
@@ -43,15 +59,23 @@ export default function InvitationsDashboard() {
     const [customSubject, setCustomSubject] = useState('');
     const [customBody, setCustomBody] = useState('');
     const [attachedSurveyId, setAttachedSurveyId] = useState('');
+    const [showHistory, setShowHistory] = useState(false);
+
+    // State for Manual Confirmation
+    const [confirmingEntrepreneur, setConfirmingEntrepreneur] = useState(null);
 
     const handleLogout = async () => {
         await logout();
         navigate('/');
     };
 
-    const categories = useMemo(() => [...new Set(entrepreneurs.map(e => e.categoria_principal))].sort(), [entrepreneurs]);
+    const categories = useMemo(() => {
+        if (!Array.isArray(entrepreneurs)) return [];
+        return [...new Set(entrepreneurs.map(e => e.categoria_principal))].sort();
+    }, [entrepreneurs]);
 
     const filteredEntrepreneurs = useMemo(() => {
+        if (!Array.isArray(entrepreneurs)) return [];
         return entrepreneurs.filter(e => {
             if (selectedCategory && e.categoria_principal !== selectedCategory) return false;
             if (searchTerm) {
@@ -63,9 +87,29 @@ export default function InvitationsDashboard() {
                 );
             }
             if (filterWithRuc && !e.ruc) return false;
+
+            // Invitation Status Filter - CONTEXT AWARE
+            if (invitationStatus !== 'all') {
+                // Determine which templates count as "Invited" for the current context
+                let relevantTemplates = [messageTemplate];
+
+                // Special Case: "Reminder" context looks for the ORIGINAL invitation
+                if (messageTemplate === 'recordatorio_taller') {
+                    relevantTemplates = ['taller_rentabilidad'];
+                }
+
+                const hasBeenInvited = invitationLogs.some(log =>
+                    log.entrepreneur_id === e.id &&
+                    relevantTemplates.includes(log.template)
+                );
+
+                if (invitationStatus === 'invited' && !hasBeenInvited) return false;
+                if (invitationStatus === 'not_invited' && hasBeenInvited) return false;
+            }
+
             return true;
         });
-    }, [entrepreneurs, selectedCategory, searchTerm, filterWithRuc]);
+    }, [entrepreneurs, selectedCategory, searchTerm, filterWithRuc, invitationStatus, invitationLogs, messageTemplate]);
 
     const handleSelectAll = () => {
         if (selectedEntrepreneurs.size === filteredEntrepreneurs.length) {
@@ -99,7 +143,7 @@ export default function InvitationsDashboard() {
 
         if (messageTemplate === 'taller_rentabilidad') {
             subject = "[INVITACION]: Taller Práctico de Costos y Fijación del Precio Ideal";
-            body = `Hola ${name} 👋,\n\nEsperamos que te encuentres excelente.\n\nTe escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller:\n\n✨ *RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal* ✨\n\nDirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.\n\n📝 *Detalles del Taller:*\n📅 *Fecha:* Martes, 20 de Enero\n⏰ *Hora:* 10:00 - 13:00\n📍 *Lugar:* UNEMI - Bloque H, Aula 106\n👩‍🏫 *Capacitadora:* Msc. Dolores Mieles\n🧠 *Modalidad:* Presencial\n\n⚠️ *Nota:* Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales.\n\n${surveyLink ? `👉 *Regístrate aquí:* ${surveyLink}\n\n` : ''}¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!\n\nSaludos,\nEquipo Emprendimiento UNEMI`;
+            body = `Hola Emprendedor/a 👋,\n\nEsperamos que te encuentres excelente.\n\nTe escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller: RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal\n\nDirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.\n\n📝 Detalles del Taller:\n📅 Fecha: Martes, 20 de Enero 2026\n⏰ Hora: 10:00 - 13:00\n📍 Lugar: UNEMI - Bloque H, Aula 106\n👩‍🏫 Capacitadora: Msc. Dolores Mieles\n🧠 Modalidad: Presencial\n⚠️ Nota: Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales.\n\n🚨 Cupos limitados, no te quedes fuera y asegura tu participación.\n\n${surveyLink ? `👉 Regístrate aquí: ${surveyLink}\n\n` : ''}¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!\n\nSaludos,\nEquipo Emprendimiento UNEMI`;
         } else {
             subject = customSubject || "Invitación UNEMI Emprende";
             body = customBody || `Hola ${name},\n\nTe invitamos a participar en...`;
@@ -126,14 +170,23 @@ export default function InvitationsDashboard() {
         const url = `https://wa.me/${phone}?text=${encodedBody}`;
         window.open(url, '_blank');
 
-        // Log Invitation
-        addInvitationLog({
-            entrepreneur_id: entrepreneur.id,
-            entrepreneur_name: entrepreneur.nombre_emprendimiento,
+        // Ask for confirmation instead of auto-logging
+        setConfirmingEntrepreneur(entrepreneur);
+    };
+
+    const confirmWhatsAppSent = async () => {
+        if (!confirmingEntrepreneur) return;
+
+        await addInvitationLog({
+            entrepreneur_id: confirmingEntrepreneur.id,
+            entrepreneur_name: confirmingEntrepreneur.nombre_emprendimiento,
             channel: 'whatsapp',
             template: messageTemplate,
-            status: 'initiated'
+            status: 'sent'
         });
+
+        addToast(`Invitación registrada para ${confirmingEntrepreneur.nombre_emprendimiento}`, 'success');
+        setConfirmingEntrepreneur(null);
     };
 
     const handleBulkEmail = async () => {
@@ -160,8 +213,8 @@ export default function InvitationsDashboard() {
         }
 
         if (messageTemplate === 'taller_rentabilidad') {
-            subject = "[INVITACION]: Taller Práctico de Costos y Fijación del Precio Ideal";
-            body = `Hola Emprendedor/a 👋,\n\nEsperamos que te encuentres excelente.\n\nTe escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller:\n\n✨ *RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal* ✨\n\nDirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.\n\n📝 *Detalles del Taller:*\n📅 *Fecha:* Martes, 20 de Enero\n⏰ *Hora:* 10:00 - 13:00\n📍 *Lugar:* UNEMI - Bloque H, Aula 106\n👩‍🏫 *Capacitadora:* Msc. Dolores Mieles\n🧠 *Modalidad:* Presencial\n\n⚠️ *Nota:* Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales.\n\n${surveyLink ? `👉 *Regístrate aquí:* ${surveyLink}\n\n` : ''}¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!\n\nSaludos,\nEquipo Emprendimiento UNEMI`;
+            subject = "RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal";
+            body = `Hola Emprendedor/a 👋,\n\nEsperamos que te encuentres excelente.\n\nTe escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller: RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal\n\nDirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.\n\n📝 Detalles del Taller:\n📅 Fecha: Martes, 20 de Enero 2026\n⏰ Hora: 10:00 - 13:00\n📍 Lugar: UNEMI - Bloque H, Aula 106\n👩‍🏫 Capacitadora: Msc. Dolores Mieles\n🧠 Modalidad: Presencial\n⚠️ Nota: Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales.\n\n🚨 Cupos limitados, no te quedes fuera y asegura tu participación.\n\n${surveyLink ? `👉 Regístrate aquí: ${surveyLink}\n\n` : ''}¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!\n\nSaludos,\nEquipo Emprendimiento UNEMI`;
         } else {
             subject = customSubject || "Invitación UNEMI Emprende";
             body = customBody || `Hola Emprendedor/a,\n\nTe invitamos a participar en...`;
@@ -173,17 +226,18 @@ export default function InvitationsDashboard() {
             <div style="font-family: sans-serif; color: #000;">
                 <p>Hola Emprendedor/a 👋,</p>
                 <p>Esperamos que te encuentres excelente.</p>
-                ${messageTemplate === 'taller_rentabilidad' ? `
-                <p>Te escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller:</p>
-                <p>✨ <strong>RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal</strong> ✨</p>
+                ${(messageTemplate === 'taller_rentabilidad' || messageTemplate === 'recordatorio_taller') ? `
+                <p>Te escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller: <strong>RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal</strong></p>
+                ${messageTemplate === 'recordatorio_taller' ? '<p>🚀 <strong>¡RECORDATORIO: MANAÑA ES EL GRAN DÍA!</strong> 🚀</p>' : ''}
                 <p>Dirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.</p>
                 <p>📝 <strong>Detalles del Taller:</strong><br>
-                📅 <strong>Fecha:</strong> Martes, 20 de Enero<br>
+                📅 <strong>Fecha:</strong> Martes, 20 de Enero 2026<br>
                 ⏰ <strong>Hora:</strong> 10:00 - 13:00<br>
                 📍 <strong>Lugar:</strong> UNEMI - Bloque H, Aula 106<br>
                 👩‍🏫 <strong>Capacitadora:</strong> Msc. Dolores Mieles<br>
                 🧠 <strong>Modalidad:</strong> Presencial<br>
                 ⚠️ <strong>Nota:</strong> Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales.</p>
+                <p>🚨 <strong>Cupos limitados, no te quedes fuera y asegura tu participación.</strong></p>
                 ` : `<p>${body.replace(/\n/g, '<br>')}</p>`}
                 ${surveyLink ? `<p>👉 <strong>Regístrate aquí:</strong> <a href="${surveyLink}">${surveyLink}</a></p>` : ''}
                 <p>¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!</p>
@@ -252,6 +306,8 @@ export default function InvitationsDashboard() {
         });
     };
 
+    // BACKFILL REMOVED
+
     return (
         <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 font-sans transition-colors duration-300">
             {/* Mobile Header */}
@@ -302,6 +358,16 @@ export default function InvitationsDashboard() {
                         </div>
                     </button>
 
+                    <button onClick={() => setShowHistory(true)} className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/5 shadow-sm hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] group">
+                        <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-colors text-slate-500 dark:text-slate-400 group-hover:text-orange-500">
+                            <Clock size={20} />
+                        </div>
+                        <div className="text-left">
+                            <span className="block font-bold group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Historial</span>
+                            <span className="text-xs opacity-70 font-medium">Ver envíos recientes</span>
+                        </div>
+                    </button>
+
                     <div className="px-4 py-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-center text-sm font-medium">
                         Más módulos pronto...
                     </div>
@@ -340,6 +406,54 @@ export default function InvitationsDashboard() {
                         </div>
                     </div>
 
+                    {/* Stats Bar (New) */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-sm flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center">
+                                <Mail size={24} />
+                            </div>
+                            <div>
+                                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Emails Enviados</p>
+                                <p className="text-2xl font-black text-slate-800 dark:text-white">
+                                    {invitationLogs.filter(l => l.channel === 'bulk_email').length}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-sm flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-green-50 dark:bg-green-900/20 text-green-500 flex items-center justify-center">
+                                <MessageCircle size={24} />
+                            </div>
+                            <div>
+                                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">WhatsApp</p>
+                                <p className="text-2xl font-black text-slate-800 dark:text-white">
+                                    {invitationLogs.filter(l => l.channel === 'whatsapp').length}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-sm flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-500 flex items-center justify-center">
+                                <Check size={24} />
+                            </div>
+                            <div>
+                                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Impactados</p>
+                                <p className="text-2xl font-black text-slate-800 dark:text-white">
+                                    {new Set(invitationLogs.map(l => l.entrepreneur_id)).size}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-sm flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-500 flex items-center justify-center">
+                                <User size={24} />
+                            </div>
+                            <div>
+                                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Base Total</p>
+                                <p className="text-2xl font-black text-slate-800 dark:text-white">
+                                    {entrepreneurs.length}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
 
                         {/* LEFT COLUMN: Configuration (Sticky) */}
@@ -364,6 +478,7 @@ export default function InvitationsDashboard() {
                                                 className="w-full px-6 py-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-full appearance-none outline-none focus:ring-4 focus:ring-orange-500/10 transition-all font-bold text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                             >
                                                 <option value="taller_rentabilidad">🌱 Taller Rentabilidad Garantizada</option>
+                                                <option value="recordatorio_taller">🚀 Recordatorio: ¡Mañana!</option>
                                                 <option value="custom">✍️ Mensaje Personalizado</option>
                                             </select>
                                             <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none group-hover:translate-y-[-10%] transition-transform">
@@ -470,6 +585,20 @@ export default function InvitationsDashboard() {
                                         />
                                     </div>
 
+                                    {/* Status Filter Pill */}
+                                    <div className="relative shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full hidden sm:block">
+                                        <select
+                                            value={invitationStatus}
+                                            onChange={e => setInvitationStatus(e.target.value)}
+                                            className="pl-6 pr-12 py-4 w-full bg-white dark:bg-slate-900 rounded-full text-sm font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-4 focus:ring-orange-500/5 transition-all appearance-none cursor-pointer"
+                                        >
+                                            <option value="all">Todos</option>
+                                            <option value="not_invited">Sin Invitación</option>
+                                            <option value="invited">Ya Invitados</option>
+                                        </select>
+                                        <Filter className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                                    </div>
+
                                     {/* Floating Filter Pill */}
                                     <div className="relative shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full">
                                         <select
@@ -565,6 +694,7 @@ export default function InvitationsDashboard() {
                                                         {e.actividad_economica}
                                                     </p>
                                                 )}
+
                                                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1 sm:gap-3 text-xs font-semibold text-slate-400 dark:text-slate-500">
                                                     <span className="flex items-center gap-1">
                                                         <User size={12} /> {e.persona_contacto}
@@ -611,6 +741,83 @@ export default function InvitationsDashboard() {
                     </div>
                 </div>
 
+                {/* History Modal */}
+                {showHistory && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in" onClick={() => setShowHistory(false)}></div>
+                        <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl max-h-[85vh] flex flex-col animate-in scale-in-95 fade-in zoom-in-95 duration-200">
+                            {/* Header */}
+                            <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+                                    <Clock size={28} className="text-orange-500" />
+                                    Historial de Envíos
+                                </h2>
+                                <button onClick={() => setShowHistory(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-red-500">
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 overflow-y-auto scrollbar-thin p-0">
+                                {(invitationLogs && invitationLogs.length > 0) ? (
+                                    <div className="divide-y divide-slate-100 dark:divide-white/5">
+                                        {invitationLogs.map(log => {
+                                            // Find recipient details
+                                            const recipient = entrepreneurs.find(e => e.id === log.entrepreneur_id);
+
+                                            return (
+                                                <div key={log.id} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                                                    <div className="flex items-start justify-between gap-4 mb-2">
+                                                        <div>
+                                                            <h4 className="font-bold text-slate-800 dark:text-white text-lg leading-tight">
+                                                                {log.entrepreneur_name}
+                                                            </h4>
+                                                            {recipient && (
+                                                                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-mono">
+                                                                    {log.channel === 'whatsapp' && recipient.telefono ? (
+                                                                        <span className="flex items-center gap-1"><MessageCircle size={10} /> {recipient.telefono}</span>
+                                                                    ) : (
+                                                                        <span className="flex items-center gap-1"><Mail size={10} /> {recipient.correo}</span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 mt-2 uppercase tracking-wider">
+                                                                <span className={`flex items-center gap-1 ${log.channel === 'whatsapp' ? 'text-green-500' : 'text-blue-500'}`}>
+                                                                    {log.channel === 'whatsapp' ? <MessageCircle size={12} /> : <Mail size={12} />}
+                                                                    {log.channel === 'whatsapp' ? 'WhatsApp' : log.channel === 'bulk_email' ? 'Email Masivo' : 'Email'}
+                                                                </span>
+                                                                <span className="text-slate-300">•</span>
+                                                                <span>{new Date(log.created_at).toLocaleDateString()}</span>
+                                                                <span className="text-slate-300">•</span>
+                                                                <span>{new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                            </div>
+                                                        </div>
+                                                        <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
+                                                            {log.status === 'initiated' ? 'Enviado' : log.status}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-sm bg-slate-50 dark:bg-black/20 p-3 rounded-xl text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-white/5 flex items-center gap-2">
+                                                        <span className="font-bold text-slate-400 text-xs uppercase">Plantilla:</span>
+                                                        {log.template === 'taller_rentabilidad' ? 'Taller Rentabilidad' : log.template === 'recordatorio_taller' ? 'Recordatorio Taller 🚀' : 'Mensaje Personalizado'}
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="py-20 text-center">
+                                        <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                                            <Clock size={32} />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-700 dark:text-white">Sin historial</h3>
+                                        <p className="text-slate-400 text-sm">Aún no se han registrado envíos recientes.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Entrepreneur Detail Modal */}
                 <EntrepreneurDetail
                     entrepreneur={selectedDetailEntrepreneur}
@@ -645,6 +852,37 @@ export default function InvitationsDashboard() {
                     </div>
                 </div>
             </main>
+
+            {/* WhatsApp Confirmation Modal */}
+            {confirmingEntrepreneur && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2rem] p-8 shadow-2xl scale-100 animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
+                        <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-500 flex items-center justify-center mb-6 mx-auto">
+                            <MessageCircle size={32} />
+                        </div>
+                        <h3 className="text-xl font-black text-center text-slate-800 dark:text-white mb-2">
+                            ¿Enviaste el mensaje a {confirmingEntrepreneur.nombre_emprendimiento}?
+                        </h3>
+                        <p className="text-center text-slate-500 dark:text-slate-400 text-sm font-medium mb-8">
+                            Confirma solo si completaste el envío en WhatsApp para registrarlo en el historial.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setConfirmingEntrepreneur(null)}
+                                className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            >
+                                No, cancelar
+                            </button>
+                            <button
+                                onClick={confirmWhatsAppSent}
+                                className="flex-1 py-3 rounded-xl bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition-colors shadow-lg shadow-green-500/30"
+                            >
+                                Sí, registrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

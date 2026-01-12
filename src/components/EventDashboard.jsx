@@ -221,7 +221,11 @@ function EventDashboard() {
 
     const handleEdit = (event) => {
         setCurrentEvent(event);
-        setFormData(event);
+        setFormData({
+            ...event,
+            startTime: event.startTime ? event.startTime.slice(0, 5) : '',
+            endTime: event.endTime ? event.endTime.slice(0, 5) : ''
+        });
         setIsFormOpen(true);
     };
 
@@ -330,6 +334,14 @@ function EventDashboard() {
             (ev.indicator && ev.indicator.toLowerCase().includes(searchTerm.toLowerCase()));
         return matchesResponsible && matchesMonth && matchesSearch;
     });
+
+    const formatTime = (timeStr) => {
+        if (!timeStr) return '';
+        const [hours, minutes] = timeStr.split(':');
+        const h = parseInt(hours, 10);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        return `${hours}:${minutes} ${ampm}`;
+    };
 
     return (
         <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 font-sans selection:bg-primary-500/20">
@@ -643,7 +655,7 @@ function EventDashboard() {
                                                 <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
                                                     <Clock size={14} className="text-slate-400 flex-shrink-0" />
                                                     <span>
-                                                        {ev.startTime && ev.endTime ? `${ev.startTime} - ${ev.endTime}` : ev.startTime || 'Hora por definir'}
+                                                        {ev.startTime && ev.endTime ? `${formatTime(ev.startTime)} - ${formatTime(ev.endTime)}` : formatTime(ev.startTime) || 'Hora por definir'}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
@@ -691,19 +703,21 @@ function EventDashboard() {
                                                         </div>
                                                     </button>
                                                     {/* Dropdown Menu */}
-                                                    <div className="absolute right-0 bottom-full mb-2 w-32 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-white/5 p-1 hidden group-hover/menu:block hover:block z-20 animate-in fade-in zoom-in-95 duration-200">
-                                                        <button
-                                                            onClick={() => handleEdit(ev)}
-                                                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
-                                                        >
-                                                            <Pencil size={12} /> Editar
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(ev.id)}
-                                                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2"
-                                                        >
-                                                            <Trash2 size={12} /> Eliminar
-                                                        </button>
+                                                    <div className="absolute right-0 bottom-full w-32 pb-2 hidden group-hover/menu:block hover:block z-20 animate-in fade-in zoom-in-95 duration-200">
+                                                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-white/5 p-1">
+                                                            <button
+                                                                onClick={() => handleEdit(ev)}
+                                                                className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
+                                                            >
+                                                                <Pencil size={12} /> Editar
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(ev.id)}
+                                                                className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2"
+                                                            >
+                                                                <Trash2 size={12} /> Eliminar
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -835,7 +849,7 @@ function EventDashboard() {
                                                 <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
                                                     <Clock size={14} className="text-slate-400 flex-shrink-0" />
                                                     <span>
-                                                        {ev.startTime && ev.endTime ? `${ev.startTime} - ${ev.endTime}` : ev.startTime || 'Hora por definir'}
+                                                        {ev.startTime && ev.endTime ? `${formatTime(ev.startTime)} - ${formatTime(ev.endTime)}` : formatTime(ev.startTime) || 'Hora por definir'}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
@@ -882,19 +896,21 @@ function EventDashboard() {
                                                         </div>
                                                     </button>
                                                     {/* Dropdown Menu (adjusted for mobile) */}
-                                                    <div className="absolute right-0 bottom-full mb-2 w-32 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-white/5 p-1 hidden group-hover/menu:block hover:block active:block focus-within:block z-20">
-                                                        <button
-                                                            onClick={() => handleEdit(ev)}
-                                                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
-                                                        >
-                                                            <Pencil size={12} /> Editar
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(ev.id)}
-                                                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2"
-                                                        >
-                                                            <Trash2 size={12} /> Eliminar
-                                                        </button>
+                                                    <div className="absolute right-0 bottom-full w-32 pb-2 hidden group-hover/menu:block hover:block active:block focus-within:block z-20">
+                                                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-white/5 p-1">
+                                                            <button
+                                                                onClick={() => handleEdit(ev)}
+                                                                className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
+                                                            >
+                                                                <Pencil size={12} /> Editar
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(ev.id)}
+                                                                className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2"
+                                                            >
+                                                                <Trash2 size={12} /> Eliminar
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

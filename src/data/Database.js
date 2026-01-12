@@ -17,6 +17,7 @@ export class Database {
     this.asignaciones = [];
     this.earnings = [];
     this.customSurveys = [];
+    this.invitationLogs = [];
   }
 
   async loadData() {
@@ -118,7 +119,8 @@ export class Database {
         .select('*')
         .order('created_at', { ascending: false });
 
-      const invitationLogs = logs || [];
+      this.invitationLogs = logs || [];
+
       if (logError) {
         // If table doesn't exist yet, just ignore to avoid breaking the app
         console.warn("Could not load invitation logs (table might stay missing)", logError);
@@ -132,7 +134,7 @@ export class Database {
         confirmedAssignments.sort((a, b) => compareWeeks(b.semana, a.semana));
 
         // Find last invitation
-        const myLogs = invitationLogs.filter(l => l.entrepreneur_id === e.id);
+        const myLogs = this.invitationLogs.filter(l => l.entrepreneur_id === e.id);
         const lastLog = myLogs.length > 0 ? myLogs[0] : null;
 
         return {
@@ -151,6 +153,10 @@ export class Database {
       console.error('Error loading data:', error);
       return false;
     }
+  }
+
+  getInvitationLogs() {
+    return this.invitationLogs || [];
   }
 
   // --- Custom Survey Methods (LocalStorage Mock) ---
@@ -815,6 +821,36 @@ export class Database {
     for (const assignment of assignmentsToRemove) {
       await this.deleteAssignment(assignment.id_asignacion);
     }
+  }
+
+  async addInvitationLog(data) {
+    const { error } = await supabase
+      .from('invitation_logs')
+      .insert([{
+        ...data,
+        created_at: new Date().toISOString()
+      }]);
+
+    if (error) {
+      console.error('Error logging invitation:', error);
+      return false;
+    }
+    return true;
+  }
+
+  async addInvitationLogBatch(dataArray) {
+    const { error } = await supabase
+      .from('invitation_logs')
+      .insert(dataArray.map(item => ({
+        ...item,
+        created_at: item.created_at || new Date().toISOString()
+      })));
+
+    if (error) {
+      console.error('Error logging batch invitations:', error);
+      return { success: false, error };
+    }
+    return { success: true };
   }
 
   async clearData() {
