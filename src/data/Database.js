@@ -91,6 +91,8 @@ export class Database {
           eventDate: s.event_date,
           eventTime: s.event_time,
           eventLocation: s.event_location,
+          eventLocation: s.event_location,
+          showUrgencyBanner: s.show_urgency_banner, // Map DB column to frontend prop
           responses: s.survey_responses || [] // Map relation to frontend prop
         }));
       }
@@ -185,10 +187,13 @@ export class Database {
         id: newId,
         title: data.title,
         description: data.description,
+        note: data.note, // Add note
         response_limit: data.limit,
         event_date: data.eventDate,
         event_time: data.eventTime,
         event_location: data.eventLocation,
+        event_location: data.eventLocation,
+        show_urgency_banner: data.showUrgencyBanner, // Add urgency banner flag
         questions: data.questions,
         survey_type: data.survey_type,
         active: data.active ?? true
@@ -231,10 +236,13 @@ export class Database {
     const dbUpdates = {};
     if (updates.title !== undefined) dbUpdates.title = updates.title;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.note !== undefined) dbUpdates.note = updates.note; // Add note
     if (updates.limit !== undefined) dbUpdates.response_limit = updates.limit;
     if (updates.eventDate !== undefined) dbUpdates.event_date = updates.eventDate;
     if (updates.eventTime !== undefined) dbUpdates.event_time = updates.eventTime;
+    if (updates.eventTime !== undefined) dbUpdates.event_time = updates.eventTime;
     if (updates.eventLocation !== undefined) dbUpdates.event_location = updates.eventLocation;
+    if (updates.showUrgencyBanner !== undefined) dbUpdates.show_urgency_banner = updates.showUrgencyBanner; // Add urgency banner flag
     if (updates.questions !== undefined) dbUpdates.questions = updates.questions;
     if (updates.survey_type !== undefined) dbUpdates.survey_type = updates.survey_type;
     if (updates.active !== undefined) dbUpdates.active = updates.active;

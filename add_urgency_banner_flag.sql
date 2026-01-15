@@ -1,0 +1,2 @@
+ALTER TABLE custom_surveys 
+ADD COLUMN IF NOT EXISTS show_urgency_banner BOOLEAN DEFAULT TRUE;

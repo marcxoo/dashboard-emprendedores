@@ -1,5 +1,6 @@
+
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, LogOut, LayoutGrid, Plus, Trash2, Calendar, FileText, Settings, Home, Link, Copy, Check, Users, MoreVertical, GripVertical, Pencil, FileDown, Table, Trophy } from 'lucide-react';
+import { Plus, X, AlignLeft, CheckSquare, ChevronRight, Settings, Calendar, Clock, MapPin, Users, Trash2, ArrowLeft, MoreHorizontal, Copy, LayoutList, GripVertical, AlertCircle, FileText, Check, Trophy, LogOut, Info, Menu, LayoutGrid, Link, Pencil, FileDown, Table, MoreVertical } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { useData } from '../context/DataContext';
@@ -29,7 +30,9 @@ function SurveyEventDashboard() {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        limit: 30,
+        limit: '',
+        limit: '',
+        showUrgencyBanner: true, // Default to true
         survey_type: 'standard', // 'standard', 'raffle', 'invitation'
         questions: [
             { id: 1, type: 'text', label: 'Nombre Completo', required: true, options: [] },
@@ -72,26 +75,34 @@ function SurveyEventDashboard() {
             // Simulate network delay for better UX (optional but good for feeling "saved")
             await new Promise(resolve => setTimeout(resolve, 800));
 
+            // Sanitize data: Convert empty strings to null for optional fields
+            const surveyData = {
+                ...formData,
+                limit: formData.limit === '' ? null : formData.limit,
+                eventDate: formData.eventDate === '' ? null : formData.eventDate,
+                eventTime: formData.eventTime === '' ? null : formData.eventTime,
+                eventLocation: formData.eventLocation === '' ? null : formData.eventLocation,
+                active: true
+            };
+
+            let success;
             if (editingId) {
-                await updateCustomSurvey(editingId, {
-                    ...formData,
-                    active: true // Ensure it stays active or pass existing status if preferred, but usually editing implies active intent or no change to status unless explicit
-                });
-                showToast('Formulario actualizado exitosamente', 'success');
+                success = await updateCustomSurvey(editingId, surveyData);
+                if (success) showToast('Formulario actualizado exitosamente', 'success');
             } else {
-                await addCustomSurvey({
-                    ...formData,
-                    active: true
-                });
-                showToast('Formulario creado exitosamente', 'success');
+                const result = await addCustomSurvey(surveyData);
+                success = !!result;
+                if (success) showToast('Formulario creado exitosamente', 'success');
             }
+
+            if (!success) throw new Error('Failed to save survey');
 
             resetForm();
             setView('list');
             setEditingId(null); // Clear editing state
         } catch (error) {
             console.error(error);
-            showToast('Error al guardar el formulario', 'error');
+            showToast('Error al guardar el formulario. Verifica los datos.', 'error');
         } finally {
             setIsSubmitting(false);
         }
@@ -101,7 +112,10 @@ function SurveyEventDashboard() {
         setFormData({
             title: '',
             description: '',
-            limit: 30,
+            note: '', // Reset note
+            note: '', // Reset note
+            limit: '',
+            showUrgencyBanner: true,
             survey_type: 'standard',
             eventDate: '',
             eventTime: '',
@@ -140,7 +154,7 @@ function SurveyEventDashboard() {
             ...prev,
             questions: prev.questions.map(q => {
                 if (q.id === questionId) {
-                    return { ...q, options: [...(q.options || []), `Opción ${(q.options?.length || 0) + 1}`] };
+                    return { ...q, options: [...(q.options || []), `Opción ${(q.options?.length || 0) + 1} `] };
                 }
                 return q;
             })
@@ -229,7 +243,10 @@ function SurveyEventDashboard() {
         setFormData({
             title: survey.title,
             description: survey.description || '',
-            limit: survey.limit,
+            note: survey.note || (survey.limit && survey.limit > 0 ? "Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales." : ''),
+            limit: survey.limit ?? '',
+            limit: survey.limit ?? '',
+            showUrgencyBanner: survey.showUrgencyBanner ?? true,
             survey_type: survey.survey_type || 'standard',
             eventDate: survey.eventDate || '',
             eventTime: survey.eventTime || '',
@@ -469,6 +486,79 @@ function SurveyEventDashboard() {
                                         />
                                     </div>
 
+                                    {/* Note Toggle Section */}
+                                    <div className="pt-4">
+                                        {!formData.note && formData.note !== '' ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, note: '' })}
+                                                className="group flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-amber-600 transition-colors px-2 py-1 -ml-2 rounded-lg hover:bg-slate-50 dark:hover:bg-amber-900/10"
+                                            >
+                                                <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-amber-100 group-hover:text-amber-600 flex items-center justify-center transition-colors">
+                                                    <Plus size={14} strokeWidth={3} />
+                                                </div>
+                                                Agregar Nota de Aviso
+                                            </button>
+                                        ) : (
+                                            <div className="relative group/note animate-fade-in">
+                                                <div className="absolute inset-0 bg-amber-50 dark:bg-amber-900/10 rounded-2xl opacity-50 transition-opacity group-hover/note:opacity-100"></div>
+                                                <div className="relative p-5 rounded-2xl border-2 border-amber-100 dark:border-amber-900/20 bg-amber-50/30 dark:bg-amber-900/5 group-focus-within/note:bg-white dark:group-focus-within/note:bg-slate-900 group-focus-within/note:border-amber-400 dark:group-focus-within/note:border-amber-600 group-focus-within/note:shadow-lg group-focus-within/note:shadow-amber-500/10 transition-all duration-300">
+
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="shrink-0 mt-1">
+                                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-500/20 flex items-center justify-center">
+                                                                <Info size={20} />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <label className="text-xs font-bold text-amber-700 dark:text-amber-500 uppercase tracking-widest">
+                                                                    Nota Visible al Público
+                                                                </label>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setFormData({ ...formData, note: null })}
+                                                                    className="text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded-lg transition-all"
+                                                                    title="Eliminar nota"
+                                                                >
+                                                                    <X size={16} />
+                                                                </button>
+                                                            </div>
+
+                                                            <textarea
+                                                                value={formData.note}
+                                                                onChange={e => setFormData({ ...formData, note: e.target.value })}
+                                                                className="w-full text-base bg-transparent border-none outline-none placeholder-slate-400 text-slate-700 dark:text-slate-200 resize-none h-24 p-0 focus:ring-0 leading-relaxed font-medium"
+                                                                placeholder="Escribe aquí un aviso importante (ej. requisitos, vestimenta, laptop...)"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Urgency Banner Toggle */}
+                                    <div className="flex items-center gap-3 px-1 mt-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, showUrgencyBanner: !formData.showUrgencyBanner })}
+                                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${formData.showUrgencyBanner ? 'bg-orange-500' : 'bg-slate-200 dark:bg-slate-700'}`}
+                                            role="switch"
+                                            aria-checked={formData.showUrgencyBanner}
+                                        >
+                                            <span className="sr-only">Mostrar aviso de urgencia</span>
+                                            <span
+                                                aria-hidden="true"
+                                                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${formData.showUrgencyBanner ? 'translate-x-5' : 'translate-x-0'}`}
+                                            />
+                                        </button>
+                                        <span onClick={() => setFormData({ ...formData, showUrgencyBanner: !formData.showUrgencyBanner })} className="text-sm font-medium text-slate-700 dark:text-slate-200 cursor-pointer">
+                                            Mostrar Aviso de "Últimos Cupos"
+                                        </span>
+                                    </div>
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pt-6 border-t border-slate-100 dark:border-white/5">
                                         <div className="flex flex-col group/field">
                                             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 group-focus-within/field:text-primary-500 transition-colors">Fecha</label>
@@ -504,9 +594,8 @@ function SurveyEventDashboard() {
                                                 <input
                                                     type="number"
                                                     min="1"
-                                                    required
                                                     value={formData.limit}
-                                                    onChange={e => setFormData({ ...formData, limit: parseInt(e.target.value) })}
+                                                    onChange={e => setFormData({ ...formData, limit: e.target.value === '' ? '' : parseInt(e.target.value) })}
                                                     className="w-full px-4 py-3 border-2 border-slate-100 dark:border-slate-700/50 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-bold text-center"
                                                 />
                                                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
@@ -520,9 +609,9 @@ function SurveyEventDashboard() {
                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 block ml-1">Tipo de Experiencia</label>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             {[
-                                                { id: 'standard', label: 'Estándar', desc: 'Registro simple', icon: FileText, color: 'bg-slate-500' },
-                                                { id: 'invitation', label: 'Invitación Taller', desc: 'Registro + Recursos', icon: Check, color: 'bg-purple-500' },
-                                                { id: 'raffle', label: 'Asistencia + Ruleta', desc: 'Para Emprendex', icon: Trophy, color: 'bg-yellow-500' }
+                                                { id: 'standard', label: 'Asistencia Taller', desc: 'Registro simple', icon: FileText, color: 'bg-blue-500' },
+                                                { id: 'invitation', label: 'Invitación', desc: 'Registro previo', icon: Check, color: 'bg-purple-500' },
+                                                { id: 'raffle', label: 'Asistencia Emprendex', desc: 'Incluye Ruleta', icon: Trophy, color: 'bg-yellow-500' }
                                             ].map(type => {
                                                 const Icon = type.icon;
                                                 const isSelected = formData.survey_type === type.id;
@@ -863,8 +952,10 @@ function SurveyEventDashboard() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                                     {customSurveys.map(survey => {
                                         const responsesCount = survey.responses?.length || 0;
-                                        const percentage = Math.min((responsesCount / survey.limit) * 100, 100);
-                                        const isFull = responsesCount >= survey.limit;
+                                        // If limit is null/0/empty, treat as unlimited
+                                        const hasLimit = survey.limit && survey.limit > 0;
+                                        const percentage = hasLimit ? Math.min((responsesCount / survey.limit) * 100, 100) : 0;
+                                        const isFull = hasLimit && responsesCount >= survey.limit;
 
                                         return (
                                             <div key={survey.id} className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-[2rem] shadow-xl shadow-slate-200/40 dark:shadow-black/40 border border-white/50 dark:border-white/5 overflow-hidden flex flex-col hover:-translate-y-2 hover:shadow-2xl hover:shadow-slate-300/50 dark:hover:shadow-black/60 transition-all duration-500 relative">
@@ -891,15 +982,15 @@ function SurveyEventDashboard() {
                                                         <div className="mb-4">
                                                             {survey.survey_type === 'raffle' ? (
                                                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-yellow-100/80 text-yellow-700 uppercase tracking-wide border border-yellow-200/50 backdrop-blur-sm">
-                                                                    <Trophy size={12} className="text-yellow-600" /> Ruleta
+                                                                    <Trophy size={12} className="text-yellow-600" /> Asistencia Emprendex
                                                                 </span>
                                                             ) : survey.survey_type === 'invitation' ? (
                                                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-purple-100/80 text-purple-700 uppercase tracking-wide border border-purple-200/50 backdrop-blur-sm">
                                                                     <Check size={12} className="text-purple-600" /> Invitación
                                                                 </span>
                                                             ) : (
-                                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-slate-100/80 text-slate-600 uppercase tracking-wide border border-slate-200/50 backdrop-blur-sm">
-                                                                    <FileText size={12} className="text-slate-500" /> Estándar
+                                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-blue-100/80 text-blue-700 uppercase tracking-wide border border-blue-200/50 backdrop-blur-sm">
+                                                                    <FileText size={12} className="text-blue-600" /> Asistencia Taller
                                                                 </span>
                                                             )}
                                                         </div>
@@ -909,15 +1000,25 @@ function SurveyEventDashboard() {
                                                     <div className="space-y-5">
                                                         <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-4 border border-slate-100 dark:border-white/5">
                                                             <div className="flex justify-between text-xs font-bold uppercase tracking-widest mb-3">
-                                                                <span className="text-slate-400">Progreso</span>
-                                                                <span className="text-slate-700 dark:text-white">{responsesCount} / {survey.limit}</span>
+                                                                <span className="text-slate-400">Registros</span>
+                                                                <span className="text-slate-700 dark:text-white">
+                                                                    {responsesCount} {hasLimit ? `/ ${survey.limit}` : ''}
+                                                                </span>
                                                             </div>
-                                                            <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
-                                                                <div
-                                                                    className={`h-full rounded-full transition-all duration-1000 ease-out shadow-lg ${isFull ? 'bg-gradient-to-r from-red-500 to-red-400' : 'bg-gradient-to-r from-primary-500 to-cyan-400'}`}
-                                                                    style={{ width: `${percentage}%` }}
-                                                                ></div>
-                                                            </div>
+                                                            {hasLimit && (
+                                                                <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
+                                                                    <div
+                                                                        className={`h-full rounded-full transition-all duration-1000 ease-out shadow-lg ${isFull ? 'bg-gradient-to-r from-red-500 to-red-400' : 'bg-gradient-to-r from-primary-500 to-cyan-400'}`}
+                                                                        style={{ width: `${percentage}%` }}
+                                                                    ></div>
+                                                                </div>
+                                                            )}
+                                                            {!hasLimit && (
+                                                                <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-900/20 py-2 px-3 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                                                                    Cupos Ilimitados
+                                                                </div>
+                                                            )}
                                                         </div>
 
                                                         <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">

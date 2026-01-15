@@ -12,6 +12,7 @@ import EventDashboard from './components/EventDashboard';
 import PublicSurveyView from './components/PublicSurveyView';
 import InvitationsDashboard from './components/InvitationsDashboard';
 import SurveyRaffle from './components/SurveyRaffle';
+import CertificatesDashboard from './components/CertificatesDashboard';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -73,6 +74,12 @@ function App() {
                     <SurveyRaffle />
                   </ProtectedRoute>
                 } />
+
+                {/* <Route path="/certificates/*" element={
+                  <ProtectedRoute>
+                    <CertificatesDashboard />
+                  </ProtectedRoute>
+                } /> */}
               </Routes>
             </BrowserRouter>
           </DataProvider>

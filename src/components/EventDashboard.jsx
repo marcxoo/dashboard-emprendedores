@@ -1390,7 +1390,7 @@ function EventDashboard() {
                                         await supabase.from('events_2026').update({ tracking: newTracking }).eq('id', ev.id);
                                     }}
                                     className="w-full mt-6 py-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-sm font-bold uppercase tracking-wide hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-primary-300 dark:hover:border-primary-700 hover:text-primary-600 dark:hover:text-primary-400 transition-all flex items-center justify-center gap-2 group"
-                                >
+                                    >
                                     <div className="p-1 rounded-md bg-slate-100 dark:bg-slate-800 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
                                         <Plus size={16} className="group-hover:scale-110 transition-transform" />
                                     </div>
