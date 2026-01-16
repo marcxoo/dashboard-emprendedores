@@ -12,6 +12,11 @@ export function DataProvider({ children }) {
     const [entrepreneurs, setEntrepreneurs] = useState([]);
     const [assignments, setAssignments] = useState([]);
     const [customSurveys, setCustomSurveys] = useState([]);
+    // Fairs State
+    const [fairs, setFairs] = useState([]);
+    const [fairEntrepreneurs, setFairEntrepreneurs] = useState([]);
+    const [fairAssignments, setFairAssignments] = useState([]);
+    const [fairSales, setFairSales] = useState([]);
 
     // Date State
     // Date State
@@ -32,6 +37,10 @@ export function DataProvider({ children }) {
         setEarnings(Array.isArray(db.earnings) ? [...db.earnings] : []);
         setCustomSurveys(db.getCustomSurveys ? [...db.getCustomSurveys()] : []);
         setInvitationLogs(db.getInvitationLogs ? [...db.getInvitationLogs()] : []);
+        setFairs(db.getFairs ? [...db.getFairs()] : []);
+        setFairEntrepreneurs(db.getFairEntrepreneurs ? [...db.getFairEntrepreneurs()] : []);
+        setFairAssignments(db.getFairAssignments ? [...db.fairAssignments] : []); // access directly or via method if exists, db.fairAssignments is array
+        setFairSales(db.fairSales ? [...db.fairSales] : []);
     };
 
     useEffect(() => {
@@ -248,7 +257,75 @@ export function DataProvider({ children }) {
             if (result.success) await refreshData();
             return result;
         },
-        invitationLogs // Exposed from state
+        invitationLogs, // Exposed from state
+
+        // Fairs Portal
+        fairs,
+        fairEntrepreneurs,
+        fairAssignments,
+
+        addFair: async (data) => {
+            const res = await db.addFair(data);
+            if (res) await refreshData();
+            return res;
+        },
+        updateFair: async (id, data) => {
+            const res = await db.updateFair(id, data);
+            if (res) await refreshData();
+            return res;
+        },
+        deleteFair: async (id) => {
+            const res = await db.deleteFair(id);
+            if (res) await refreshData();
+            return res;
+        },
+        addFairEntrepreneur: async (data) => {
+            const res = await db.addFairEntrepreneur(data);
+            if (res) await refreshData();
+            return res;
+        },
+        updateFairEntrepreneur: async (id, data) => {
+            const res = await db.updateFairEntrepreneur(id, data);
+            if (res) await refreshData();
+            return res;
+        },
+        deleteFairEntrepreneur: async (id) => {
+            const res = await db.deleteFairEntrepreneur(id);
+            if (res) await refreshData();
+            return res;
+        },
+        assignEntrepreneurToFair: async (fairId, entId) => {
+            const res = await db.assignEntrepreneurToFair(fairId, entId);
+            if (res) await refreshData();
+            return res;
+        },
+        removeEntrepreneurFromFair: async (fairId, entId) => {
+            const res = await db.removeEntrepreneurFromFair(fairId, entId);
+            if (res) await refreshData();
+            return res;
+        },
+        updateFairAssignmentStatus: async (fairId, entId, status) => {
+            const res = await db.updateFairAssignmentStatus(fairId, entId, status);
+            if (res) await refreshData();
+            return res;
+        },
+        bulkImportFairEntrepreneurs: async (fairId, data) => {
+            const res = await db.bulkImportFairEntrepreneurs(fairId, data);
+            if (res) await refreshData();
+            return res;
+        },
+        // Sales
+        fairSales,
+        addFairSale: async (data) => {
+            const res = await db.addFairSale(data);
+            if (res) await refreshData();
+            return res;
+        },
+        deleteFairSale: async (id) => {
+            const res = await db.deleteFairSale(id);
+            if (res) await refreshData();
+            return res;
+        }
     };
 
     return (

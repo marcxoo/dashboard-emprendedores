@@ -13,6 +13,7 @@ import PublicSurveyView from './components/PublicSurveyView';
 import InvitationsDashboard from './components/InvitationsDashboard';
 import SurveyRaffle from './components/SurveyRaffle';
 import CertificatesDashboard from './components/CertificatesDashboard';
+import FairsDashboard from './components/FairsDashboard';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -57,6 +58,12 @@ function App() {
                   </ProtectedRoute>
                 } />
 
+                <Route path="/fairs/*" element={
+                  <ProtectedRoute>
+                    <FairsDashboard />
+                  </ProtectedRoute>
+                } />
+
                 <Route path="/surveys/*" element={
                   <ProtectedRoute>
                     <SurveyEventDashboard />
@@ -75,11 +82,11 @@ function App() {
                   </ProtectedRoute>
                 } />
 
-                {/* <Route path="/certificates/*" element={
+                <Route path="/certificates/*" element={
                   <ProtectedRoute>
                     <CertificatesDashboard />
                   </ProtectedRoute>
-                } /> */}
+                } />
               </Routes>
             </BrowserRouter>
           </DataProvider>

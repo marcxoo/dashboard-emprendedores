@@ -18,6 +18,11 @@ export class Database {
     this.earnings = [];
     this.customSurveys = [];
     this.invitationLogs = [];
+    // Fairs Portal Data
+    this.fairs = [];
+    this.fairEntrepreneurs = [];
+    this.fairAssignments = [];
+    this.fairSales = [];
   }
 
   async loadData() {
@@ -148,7 +153,11 @@ export class Database {
         };
       });
 
+
+
       await this.loadEarnings();
+      // Load Fairs Portal Data
+      await this.loadFairsData();
 
       this.normalizeCategories();
       return true;
@@ -797,6 +806,240 @@ export class Database {
     return false;
   }
 
+
+  // --- Fairs Portal Methods ---
+
+  async loadFairsData() {
+    try {
+      // Load Fairs
+      const { data: fairs, error: fairsError } = await supabase
+        .from('fairs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (fairsError && fairsError.code !== '42P01') { // Ignore if table doesn't exist yet
+        console.error('Error loading fairs:', fairsError);
+      }
+      this.fairs = fairs || [];
+
+      // Load Fair Entrepreneurs
+      const { data: fairEnts, error: entError } = await supabase
+        .from('fair_entrepreneurs')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (entError && entError.code !== '42P01') {
+        console.error('Error loading fair entrepreneurs:', entError);
+      }
+      this.fairEntrepreneurs = fairEnts || [];
+
+      // Load Assignments
+      const { data: assignments, error: assignError } = await supabase
+        .from('fair_assignments')
+        .select('*');
+
+      if (assignError && assignError.code !== '42P01') {
+        console.error('Error loading fair assignments:', assignError);
+      }
+      this.fairAssignments = assignments || [];
+
+    } catch (error) {
+      console.error('Error loading fairs data:', error);
+    }
+  }
+
+  // Fairs
+  getFairs() {
+    return this.fairs;
+  }
+
+  async addFair(fairData) {
+    const { data, error } = await supabase
+      .from('fairs')
+      .insert([fairData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding fair:', error);
+      return null;
+    }
+    this.fairs.unshift(data);
+    return data;
+  }
+
+  async updateFair(id, updates) {
+    const { data, error } = await supabase
+      .from('fairs')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating fair:', error);
+      return null;
+    }
+    this.fairs = this.fairs.map(f => f.id === id ? data : f);
+    return data;
+  }
+
+  async deleteFair(id) {
+    const { error } = await supabase.from('fairs').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting fair:', error);
+      return false;
+    }
+    this.fairs = this.fairs.filter(f => f.id !== id);
+    return true;
+  }
+
+  // Fair Entrepreneurs
+  getFairEntrepreneurs() {
+    return this.fairEntrepreneurs;
+  }
+
+  async addFairEntrepreneur(entrepreneurData) {
+    const { data, error } = await supabase
+      .from('fair_entrepreneurs')
+      .insert([entrepreneurData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding fair entrepreneur:', error);
+      return null;
+    }
+    this.fairEntrepreneurs.push(data);
+    return data;
+  }
+
+  async updateFairEntrepreneur(id, updates) {
+    const { data, error } = await supabase
+      .from('fair_entrepreneurs')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating fair entrepreneur:', error);
+      return null;
+    }
+    this.fairEntrepreneurs = this.fairEntrepreneurs.map(e => e.id === id ? data : e);
+    return data;
+  }
+
+  async deleteFairEntrepreneur(id) {
+    const { error } = await supabase.from('fair_entrepreneurs').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting fair entrepreneur:', error);
+      return false;
+    }
+    this.fairEntrepreneurs = this.fairEntrepreneurs.filter(e => e.id !== id);
+    return true;
+  }
+
+  // Fair Assignments
+  getFairAssignments(fairId) {
+    return this.fairAssignments.filter(a => a.fair_id === fairId);
+  }
+
+  async assignEntrepreneurToFair(fairId, entrepreneurId) {
+    const exists = this.fairAssignments.find(a => a.fair_id === fairId && a.entrepreneur_id === entrepreneurId);
+    if (exists) return null;
+
+    const { data, error } = await supabase
+      .from('fair_assignments')
+      .insert([{ fair_id: fairId, entrepreneur_id: entrepreneurId }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error assigning entrepreneur:', error);
+      return null;
+    }
+    this.fairAssignments.push(data);
+    return data;
+  }
+
+  async removeEntrepreneurFromFair(fairId, entrepreneurId) {
+    const { error } = await supabase
+      .from('fair_assignments')
+      .delete()
+      .eq('fair_id', fairId)
+      .eq('entrepreneur_id', entrepreneurId);
+
+    if (error) {
+      console.error('Error removing entrepreneur assignment:', error);
+      return false;
+    }
+    this.fairAssignments = this.fairAssignments.filter(a => !(a.fair_id === fairId && a.entrepreneur_id === entrepreneurId));
+    return true;
+  }
+
+  async updateFairAssignmentStatus(fairId, entrepreneurId, status) {
+    const index = this.fairAssignments.findIndex(a => a.fair_id === fairId && a.entrepreneur_id === entrepreneurId);
+    if (index >= 0) {
+      // Optimistic Update
+      this.fairAssignments[index] = { ...this.fairAssignments[index], status };
+
+      const { error } = await supabase
+        .from('fair_assignments')
+        .update({ status })
+        .eq('fair_id', fairId)
+        .eq('entrepreneur_id', entrepreneurId);
+
+      if (error) {
+        console.error('Error updating assignment status:', error);
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  async bulkImportFairEntrepreneurs(fairId, entrepreneursData) {
+    if (!entrepreneursData || entrepreneursData.length === 0) return [];
+
+    // 1. Bulk Insert Entrepreneurs
+    const { data: createdEntrepreneurs, error: entError } = await supabase
+      .from('fair_entrepreneurs')
+      .insert(entrepreneursData)
+      .select();
+
+    if (entError) {
+      console.error('Error bulk adding fair entrepreneurs:', entError);
+      return [];
+    }
+
+    // Update local state
+    this.fairEntrepreneurs.push(...createdEntrepreneurs);
+
+    // 2. Prepare Assignments
+    const assignments = createdEntrepreneurs.map(e => ({
+      fair_id: fairId,
+      entrepreneur_id: e.id,
+      status: 'assigned'
+    }));
+
+    // 3. Bulk Insert Assignments
+    const { data: createdAssignments, error: assignError } = await supabase
+      .from('fair_assignments')
+      .insert(assignments)
+      .select();
+
+    if (assignError) {
+      console.error('Error bulk assigning entrepreneurs:', assignError);
+      return createdEntrepreneurs;
+    }
+
+    // Update local state
+    this.fairAssignments.push(...createdAssignments);
+
+    return createdEntrepreneurs;
+  }
+
   async deleteEntrepreneur(id) {
     const index = this.emprendedores.findIndex(e => e.id === id);
     if (index >= 0) {
@@ -860,6 +1103,36 @@ export class Database {
       return { success: false, error };
     }
     return { success: true };
+  }
+
+  // Fair Sales
+  getFairSales(fairId) {
+    return this.fairSales.filter(s => s.fair_id === fairId);
+  }
+
+  async addFairSale(saleData) {
+    const { data, error } = await supabase
+      .from('fair_sales')
+      .insert([saleData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding fair sale:', error);
+      return null;
+    }
+    this.fairSales.push(data);
+    return data;
+  }
+
+  async deleteFairSale(id) {
+    const { error } = await supabase.from('fair_sales').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting fair sale:', error);
+      return false;
+    }
+    this.fairSales = this.fairSales.filter(s => s.id !== id);
+    return true;
   }
 
   async clearData() {
