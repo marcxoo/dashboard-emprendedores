@@ -180,27 +180,27 @@ function Portal() {
 
                     {/* Card 5: Fairs Portal */}
                     <div onClick={() => navigate('/fairs')} className="group relative cursor-pointer md:col-span-2 lg:col-span-1">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-400 to-violet-500 rounded-[2.5rem] opacity-0 group-hover:opacity-30 blur-xl transition duration-500"></div>
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-secondary-600 to-secondary-800 rounded-[2.5rem] opacity-0 group-hover:opacity-30 blur-xl transition duration-500"></div>
                         <ShineBorder
-                            className="bg-white dark:bg-slate-800/80 backdrop-blur-xl rounded-[2rem] p-8 h-full relative overflow-hidden border border-slate-200 dark:border-white/10 hover:border-indigo-500/50 dark:hover:border-indigo-400/50 transition-all duration-300"
-                            color={["#6366f1", "#8b5cf6"]}
+                            className="bg-white dark:bg-slate-800/80 backdrop-blur-xl rounded-[2rem] p-8 h-full relative overflow-hidden border border-slate-200 dark:border-white/10 hover:border-secondary-500/50 dark:hover:border-secondary-400/50 transition-all duration-300"
+                            color={["#1e1b4b", "#312e81"]} // Dark blue tones
                             borderRadius={32}
                             borderWidth={2}
                             duration={8}
                         >
                             <div className="absolute top-0 right-0 p-8">
-                                <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-700/50 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+                                <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-700/50 flex items-center justify-center group-hover:bg-secondary-600 group-hover:text-white transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
                                     <ArrowRight size={20} className="text-slate-400 dark:text-slate-500 group-hover:text-white transition-colors" />
                                 </div>
                             </div>
 
                             <div className="mb-8">
-                                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-600/10 flex items-center justify-center text-indigo-500 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-indigo-500/10 group-hover:shadow-indigo-500/20">
+                                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/30 dark:to-secondary-800/30 flex items-center justify-center text-secondary-600 dark:text-secondary-400 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-secondary-900/10 group-hover:shadow-secondary-900/20">
                                     <Briefcase size={36} strokeWidth={1.5} />
                                 </div>
                             </div>
 
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-secondary-700 dark:group-hover:text-secondary-400 transition-colors">
                                 Portal de Ferias
                             </h2>
                             <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">

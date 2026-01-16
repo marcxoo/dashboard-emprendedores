@@ -843,6 +843,16 @@ export class Database {
       }
       this.fairAssignments = assignments || [];
 
+      // Load Fair Sales
+      const { data: sales, error: salesError } = await supabase
+        .from('fair_sales')
+        .select('*');
+
+      if (salesError && salesError.code !== '42P01') {
+        console.error('Error loading fair sales:', salesError);
+      }
+      this.fairSales = sales || [];
+
     } catch (error) {
       console.error('Error loading fairs data:', error);
     }
