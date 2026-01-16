@@ -300,9 +300,22 @@ export function DataProvider({ children }) {
             return res;
         },
         removeEntrepreneurFromFair: async (fairId, entId) => {
-            const res = await db.removeEntrepreneurFromFair(fairId, entId);
-            if (res) await refreshData();
-            return res;
+            // Optimistic update - remove from UI immediately
+            setFairAssignments(prev => prev.filter(a =>
+                !(a.fair_id === fairId && a.entrepreneur_id === entId)
+            ));
+
+            try {
+                const res = await db.removeEntrepreneurFromFair(fairId, entId);
+                if (res) {
+                    refreshData(); // Sync in background
+                }
+                return res;
+            } catch (error) {
+                console.error("Error removing entrepreneur:", error);
+                refreshData(); // Revert to true state
+                return null;
+            }
         },
         updateFairAssignmentStatus: async (fairId, entId, status) => {
             // Optimistic update to make UI responsive immediately

@@ -249,7 +249,8 @@ function FairParticipants({ fairId }) {
         assignEntrepreneurToFair,
         addFairEntrepreneur,
         updateFairAssignmentStatus, // Import logic
-        bulkImportFairEntrepreneurs // Bulk Import
+        bulkImportFairEntrepreneurs, // Bulk Import
+        removeEntrepreneurFromFair // Add this for delete functionality
     } = useData();
     const [showImport, setShowImport] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
