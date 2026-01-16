@@ -510,11 +510,15 @@ function FairParticipants({ fairId }) {
 }
 
 function FairSalesTracker({ fairId }) {
-    const { fairAssignments, fairEntrepreneurs, fairSales, addFairSale, deleteFairSale } = useData();
+    const { fairs, fairAssignments, fairEntrepreneurs, fairSales, addFairSale, deleteFairSale } = useData();
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEntId, setSelectedEntId] = useState(null);
     const [filter, setFilter] = useState('');
+    const [isExpanded, setIsExpanded] = useState(true); // Default open or closed? User said "when I click they appear", maybe closed? Let's try true first as it's the active view.
+
+    // Get current fair
+    const fair = fairs?.find(f => f.id === fairId);
 
     // Escape to close logic
     useEffect(() => {
@@ -588,176 +592,197 @@ function FairSalesTracker({ fairId }) {
                 </div>
             </div>
 
-            {/* Sales Table */}
-            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div className="flex items-center gap-4 w-full sm:w-auto">
-                        <h3 className="font-bold text-lg text-slate-800 dark:text-white">Registro Diario</h3>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 font-medium bg-slate-100 dark:bg-slate-700/50 px-3 py-1 rounded-lg whitespace-nowrap hidden sm:block">
-                            {new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {/* Collapsible Sales Container */}
+            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden transition-all duration-300">
+                {/* Header Toggle */}
+                <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="w-full flex items-center justify-between p-5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-100 dark:border-slate-800"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-xl transition-colors ${isExpanded ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>
+                            <Store size={20} />
+                        </div>
+                        <h3 className="font-bold text-lg text-slate-900 dark:text-white text-left">
+                            {fair?.name || 'Registro de Ventas'}
+                        </h3>
+                    </div>
+                    <div className={`transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''} text-slate-400`}>
+                        <ChevronRight size={20} className="rotate-90" /> {/* Using generic chevron that can rotate */}
+                    </div>
+                </button>
+
+                {/* Collapsible Content */}
+                <div className={`transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                    <div className="p-5 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/30 dark:bg-slate-800/30">
+                        <div className="flex items-center gap-4 w-full sm:w-auto">
+                            <h3 className="font-bold text-base text-slate-700 dark:text-slate-300">Participantes</h3>
+                            <div className="text-sm text-slate-500 dark:text-slate-400 font-medium bg-slate-100 dark:bg-slate-700/50 px-3 py-1 rounded-lg whitespace-nowrap hidden sm:block">
+                                {new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                            </div>
+                        </div>
+
+                        <div className="relative w-full sm:w-72">
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                            <input
+                                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none text-sm transition-all font-medium dark:text-white"
+                                placeholder="Buscar emprendedor..."
+                                value={filter}
+                                onChange={e => setFilter(e.target.value)}
+                            />
                         </div>
                     </div>
 
-                    <div className="relative w-full sm:w-72">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                        <input
-                            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none text-sm transition-all font-medium dark:text-white"
-                            placeholder="Buscar emprendedor..."
-                            value={filter}
-                            onChange={e => setFilter(e.target.value)}
-                        />
+                    {/* Desktop/Tablet Table View */}
+                    <div className="hidden md:block overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-slate-50/50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
+                                <tr>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Emprendedor</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Categoría</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Venta Día</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Acumulado</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                                {filteredParticipants.map(participant => {
+                                    const daySale = currentSales.find(s => s.entrepreneur_id === participant.id && s.sale_date === selectedDate);
+                                    const totalEntRevenue = currentSales.filter(s => s.entrepreneur_id === participant.id).reduce((sum, s) => sum + Number(s.amount), 0);
+
+                                    return (
+                                        <tr key={participant.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="font-bold text-slate-900 dark:text-white">{participant.business_name || participant.name}</div>
+                                                <div className="text-xs text-slate-500 text-pretty max-w-[200px]">{participant.name}</div>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
+                                                <span className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs font-medium">
+                                                    {participant.category || 'N/A'}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                {daySale ? (
+                                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-lg">
+                                                        ${Number(daySale.amount).toFixed(2)}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-slate-400 text-sm italic">Pending</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 text-right font-medium text-slate-700 dark:text-slate-300">
+                                                ${totalEntRevenue.toFixed(2)}
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                {daySale ? (
+                                                    <div className="flex justify-end gap-2">
+                                                        <button
+                                                            onClick={() => { setSelectedEntId(participant.id); setIsModalOpen(true); }}
+                                                            className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 bg-slate-100 dark:bg-slate-800 transition-colors"
+                                                            title="Editar monto"
+                                                        >
+                                                            <Edit size={16} />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => { setSelectedEntId(participant.id); setIsModalOpen(true); }}
+                                                        className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-500/20 transition-all active:scale-95"
+                                                    >
+                                                        Registrar
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                                {filteredParticipants.length === 0 && (
+                                    <tr>
+                                        <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
+                                            {filter ? 'No se encontraron resultados para tu búsqueda.' : 'No hay participantes asignados para mostrar.'}
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                </div>
 
-                {/* Desktop/Tablet Table View */}
-                <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="bg-slate-50/50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
-                            <tr>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Emprendedor</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Categoría</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Venta Día</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Acumulado</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                            {filteredParticipants.map(participant => {
-                                const daySale = currentSales.find(s => s.entrepreneur_id === participant.id && s.sale_date === selectedDate);
-                                const totalEntRevenue = currentSales.filter(s => s.entrepreneur_id === participant.id).reduce((sum, s) => sum + Number(s.amount), 0);
+                    {/* Mobile Card List View */}
+                    <div className="md:hidden flex flex-col gap-3 p-4 bg-slate-50 dark:bg-slate-900/50">
+                        {filteredParticipants.map(participant => {
+                            const daySale = currentSales.find(s => s.entrepreneur_id === participant.id && s.sale_date === selectedDate);
+                            const totalEntRevenue = currentSales.filter(s => s.entrepreneur_id === participant.id).reduce((sum, s) => sum + Number(s.amount), 0);
 
-                                return (
-                                    <tr key={participant.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <div className="font-bold text-slate-900 dark:text-white">{participant.business_name || participant.name}</div>
-                                            <div className="text-xs text-slate-500 text-pretty max-w-[200px]">{participant.name}</div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
-                                            <span className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs font-medium">
-                                                {participant.category || 'N/A'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
+                            return (
+                                <div key={participant.id} className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-4 relative overflow-hidden transition-all active:scale-[0.99] duration-200">
+                                    {/* Status Strip if active sale */}
+                                    {daySale && <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>}
+
+                                    <div className="flex justify-between items-start gap-3">
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
+                                                <h4 className="font-bold text-slate-900 dark:text-white truncate text-base leading-tight max-w-full">
+                                                    {participant.business_name || participant.name}
+                                                </h4>
+                                                {participant.category && (
+                                                    <span className="shrink-0 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide border border-slate-200 dark:border-slate-600">
+                                                        {participant.category}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
+                                                {participant.name}
+                                            </p>
+                                        </div>
+                                        <div className="text-right shrink-0 bg-slate-50 dark:bg-slate-800/80 p-2 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                                            <p className="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">Venta Día</p>
                                             {daySale ? (
-                                                <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-lg">
+                                                <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
                                                     ${Number(daySale.amount).toFixed(2)}
                                                 </span>
                                             ) : (
-                                                <span className="text-slate-400 text-sm italic">Pending</span>
+                                                <span className="text-sm font-medium text-slate-300 dark:text-slate-600 italic">--</span>
                                             )}
-                                        </td>
-                                        <td className="px-6 py-4 text-right font-medium text-slate-700 dark:text-slate-300">
-                                            ${totalEntRevenue.toFixed(2)}
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700/50 gap-4">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Acumulado</span>
+                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                                                ${totalEntRevenue.toFixed(2)}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex-1 max-w-[160px]">
                                             {daySale ? (
-                                                <div className="flex justify-end gap-2">
-                                                    <button
-                                                        onClick={() => { setSelectedEntId(participant.id); setIsModalOpen(true); }}
-                                                        className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 bg-slate-100 dark:bg-slate-800 transition-colors"
-                                                        title="Editar monto"
-                                                    >
-                                                        <Edit size={16} />
-                                                    </button>
-                                                </div>
+                                                <button
+                                                    onClick={() => { setSelectedEntId(participant.id); setIsModalOpen(true); }}
+                                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                                >
+                                                    <Edit size={14} />
+                                                    <span>Editar</span>
+                                                </button>
                                             ) : (
                                                 <button
                                                     onClick={() => { setSelectedEntId(participant.id); setIsModalOpen(true); }}
-                                                    className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-500/20 transition-all active:scale-95"
+                                                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
                                                 >
+                                                    <Plus size={16} strokeWidth={3} />
                                                     Registrar
                                                 </button>
                                             )}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                            {filteredParticipants.length === 0 && (
-                                <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
-                                        {filter ? 'No se encontraron resultados para tu búsqueda.' : 'No hay participantes asignados para mostrar.'}
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Mobile Card List View */}
-                <div className="md:hidden flex flex-col gap-3 p-4 bg-slate-50 dark:bg-slate-900/50">
-                    {filteredParticipants.map(participant => {
-                        const daySale = currentSales.find(s => s.entrepreneur_id === participant.id && s.sale_date === selectedDate);
-                        const totalEntRevenue = currentSales.filter(s => s.entrepreneur_id === participant.id).reduce((sum, s) => sum + Number(s.amount), 0);
-
-                        return (
-                            <div key={participant.id} className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-4 relative overflow-hidden transition-all active:scale-[0.99] duration-200">
-                                {/* Status Strip if active sale */}
-                                {daySale && <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>}
-
-                                <div className="flex justify-between items-start gap-3">
-                                    <div className="min-w-0 flex-1">
-                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
-                                            <h4 className="font-bold text-slate-900 dark:text-white truncate text-base leading-tight max-w-full">
-                                                {participant.business_name || participant.name}
-                                            </h4>
-                                            {participant.category && (
-                                                <span className="shrink-0 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide border border-slate-200 dark:border-slate-600">
-                                                    {participant.category}
-                                                </span>
-                                            )}
                                         </div>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
-                                            {participant.name}
-                                        </p>
-                                    </div>
-                                    <div className="text-right shrink-0 bg-slate-50 dark:bg-slate-800/80 p-2 rounded-lg border border-slate-100 dark:border-slate-700/50">
-                                        <p className="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">Venta Día</p>
-                                        {daySale ? (
-                                            <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
-                                                ${Number(daySale.amount).toFixed(2)}
-                                            </span>
-                                        ) : (
-                                            <span className="text-sm font-medium text-slate-300 dark:text-slate-600 italic">--</span>
-                                        )}
                                     </div>
                                 </div>
-
-                                <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700/50 gap-4">
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Acumulado</span>
-                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                            ${totalEntRevenue.toFixed(2)}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex-1 max-w-[160px]">
-                                        {daySale ? (
-                                            <button
-                                                onClick={() => { setSelectedEntId(participant.id); setIsModalOpen(true); }}
-                                                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                                            >
-                                                <Edit size={14} />
-                                                <span>Editar</span>
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => { setSelectedEntId(participant.id); setIsModalOpen(true); }}
-                                                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
-                                            >
-                                                <Plus size={16} strokeWidth={3} />
-                                                Registrar
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
+                            );
+                        })}
+                        {filteredParticipants.length === 0 && (
+                            <div className="px-6 py-12 text-center text-slate-500">
+                                {filter ? 'No se encontraron resultados.' : 'No hay participantes asignados.'}
                             </div>
-                        );
-                    })}
-                    {filteredParticipants.length === 0 && (
-                        <div className="px-6 py-12 text-center text-slate-500">
-                            {filter ? 'No se encontraron resultados.' : 'No hay participantes asignados.'}
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -857,7 +882,7 @@ function FairModal({ fair, onClose, onSave }) {
                     <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Nombre del Evento</label>
                         <input
-                            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium dark:text-white"
+                            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-slate-900 dark:text-white"
                             value={form.name}
                             onChange={e => setForm({ ...form, name: e.target.value })}
                             placeholder="Ej. Feria de Emprendimiento 2026"
@@ -869,7 +894,7 @@ function FairModal({ fair, onClose, onSave }) {
                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Fecha</label>
                             <input
                                 type="date"
-                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium dark:text-white"
+                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-slate-900 dark:text-white"
                                 value={form.date}
                                 onChange={e => setForm({ ...form, date: e.target.value })}
                             />
@@ -877,7 +902,7 @@ function FairModal({ fair, onClose, onSave }) {
                         <div>
                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Ubicación</label>
                             <input
-                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium dark:text-white"
+                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-slate-900 dark:text-white"
                                 value={form.location}
                                 onChange={e => setForm({ ...form, location: e.target.value })}
                                 placeholder="Ej. Campus Central"
@@ -1200,16 +1225,16 @@ function EntrepreneurModal({ data, onClose, onSave }) {
                     <div className="grid grid-cols-2 gap-5">
                         <div className="col-span-2 sm:col-span-1">
                             <label className="label">Nombre Propietario</label>
-                            <input className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium dark:text-white" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} autoFocus />
+                            <input className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-slate-900 dark:text-white" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} autoFocus />
                         </div>
                         <div className="col-span-2 sm:col-span-1">
                             <label className="label">Nombre Comercial</label>
-                            <input className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium dark:text-white" value={form.business_name} onChange={e => setForm({ ...form, business_name: e.target.value })} />
+                            <input className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-slate-900 dark:text-white" value={form.business_name} onChange={e => setForm({ ...form, business_name: e.target.value })} />
                         </div>
                     </div>
                     <div>
                         <label className="label">Categoría</label>
-                        <input className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium dark:text-white" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="Ej. Artesanía, Gastronomía" />
+                        <input className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-slate-900 dark:text-white" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="Ej. Artesanía, Gastronomía" />
                     </div>
                 </div>
                 <div className="px-8 py-5 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-slate-50/50 dark:bg-slate-800/50">

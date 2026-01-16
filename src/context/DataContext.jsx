@@ -305,9 +305,27 @@ export function DataProvider({ children }) {
             return res;
         },
         updateFairAssignmentStatus: async (fairId, entId, status) => {
-            const res = await db.updateFairAssignmentStatus(fairId, entId, status);
-            if (res) await refreshData();
-            return res;
+            // Optimistic update to make UI responsive immediately
+            setFairAssignments(prev => prev.map(a =>
+                (a.fair_id === fairId && a.entrepreneur_id === entId)
+                    ? { ...a, status }
+                    : a
+            ));
+
+            try {
+                const res = await db.updateFairAssignmentStatus(fairId, entId, status);
+                // Refresh in background to ensure consistency, don't await to block return if not needed
+                // But for safety we usually want to ensure data is synced.
+                if (res) {
+                    refreshData();
+                }
+                return res;
+            } catch (error) {
+                console.error("Error updating status:", error);
+                // Revert or just refresh to get true state
+                refreshData();
+                return null;
+            }
         },
         bulkImportFairEntrepreneurs: async (fairId, data) => {
             const res = await db.bulkImportFairEntrepreneurs(fairId, data);
