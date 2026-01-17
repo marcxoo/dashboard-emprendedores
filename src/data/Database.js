@@ -1121,18 +1121,48 @@ export class Database {
   }
 
   async addFairSale(saleData) {
-    const { data, error } = await supabase
-      .from('fair_sales')
-      .insert([saleData])
-      .select()
-      .single();
+    // Check if exists locally first to avoid unnecessary DB calls if possible, 
+    // but better to check DB or just use upsert if we had constraints. 
+    // Since we are using a local cache `this.fairSales`, let's check that.
+    const existingIndex = this.fairSales.findIndex(s =>
+      s.fair_id === saleData.fair_id &&
+      s.entrepreneur_id === saleData.entrepreneur_id &&
+      s.sale_date === saleData.sale_date
+    );
 
-    if (error) {
-      console.error('Error adding fair sale:', error);
-      return null;
+    if (existingIndex !== -1) {
+      // Update existing
+      const existingId = this.fairSales[existingIndex].id;
+      const { data, error } = await supabase
+        .from('fair_sales')
+        .update({ amount: saleData.amount })
+        .eq('id', existingId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating fair sale:', error);
+        return null;
+      }
+
+      // Update local cache
+      this.fairSales[existingIndex] = data;
+      return data;
+    } else {
+      // Insert new
+      const { data, error } = await supabase
+        .from('fair_sales')
+        .insert([saleData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error adding fair sale:', error);
+        return null;
+      }
+      this.fairSales.push(data);
+      return data;
     }
-    this.fairSales.push(data);
-    return data;
   }
 
   async deleteFairSale(id) {
