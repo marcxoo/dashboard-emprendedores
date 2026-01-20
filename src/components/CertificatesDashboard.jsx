@@ -8,7 +8,7 @@ import fontkit from '@pdf-lib/fontkit';
 import JSZip from 'jszip';
 
 // Certificate PDF template URL
-const CERTIFICATE_PDF_URL = '/src/assets/certificado_plantilla.pdf';
+const CERTIFICATE_PDF_URL = '/certificado_plantilla.pdf';
 
 export default function CertificatesDashboard() {
     const navigate = useNavigate();
@@ -114,10 +114,11 @@ export default function CertificatesDashboard() {
             const templateBytes = await templateResponse.arrayBuffer();
 
             // Fetch Poppins fonts
+            // Fetch Poppins fonts
             const [fontRegularResponse, fontMediumResponse, fontSemiBoldResponse] = await Promise.all([
-                fetch('/src/assets/fonts/Poppins-Regular.ttf'),
-                fetch('/src/assets/fonts/Poppins-Medium.ttf'),
-                fetch('/src/assets/fonts/Poppins-SemiBold.ttf')
+                fetch('/fonts/Poppins-Regular.ttf'),
+                fetch('/fonts/Poppins-Medium.ttf'),
+                fetch('/fonts/Poppins-SemiBold.ttf')
             ]);
             const fontRegularBytes = await fontRegularResponse.arrayBuffer();
             const fontMediumBytes = await fontMediumResponse.arrayBuffer();
