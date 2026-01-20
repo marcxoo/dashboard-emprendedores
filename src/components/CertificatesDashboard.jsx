@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Award, Download, Eye, FileText, Users, Calendar, Clock, CheckCircle2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Award, Download, Eye, FileText, Users, Calendar, Clock, CheckCircle2, Loader2, Lock } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { useToast } from '../context/ToastContext';
 import { PDFDocument, rgb } from 'pdf-lib';
@@ -14,6 +14,20 @@ export default function CertificatesDashboard() {
     const navigate = useNavigate();
     const { customSurveys } = useData();
     const { addToast } = useToast();
+
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [passwordInput, setPasswordInput] = useState('');
+    const [authError, setAuthError] = useState(false);
+
+    const handleLogin = (e) => {
+        e.preventDefault();
+        if (passwordInput === '102245') {
+            setIsAuthenticated(true);
+            setAuthError(false);
+        } else {
+            setAuthError(true);
+        }
+    };
 
     const [selectedSurvey, setSelectedSurvey] = useState(null);
     const [selectedAttendees, setSelectedAttendees] = useState(new Set());
@@ -33,7 +47,7 @@ export default function CertificatesDashboard() {
     // Get attendees from selected survey
     const attendees = selectedSurvey?.responses?.map(r => ({
         id: r.id,
-        name: r.answers?.nombre_completo || r.answers?.nombre || r.answers?.name || 'Sin nombre',
+        name: r.answers?.['Nombre Completo'] || r.answers?.['Nombre'] || r.answers?.nombre_completo || r.answers?.nombre || r.answers?.name || 'Sin nombre',
         email: r.answers?.correo || r.answers?.email || '',
         created_at: r.created_at
     })) || [];
@@ -134,8 +148,8 @@ export default function CertificatesDashboard() {
             // Draw attendee name (centered, uppercase) - Poppins Medium
             const nameText = attendeeName.toUpperCase();
             const nameWidth = fontMedium.widthOfTextAtSize(nameText, nameFontSize);
-            const nameX = (width - nameWidth) / 2 + 6; // 6px right
-            const nameY = height - 270;
+            const nameX = (width - nameWidth) / 2 + 19; // 19px right
+            const nameY = height - 297; // Moved 3px more down (total 27px from orig 270)
 
             page.drawText(nameText, {
                 x: nameX,
@@ -147,7 +161,7 @@ export default function CertificatesDashboard() {
 
             // Workshop details paragraph - symmetric margins
             const textMargin = 130; // Equal margin on both sides
-            const textStartX = textMargin + 6; // Moved 6px right
+            const textStartX = textMargin + 19; // Moved 19px right
             const textMaxWidth = width - (textMargin * 2);
             let currentY = height - 343;
             let xPos = textStartX;
@@ -203,7 +217,7 @@ export default function CertificatesDashboard() {
             const para1Words = [];
 
             // 1. Pre-title (Regular)
-            const preTitle = 'Por su participación en el';
+            const preTitle = 'Por su participación en el Taller';
             preTitle.split(' ').forEach(word => {
                 if (word) para1Words.push({ text: word, font: fontRegular });
             });
@@ -382,6 +396,50 @@ export default function CertificatesDashboard() {
 
         setGenerating(false);
     };
+
+    if (!isAuthenticated) {
+        return (
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 max-w-md w-full border border-slate-200 dark:border-slate-700">
+                    <div className="text-center mb-6">
+                        <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Lock size={32} className="text-amber-500" />
+                        </div>
+                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Acceso Restringido</h1>
+                        <p className="text-slate-500 dark:text-slate-400 mt-2">Introduce la contraseña para acceder al generador de certificados.</p>
+                    </div>
+
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div>
+                            <input
+                                type="password"
+                                value={passwordInput}
+                                onChange={(e) => setPasswordInput(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                                placeholder="Contraseña de acceso"
+                                autoFocus
+                            />
+                            {authError && (
+                                <p className="text-red-500 text-sm mt-2">Contraseña incorrecta</p>
+                            )}
+                        </div>
+                        <button
+                            type="submit"
+                            className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold hover:from-amber-600 hover:to-orange-700 transition-all shadow-lg shadow-amber-500/20"
+                        >
+                            Ingresar
+                        </button>
+                    </form>
+                    <button
+                        onClick={() => navigate('/portal')}
+                        className="w-full mt-4 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium transition-colors"
+                    >
+                        Volver al Portal
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
