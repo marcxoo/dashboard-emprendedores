@@ -179,7 +179,7 @@ function Portal() {
                     </div>
 
                     {/* Card 5: Fairs Portal */}
-                    <div onClick={() => navigate('/fairs')} className="group relative cursor-pointer md:col-span-2 lg:col-span-1">
+                    <div onClick={() => navigate('/fairs')} className="group relative cursor-pointer">
                         <div className="absolute -inset-0.5 bg-gradient-to-r from-secondary-600 to-secondary-800 rounded-[2.5rem] opacity-0 group-hover:opacity-30 blur-xl transition duration-500"></div>
                         <ShineBorder
                             className="bg-white dark:bg-slate-800/80 backdrop-blur-xl rounded-[2rem] p-8 h-full relative overflow-hidden border border-slate-200 dark:border-white/10 hover:border-secondary-500/50 dark:hover:border-secondary-400/50 transition-all duration-300"
@@ -201,45 +201,43 @@ function Portal() {
                             </div>
 
                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-secondary-700 dark:group-hover:text-secondary-400 transition-colors">
-                                Portal de Ferias
+                                Ferias
                             </h2>
                             <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
                                 Gestiona ferias específicas y asignaciones de emprendedores seleccionados.
                             </p>
                         </ShineBorder>
                     </div>
-                    {/* Card 5: Certificates (Visible only in DEV) */}
-                    {import.meta.env.DEV && (
-                        <div onClick={() => navigate('/certificates')} className="group relative cursor-pointer md:col-span-2">
-                            <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-[2.5rem] opacity-0 group-hover:opacity-30 blur-xl transition duration-500"></div>
-                            <ShineBorder
-                                className="bg-white dark:bg-slate-800/80 backdrop-blur-xl rounded-[2rem] p-8 h-full relative overflow-hidden border border-slate-200 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-amber-400/50 transition-all duration-300"
-                                color={["#f59e0b", "#eab308"]}
-                                borderRadius={32}
-                                borderWidth={2}
-                                duration={8}
-                            >
-                                <div className="absolute top-0 right-0 p-8">
-                                    <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-700/50 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
-                                        <ArrowRight size={20} className="text-slate-400 dark:text-slate-500 group-hover:text-white transition-colors" />
-                                    </div>
+                    {/* Card 6: Certificates */}
+                    <div onClick={() => navigate('/certificates')} className="group relative cursor-pointer">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-[2.5rem] opacity-0 group-hover:opacity-30 blur-xl transition duration-500"></div>
+                        <ShineBorder
+                            className="bg-white dark:bg-slate-800/80 backdrop-blur-xl rounded-[2rem] p-8 h-full relative overflow-hidden border border-slate-200 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-amber-400/50 transition-all duration-300"
+                            color={["#f59e0b", "#eab308"]}
+                            borderRadius={32}
+                            borderWidth={2}
+                            duration={8}
+                        >
+                            <div className="absolute top-0 right-0 p-8">
+                                <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-700/50 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+                                    <ArrowRight size={20} className="text-slate-400 dark:text-slate-500 group-hover:text-white transition-colors" />
                                 </div>
+                            </div>
 
-                                <div className="mb-8">
-                                    <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-500/10 dark:to-yellow-600/10 flex items-center justify-center text-amber-500 dark:text-amber-400 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-amber-500/10 group-hover:shadow-amber-500/20">
-                                        <Award size={36} strokeWidth={1.5} />
-                                    </div>
+                            <div className="mb-8">
+                                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-500/10 dark:to-yellow-600/10 flex items-center justify-center text-amber-500 dark:text-amber-400 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-amber-500/10 group-hover:shadow-amber-500/20">
+                                    <Award size={36} strokeWidth={1.5} />
                                 </div>
+                            </div>
 
-                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                                    Certificados
-                                </h2>
-                                <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-                                    Genera certificados de participación para talleres y eventos.
-                                </p>
-                            </ShineBorder>
-                        </div>
-                    )}
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                                Certificados
+                            </h2>
+                            <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                                Genera certificados de participación para talleres y eventos.
+                            </p>
+                        </ShineBorder>
+                    </div>
                 </div>
             </div>
         </div>
