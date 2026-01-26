@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Users, Briefcase, Plus, ArrowLeft, Search, MapPin, Trash2, Edit, X, Check, Filter, ChevronRight, Store, Phone, Mail, Database, DollarSign, TrendingUp, Download } from 'lucide-react';
+import { Calendar, Users, Briefcase, Plus, ArrowLeft, Search, MapPin, Trash2, Edit, X, Check, Filter, ChevronRight, Store, Phone, Mail, Database, DollarSign, TrendingUp, Download, ArrowUpDown, ArrowUp, ArrowDown, UserPlus, Building2, Tag, FileText, List, Instagram, Facebook, Globe } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { EntrepreneurModal } from './EntrepreneursList';
 import { ShineBorder } from './ui/ShineBorder';
 
 export default function FairsDashboard() {
@@ -258,13 +259,45 @@ function FairParticipants({ fairId }) {
         entrepreneurs, // Import main list for cross-referencing details
         assignEntrepreneurToFair,
         addFairEntrepreneur,
+        addEntrepreneur, // Main DB add
         updateFairAssignmentStatus, // Import logic
         bulkImportFairEntrepreneurs, // Bulk Import
         removeEntrepreneurFromFair // Add this for delete functionality
     } = useData();
     const [showImport, setShowImport] = useState(false);
-    const [isCreating, setIsCreating] = useState(false);
     const [filter, setFilter] = useState('');
+
+    // Quick Register State
+    const [isQuickRegisterOpen, setIsQuickRegisterOpen] = useState(false);
+
+    // Dynamic categories derived from existing entrepreneurs + defaults
+    const categories = useMemo(() => {
+        const defaults = ['ALIMENTOS', 'ARTESANIAS', 'BEBIDAS', 'COMIDA RAPIDA', 'COSMETICOS', 'POSTRES', 'ROPA', 'SERVICIOS', 'OTRO'];
+        const existing = entrepreneurs?.map(e => e.categoria_principal).filter(Boolean) || [];
+        return [...new Set([...defaults, ...existing])].sort();
+    }, [entrepreneurs]);
+
+    const handleQuickRegister = async (data) => {
+        try {
+            // Create Entrepreneur
+            const newEnt = await addEntrepreneur({
+                ...data,
+                active_status: 'active'
+            });
+
+            if (newEnt && newEnt.id) {
+                // Assign to Fair
+                await assignEntrepreneurToFair(fairId, newEnt.id);
+                // Set status to confirmed
+                await updateFairAssignmentStatus(fairId, newEnt.id, 'confirmed');
+
+                setIsQuickRegisterOpen(false);
+            }
+        } catch (error) {
+            console.error("Quick Register Error:", error);
+            alert("Error al registrar: " + error.message);
+        }
+    };
 
     const handleExportCSV = () => {
         // Headers - Using semicolon separator for Spanish Excel compatibility
@@ -362,6 +395,13 @@ function FairParticipants({ fairId }) {
                     >
                         <Download size={18} />
                         <span className="hidden sm:inline">Exportar</span>
+                    </button>
+                    <button
+                        onClick={() => setIsQuickRegisterOpen(true)}
+                        className="flex-1 lg:flex-none btn bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 px-4 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm"
+                    >
+                        <UserPlus size={18} />
+                        <span className="hidden sm:inline">Registrar</span>
                     </button>
                     <button
                         onClick={() => setShowImport(true)}
@@ -508,14 +548,15 @@ function FairParticipants({ fairId }) {
                 />
             )}
 
-            {/* Simple Create Modal reused or inline */}
-            {isCreating && (
-                <EntrepreneurModal onClose={() => setIsCreating(false)} onSave={async (data) => {
-                    const created = await addFairEntrepreneur(data);
-                    if (created) await assignEntrepreneurToFair(fairId, created.id);
-                    setIsCreating(false);
-                }} />
-            )}
+
+
+            {/* Quick Register Modal - Reused Component */}
+            <EntrepreneurModal
+                isOpen={isQuickRegisterOpen}
+                onClose={() => setIsQuickRegisterOpen(false)}
+                onSave={handleQuickRegister}
+                categories={categories}
+            />
         </div>
     )
 }
@@ -533,6 +574,9 @@ function FairSalesTracker({ fairId }) {
     const [filter, setFilter] = useState('');
     const [viewMode, setViewMode] = useState('participants'); // 'participants' | 'sales'
     const [isExpanded, setIsExpanded] = useState(true);
+
+    // Sorting State
+    const [sortConfig, setSortConfig] = useState({ key: 'dailyRevenue', direction: 'desc' });
 
     // Sync selectedDate when fair data loads (since fairs might load async)
     const [dateSynced, setDateSynced] = useState(false);
@@ -560,23 +604,78 @@ function FairSalesTracker({ fairId }) {
     // Get sales for this fair
     const currentSales = (fairSales || []).filter(s => s.fair_id === fairId);
 
-    // Sort and Filter logic
-    const sortedParticipants = [...participants].sort((a, b) => (a.business_name || a.name).localeCompare(b.business_name || b.name));
+    // 1. Process Data (Calculate Revenues)
+    const processedParticipants = useMemo(() => {
+        return participants.map(p => {
+            const daySale = currentSales.find(s => s.entrepreneur_id === p.id && s.sale_date === selectedDate);
+            const totalEntRevenue = currentSales.filter(s => s.entrepreneur_id === p.id).reduce((sum, s) => sum + Number(s.amount), 0);
 
-    const filteredParticipants = sortedParticipants.filter(p => {
-        const term = filter.toLowerCase();
-        return (
-            (p.business_name && p.business_name.toLowerCase().includes(term)) ||
-            (p.name && p.name.toLowerCase().includes(term)) ||
-            (p.category && p.category.toLowerCase().includes(term))
-        );
-    });
+            return {
+                ...p,
+                displayName: p.business_name || p.name,
+                dailyRevenue: daySale ? Number(daySale.amount) : 0,
+                totalRevenue: totalEntRevenue,
+                hasDaySale: !!daySale
+            };
+        });
+    }, [participants, currentSales, selectedDate]);
+
+    // 2. Filter & Sort
+    const filteredAndSortedParticipants = useMemo(() => {
+        let result = processedParticipants.filter(p => {
+            const term = filter.toLowerCase();
+            return (
+                (p.business_name && p.business_name.toLowerCase().includes(term)) ||
+                (p.name && p.name.toLowerCase().includes(term)) ||
+                (p.category && p.category.toLowerCase().includes(term))
+            );
+        });
+
+        if (sortConfig.key) {
+            result.sort((a, b) => {
+                let aValue = a[sortConfig.key];
+                let bValue = b[sortConfig.key];
+
+                // Handle string comparison for names
+                if (typeof aValue === 'string') {
+                    aValue = aValue.toLowerCase();
+                    bValue = bValue.toLowerCase();
+                    if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+                    if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+                    return 0;
+                }
+
+                // Handle numeric comparison
+                if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return result;
+    }, [processedParticipants, filter, sortConfig]);
 
     // Calculate totals
     const totalRevenue = currentSales.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
     const dailyRevenue = currentSales
         .filter(s => s.sale_date === selectedDate)
         .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+
+    // Handlers for Sorting
+    const requestSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIcon = (key) => {
+        if (sortConfig.key !== key) return <ArrowUpDown size={14} className="ml-1 opacity-50" />;
+        return sortConfig.direction === 'asc'
+            ? <ArrowUp size={14} className="ml-1 text-primary-500" />
+            : <ArrowDown size={14} className="ml-1 text-primary-500" />;
+    };
 
     return (
         <div className="space-y-6">
@@ -671,6 +770,31 @@ function FairSalesTracker({ fairId }) {
                         </div>
                     </div>
 
+                    {/* DEBUG INFO */}
+                    <div className="md:hidden px-5 py-2 text-xs text-red-500 font-bold bg-red-100 border-b border-red-200 mb-2">
+                        DEBUG: viewMode="{viewMode}", isExpanded="{isExpanded.toString()}", salesCount={currentSales.length}
+                    </div>
+
+                    {/* Mobile Sort Controls - Force Render */}
+                    <div className="md:hidden px-5 pb-4 flex gap-2 overflow-x-auto no-scrollbar">
+                        <select
+                            value={sortConfig.key}
+                            onChange={(e) => requestSort(e.target.value)}
+                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 font-bold"
+                        >
+                            <option value="displayName">Ordenar por Nombre</option>
+                            <option value="dailyRevenue">Ordenar por Venta Día</option>
+                            <option value="totalRevenue">Ordenar por Acumulado</option>
+                            <option value="category">Ordenar por Categoría</option>
+                        </select>
+                        <button
+                            onClick={() => setSortConfig(prev => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' }))}
+                            className="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
+                        >
+                            {sortConfig.direction === 'asc' ? <ArrowUp size={20} /> : <ArrowDown size={20} />}
+                        </button>
+                    </div>
+
                     {/* Desktop/Tablet View - Toggled */}
                     {viewMode === 'sales' ? (
                         /* Sales Table View */
@@ -678,23 +802,42 @@ function FairSalesTracker({ fairId }) {
                             <table className="w-full text-left">
                                 <thead className="bg-slate-50/50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
                                     <tr>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Emprendedor</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Categoría</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Venta Día</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Acumulado</th>
+                                        <th
+                                            onClick={() => requestSort('displayName')}
+                                            className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors select-none"
+                                        >
+                                            <div className="flex items-center gap-1">Emprendedor {getSortIcon('displayName')}</div>
+                                        </th>
+                                        <th
+                                            onClick={() => requestSort('category')}
+                                            className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors select-none"
+                                        >
+                                            <div className="flex items-center gap-1">Categoría {getSortIcon('category')}</div>
+                                        </th>
+                                        <th
+                                            onClick={() => requestSort('dailyRevenue')}
+                                            className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors select-none"
+                                        >
+                                            <div className="flex items-center justify-end gap-1">Venta Día {getSortIcon('dailyRevenue')}</div>
+                                        </th>
+                                        <th
+                                            onClick={() => requestSort('totalRevenue')}
+                                            className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors select-none"
+                                        >
+                                            <div className="flex items-center justify-end gap-1">Acumulado {getSortIcon('totalRevenue')}</div>
+                                        </th>
                                         <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                                    {filteredParticipants.map(participant => {
-                                        const daySale = currentSales.find(s => s.entrepreneur_id === participant.id && s.sale_date === selectedDate);
-                                        const totalEntRevenue = currentSales.filter(s => s.entrepreneur_id === participant.id).reduce((sum, s) => sum + Number(s.amount), 0);
-
+                                    {filteredAndSortedParticipants.map(participant => {
                                         return (
                                             <tr key={participant.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
                                                 <td className="px-6 py-4">
-                                                    <div className="font-bold text-slate-900 dark:text-white">{participant.business_name || participant.name}</div>
-                                                    <div className="text-xs text-slate-500 text-pretty max-w-[200px]">{participant.name}</div>
+                                                    <div className="font-bold text-slate-900 dark:text-white">{participant.displayName}</div>
+                                                    {participant.business_name && (
+                                                        <div className="text-xs text-slate-500 text-pretty max-w-[200px]">{participant.name}</div>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
                                                     <span className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs font-medium">
@@ -702,19 +845,19 @@ function FairSalesTracker({ fairId }) {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    {daySale ? (
+                                                    {participant.hasDaySale ? (
                                                         <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-lg">
-                                                            ${Number(daySale.amount).toFixed(2)}
+                                                            ${participant.dailyRevenue.toFixed(2)}
                                                         </span>
                                                     ) : (
                                                         <span className="text-slate-400 text-sm italic">Pendiente</span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4 text-right font-medium text-slate-700 dark:text-slate-300">
-                                                    ${totalEntRevenue.toFixed(2)}
+                                                    ${participant.totalRevenue.toFixed(2)}
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    {daySale ? (
+                                                    {participant.hasDaySale ? (
                                                         <div className="flex justify-end gap-2">
                                                             <button
                                                                 onClick={() => { setSelectedEntId(participant.id); setIsModalOpen(true); }}
@@ -736,7 +879,7 @@ function FairSalesTracker({ fairId }) {
                                             </tr>
                                         );
                                     })}
-                                    {filteredParticipants.length === 0 && (
+                                    {filteredAndSortedParticipants.length === 0 && (
                                         <tr>
                                             <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
                                                 {filter ? 'No se encontraron resultados para tu búsqueda.' : 'No hay participantes asignados para mostrar.'}
@@ -749,7 +892,7 @@ function FairSalesTracker({ fairId }) {
                     ) : (
                         /* Participants Grid View */
                         <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-1">
-                            {filteredParticipants.map(participant => {
+                            {filteredAndSortedParticipants.map(participant => {
                                 // Verify status from assignments
                                 const assignment = (fairAssignments || []).find(a => a.fair_id === fair?.id && a.entrepreneur_id === participant.id);
                                 const isConfirmed = assignment?.status === 'confirmed';
@@ -795,7 +938,7 @@ function FairSalesTracker({ fairId }) {
                                     </div>
                                 );
                             })}
-                            {filteredParticipants.length === 0 && (
+                            {filteredAndSortedParticipants.length === 0 && (
                                 <div className="col-span-full py-12 text-center text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
                                     <p>{filter ? 'No se encontraron resultados.' : 'No hay participantes asignados.'}</p>
                                 </div>
@@ -805,14 +948,11 @@ function FairSalesTracker({ fairId }) {
 
                     {/* Mobile Card List View */}
                     <div className="md:hidden flex flex-col gap-3 p-4 bg-slate-50 dark:bg-slate-900/50">
-                        {filteredParticipants.map(participant => {
-                            const daySale = currentSales.find(s => s.entrepreneur_id === participant.id && s.sale_date === selectedDate);
-                            const totalEntRevenue = currentSales.filter(s => s.entrepreneur_id === participant.id).reduce((sum, s) => sum + Number(s.amount), 0);
-
+                        {filteredAndSortedParticipants.map(participant => {
                             return (
                                 <div key={participant.id} className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-4 relative overflow-hidden transition-all active:scale-[0.99] duration-200">
                                     {/* Status Strip if active sale */}
-                                    {daySale && <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>}
+                                    {participant.hasDaySale && <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>}
 
                                     <div className="flex justify-between items-start gap-3">
                                         <div className="min-w-0 flex-1">
@@ -832,9 +972,9 @@ function FairSalesTracker({ fairId }) {
                                         </div>
                                         <div className="text-right shrink-0 bg-slate-50 dark:bg-slate-800/80 p-2 rounded-lg border border-slate-100 dark:border-slate-700/50">
                                             <p className="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">Venta Día</p>
-                                            {daySale ? (
+                                            {participant.hasDaySale ? (
                                                 <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
-                                                    ${Number(daySale.amount).toFixed(2)}
+                                                    ${participant.dailyRevenue.toFixed(2)}
                                                 </span>
                                             ) : (
                                                 <span className="text-sm font-medium text-slate-300 dark:text-slate-600 italic">--</span>
@@ -846,12 +986,12 @@ function FairSalesTracker({ fairId }) {
                                         <div className="flex flex-col">
                                             <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Acumulado</span>
                                             <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                                ${totalEntRevenue.toFixed(2)}
+                                                ${participant.totalRevenue.toFixed(2)}
                                             </span>
                                         </div>
 
                                         <div className="flex-1 max-w-[160px]">
-                                            {daySale ? (
+                                            {participant.hasDaySale ? (
                                                 <button
                                                     onClick={() => { setSelectedEntId(participant.id); setIsModalOpen(true); }}
                                                     className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
@@ -873,7 +1013,7 @@ function FairSalesTracker({ fairId }) {
                                 </div>
                             );
                         })}
-                        {filteredParticipants.length === 0 && (
+                        {filteredAndSortedParticipants.length === 0 && (
                             <div className="px-6 py-12 text-center text-slate-500">
                                 {filter ? 'No se encontraron resultados.' : 'No hay participantes asignados.'}
                             </div>
@@ -1320,59 +1460,6 @@ function ImportModal({ onClose, onImport, existingParticipants }) {
     );
 }
 
-function EntrepreneurModal({ data, onClose, onSave }) {
-    const [form, setForm] = useState({
-        name: data?.name || '',
-        business_name: data?.business_name || '',
-        category: data?.category || '',
-        phone: data?.phone || '',
-        email: data?.email || ''
-    });
-
-    // Escape listener
-    useEffect(() => {
-        const handleEsc = (e) => {
-            if (e.key === 'Escape') onClose();
-        };
-        window.addEventListener('keydown', handleEsc);
-        return () => window.removeEventListener('keydown', handleEsc);
-    }, [onClose]);
-
-    return (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[50] flex items-center justify-center p-4 animate-fade-in">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-xl shadow-2xl animate-scale-in border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        {data ? 'Editar Emprendedor' : 'Nuevo Emprendedor'}
-                    </h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-                        <X size={24} />
-                    </button>
-                </div>
-                <div className="p-8 space-y-6">
-                    <div className="grid grid-cols-2 gap-5">
-                        <div className="col-span-2 sm:col-span-1">
-                            <label className="label">Nombre Propietario</label>
-                            <input className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all font-medium text-slate-900 dark:text-white" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} autoFocus />
-                        </div>
-                        <div className="col-span-2 sm:col-span-1">
-                            <label className="label">Nombre Comercial</label>
-                            <input className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all font-medium text-slate-900 dark:text-white" value={form.business_name} onChange={e => setForm({ ...form, business_name: e.target.value })} />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="label">Categoría</label>
-                        <input className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all font-medium text-slate-900 dark:text-white" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="Ej. Artesanía, Gastronomía" />
-                    </div>
-                </div>
-                <div className="px-8 py-5 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-slate-50/50 dark:bg-slate-800/50">
-                    <button onClick={onClose} className="px-5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-200/50 transition-colors">Cancelar</button>
-                    <button onClick={() => onSave(form)} className="px-6 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-lg shadow-primary-500/25 transition-all active:scale-95">Guardar</button>
-                </div>
-            </div>
-        </div>
-    )
-}
 
 function ParticipantDetailsModal({ participant, onClose, fairId }) {
     const {

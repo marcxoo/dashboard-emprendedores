@@ -714,7 +714,7 @@ const TikTokIcon = ({ size = 20, className = "", ...props }) => (
     </svg>
 );
 
-function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData }) {
+export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initialData }) {
     const [formData, setFormData] = useState({
         nombre_emprendimiento: '',
         persona_contacto: '',

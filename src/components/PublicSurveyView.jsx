@@ -32,7 +32,6 @@ function PublicSurveyView() {
                     const formattedSurvey = {
                         ...data,
                         limit: data.response_limit, // Map DB column to frontend prop
-                        limit: data.response_limit, // Map DB column to frontend prop
                         note: data.note, // Map DB column
                         eventDate: data.event_date,
                         eventTime: data.event_time,
