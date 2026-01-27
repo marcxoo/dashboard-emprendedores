@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Users, Briefcase, Plus, ArrowLeft, Search, MapPin, Trash2, Edit, X, Check, Filter, ChevronRight, Store, Phone, Mail, Database, DollarSign, TrendingUp, Download, ArrowUpDown, ArrowUp, ArrowDown, UserPlus, Building2, Tag, FileText, List, Instagram, Facebook, Globe } from 'lucide-react';
+import { Calendar, Users, Briefcase, Plus, ArrowLeft, Search, MapPin, Trash2, Edit, X, Check, Filter, ChevronRight, Store, Phone, Mail, Database, DollarSign, TrendingUp, Download, ArrowUpDown, ArrowUp, ArrowDown, UserPlus, Building2, Tag, FileText, List, Instagram, Facebook, Globe, FileSpreadsheet } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { EntrepreneurModal } from './EntrepreneursList';
 import { ShineBorder } from './ui/ShineBorder';
+import * as XLSX from 'xlsx';
 
 export default function FairsDashboard() {
     const { fairs } = useData();
@@ -578,6 +579,14 @@ function FairSalesTracker({ fairId }) {
     // Sorting State
     const [sortConfig, setSortConfig] = useState({ key: 'dailyRevenue', direction: 'desc' });
 
+    // Currency Formatter - adds thousand separators
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amount);
+    };
+
     // Sync selectedDate when fair data loads (since fairs might load async)
     const [dateSynced, setDateSynced] = useState(false);
     useEffect(() => {
@@ -677,6 +686,49 @@ function FairSalesTracker({ fairId }) {
             : <ArrowDown size={14} className="ml-1 text-primary-500" />;
     };
 
+    // Excel Export Function
+    const handleExportExcel = () => {
+        // Prepare data for export with formatted currency
+        const exportData = filteredAndSortedParticipants.map(p => ({
+            'Emprendedor': p.displayName || '',
+            'Propietario': p.name || '',
+            'Categoría': p.category || 'Sin categoría',
+            'Venta del Día': `$${formatCurrency(p.dailyRevenue)}`,
+            'Acumulado Total': `$${formatCurrency(p.totalRevenue)}`
+        }));
+
+        // Add totals row
+        exportData.push({
+            'Emprendedor': 'TOTAL',
+            'Propietario': '',
+            'Categoría': '',
+            'Venta del Día': `$${formatCurrency(dailyRevenue)}`,
+            'Acumulado Total': `$${formatCurrency(totalRevenue)}`
+        });
+
+        // Create workbook and worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(exportData);
+
+        // Set column widths
+        ws['!cols'] = [
+            { wch: 30 }, // Emprendedor
+            { wch: 25 }, // Propietario
+            { wch: 20 }, // Categoría
+            { wch: 18 }, // Venta del Día
+            { wch: 18 }  // Acumulado Total
+        ];
+
+        XLSX.utils.book_append_sheet(wb, ws, 'Ventas');
+
+        // Generate filename with fair name and date
+        const fairName = fair?.name?.replace(/[^a-zA-Z0-9]/g, '_') || 'feria';
+        const fileName = `ventas_${fairName}_${selectedDate}.xlsx`;
+
+        // Download file
+        XLSX.writeFile(wb, fileName);
+    };
+
     return (
         <div className="space-y-6">
             {/* Stats Cards */}
@@ -685,7 +737,7 @@ function FairSalesTracker({ fairId }) {
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="text-primary-100 font-bold text-xs uppercase tracking-wider mb-1">Recaudación Total</p>
-                            <h3 className="text-4xl font-extrabold tracking-tight">${totalRevenue.toFixed(2)}</h3>
+                            <h3 className="text-4xl font-extrabold tracking-tight">${formatCurrency(totalRevenue)}</h3>
                         </div>
                         <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
                             <TrendingUp size={24} className="text-white" />
@@ -697,7 +749,7 @@ function FairSalesTracker({ fairId }) {
                     <div className="flex justify-between items-start mb-2">
                         <div>
                             <p className="text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-wider mb-1">Ventas del Día</p>
-                            <h3 className="text-3xl font-bold text-slate-900 dark:text-white">${dailyRevenue.toFixed(2)}</h3>
+                            <h3 className="text-3xl font-bold text-slate-900 dark:text-white">${formatCurrency(dailyRevenue)}</h3>
                         </div>
                         <div className="flex items-center gap-2">
                             <input
@@ -759,20 +811,25 @@ function FairSalesTracker({ fairId }) {
                             </button>
                         </div>
 
-                        <div className="relative w-full sm:w-72">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                            <input
-                                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none text-sm transition-all font-medium text-slate-900 dark:text-white"
-                                placeholder={viewMode === 'participants' ? "Buscar participante..." : "Buscar para registrar venta..."}
-                                value={filter}
-                                onChange={e => setFilter(e.target.value)}
-                            />
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <div className="relative flex-1 sm:w-72">
+                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                <input
+                                    className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none text-sm transition-all font-medium text-slate-900 dark:text-white"
+                                    placeholder={viewMode === 'participants' ? "Buscar participante..." : "Buscar para registrar venta..."}
+                                    value={filter}
+                                    onChange={e => setFilter(e.target.value)}
+                                />
+                            </div>
+                            <button
+                                onClick={handleExportExcel}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all active:scale-95 whitespace-nowrap"
+                                title="Exportar a Excel"
+                            >
+                                <FileSpreadsheet size={18} />
+                                <span className="hidden sm:inline">Exportar Excel</span>
+                            </button>
                         </div>
-                    </div>
-
-                    {/* DEBUG INFO */}
-                    <div className="md:hidden px-5 py-2 text-xs text-red-500 font-bold bg-red-100 border-b border-red-200 mb-2">
-                        DEBUG: viewMode="{viewMode}", isExpanded="{isExpanded.toString()}", salesCount={currentSales.length}
                     </div>
 
                     {/* Mobile Sort Controls - Force Render */}
@@ -847,14 +904,14 @@ function FairSalesTracker({ fairId }) {
                                                 <td className="px-6 py-4 text-right">
                                                     {participant.hasDaySale ? (
                                                         <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-lg">
-                                                            ${participant.dailyRevenue.toFixed(2)}
+                                                            ${formatCurrency(participant.dailyRevenue)}
                                                         </span>
                                                     ) : (
                                                         <span className="text-slate-400 text-sm italic">Pendiente</span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4 text-right font-medium text-slate-700 dark:text-slate-300">
-                                                    ${participant.totalRevenue.toFixed(2)}
+                                                    ${formatCurrency(participant.totalRevenue)}
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     {participant.hasDaySale ? (
@@ -974,7 +1031,7 @@ function FairSalesTracker({ fairId }) {
                                             <p className="text-[9px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">Venta Día</p>
                                             {participant.hasDaySale ? (
                                                 <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
-                                                    ${participant.dailyRevenue.toFixed(2)}
+                                                    ${formatCurrency(participant.dailyRevenue)}
                                                 </span>
                                             ) : (
                                                 <span className="text-sm font-medium text-slate-300 dark:text-slate-600 italic">--</span>
@@ -986,7 +1043,7 @@ function FairSalesTracker({ fairId }) {
                                         <div className="flex flex-col">
                                             <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Acumulado</span>
                                             <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                                ${participant.totalRevenue.toFixed(2)}
+                                                ${formatCurrency(participant.totalRevenue)}
                                             </span>
                                         </div>
 
@@ -1058,13 +1115,14 @@ function FairSalesTracker({ fairId }) {
 
                             <form onSubmit={(e) => {
                                 e.preventDefault();
-                                const val = e.target.amount.value;
-                                if (val) {
+                                const rawValue = e.target.amount.value.replace(/,/g, '');
+                                const val = parseFloat(rawValue);
+                                if (!isNaN(val) && val > 0) {
                                     addFairSale({
                                         fair_id: fairId,
                                         entrepreneur_id: selectedEntId,
                                         sale_date: selectedDate,
-                                        amount: parseFloat(val)
+                                        amount: val
                                     });
                                     setIsModalOpen(false);
                                 }
@@ -1074,12 +1132,33 @@ function FairSalesTracker({ fairId }) {
                                         <span className="text-4xl font-bold text-slate-300 dark:text-slate-600 mr-2 absolute -left-6 top-2">$</span>
                                         <input
                                             name="amount"
-                                            type="number"
-                                            step="0.01"
+                                            type="text"
+                                            inputMode="decimal"
                                             autoFocus
                                             className="w-full bg-transparent border-b-2 border-slate-200 dark:border-slate-700 focus:border-primary-500 outline-none text-6xl font-extrabold text-slate-900 dark:text-white text-center pb-2 transition-all placeholder:text-slate-200 dark:placeholder:text-slate-800"
                                             placeholder="0.00"
                                             required
+                                            onChange={(e) => {
+                                                // Remove non-numeric characters except dots
+                                                let value = e.target.value.replace(/[^0-9.]/g, '');
+
+                                                // Handle decimal point
+                                                const parts = value.split('.');
+                                                if (parts.length > 2) {
+                                                    value = parts[0] + '.' + parts.slice(1).join('');
+                                                }
+
+                                                // Format with thousand separators
+                                                if (parts.length === 2) {
+                                                    // Has decimal
+                                                    const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                                    const decPart = parts[1].slice(0, 2); // Max 2 decimal places
+                                                    e.target.value = intPart + '.' + decPart;
+                                                } else {
+                                                    // No decimal
+                                                    e.target.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                                }
+                                            }}
                                         />
                                     </div>
                                     <p className="mt-4 text-xs font-bold uppercase tracking-widest text-primary-600 dark:text-primary-400">
