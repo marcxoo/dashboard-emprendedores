@@ -1,11 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Users, Briefcase, Plus, ArrowLeft, Search, MapPin, Trash2, Edit, X, Check, Filter, ChevronRight, Store, Phone, Mail, Database, DollarSign, TrendingUp, Download, ArrowUpDown, ArrowUp, ArrowDown, UserPlus, Building2, Tag, FileText, List, Instagram, Facebook, Globe, FileSpreadsheet } from 'lucide-react';
+import { Share2, LayoutDashboard, Calendar, Users, Briefcase, Plus, ArrowLeft, Search, MapPin, Trash2, Edit, X, Check, Filter, ChevronRight, Store, Phone, Mail, Database, DollarSign, TrendingUp, Download, ArrowUpDown, ArrowUp, ArrowDown, UserPlus, Building2, Tag, FileText, List, Instagram, Facebook, Globe, FileSpreadsheet } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { EntrepreneurModal } from './EntrepreneursList';
 import { ShineBorder } from './ui/ShineBorder';
+import { CategoryDetailsModal } from './CategoryDetailsModal';
 import * as XLSX from 'xlsx';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, AreaChart, Area } from 'recharts';
 
 export default function FairsDashboard() {
     const { fairs } = useData();
@@ -44,109 +46,121 @@ function FairsOverview({ onSelect }) {
     };
 
     return (
-        <div className="space-y-10">
-            {/* Hero Header - Redesigned Premium */}
-            <div className="relative rounded-[2.5rem] bg-[#0b2e43] p-8 sm:p-12 overflow-hidden shadow-2xl isolate border border-white/5">
+        <div className="space-y-6 sm:space-y-10">
+            {/* Hero Header - Mobile Optimized */}
+            <div className="relative rounded-2xl sm:rounded-[2.5rem] bg-[#0b2e43] p-5 sm:p-8 md:p-12 overflow-hidden shadow-2xl isolate border border-white/5">
                 {/* Dynamic Background Effects */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#ff7900] opacity-15 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#0ea5e9] opacity-10 blur-[100px] rounded-full translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
+                <div className="absolute top-0 right-0 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-[#ff7900] opacity-15 blur-[80px] sm:blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-[200px] sm:w-[400px] h-[200px] sm:h-[400px] bg-[#0ea5e9] opacity-10 blur-[60px] sm:blur-[100px] rounded-full translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light pointer-events-none"></div>
 
-                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                    <div className="max-w-2xl">
-                        <button
-                            onClick={() => navigate('/portal')}
-                            className="flex items-center gap-2 text-slate-300 hover:text-white mb-6 transition-colors font-medium group"
-                        >
-                            <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
-                                <ArrowLeft size={18} />
-                            </div>
-                            <span className="text-sm tracking-wide">Volver al Portal</span>
-                        </button>
+                <div className="relative z-10 flex flex-col gap-5 sm:gap-8">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5 sm:gap-8">
+                        <div className="max-w-2xl">
+                            <button
+                                onClick={() => navigate('/portal')}
+                                className="flex items-center gap-2 text-slate-300 hover:text-white mb-4 sm:mb-6 transition-colors font-medium group"
+                            >
+                                <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
+                                    <ArrowLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                </div>
+                                <span className="text-xs sm:text-sm tracking-wide">Volver al Portal</span>
+                            </button>
 
-                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-[1.1] mb-4">
-                            Gestión de <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff7900] to-[#fb923c]">Ferias</span>
-                        </h1>
-                        <p className="text-lg text-slate-300 font-medium leading-relaxed max-w-lg">
-                            Administra tus eventos, designa emprendedores y lleva el control financiero con precisión.
-                        </p>
+                            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1] mb-2 sm:mb-4">
+                                Gestión de <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff7900] to-[#fb923c]">Ferias</span>
+                            </h1>
+                            <p className="text-sm sm:text-lg text-slate-300 font-medium leading-relaxed max-w-lg hidden sm:block">
+                                Administra tus eventos, designa emprendedores y lleva el control financiero con precisión.
+                            </p>
+                        </div>
+
+                        {/* Desktop Button */}
+                        <button
+                            onClick={() => setIsEditing(true)}
+                            className="hidden sm:flex group bg-white text-[#0b2e43] pl-2 pr-8 py-2 rounded-full font-bold items-center gap-4 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-15px_rgba(255,255,255,0.4)] hover:scale-105 transition-all duration-300 active:scale-95"
+                        >
+                            <div className="bg-[#ff7900] w-12 h-12 rounded-full flex items-center justify-center text-white group-hover:rotate-90 transition-transform duration-500 shadow-lg">
+                                <Plus size={26} strokeWidth={3} />
+                            </div>
+                            <span className="text-lg tracking-tight">Nueva Feria</span>
+                        </button>
                     </div>
 
+                    {/* Mobile Full-width Button */}
                     <button
                         onClick={() => setIsEditing(true)}
-                        className="group bg-white text-[#0b2e43] pl-2 pr-8 py-2 rounded-full font-bold flex items-center gap-4 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-15px_rgba(255,255,255,0.4)] hover:scale-105 transition-all duration-300 active:scale-95"
+                        className="sm:hidden w-full bg-gradient-to-r from-[#ff7900] to-[#fb923c] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] transition-transform"
                     >
-                        <div className="bg-[#ff7900] w-12 h-12 rounded-full flex items-center justify-center text-white group-hover:rotate-90 transition-transform duration-500 shadow-lg">
-                            <Plus size={26} strokeWidth={3} />
-                        </div>
-                        <span className="text-lg tracking-tight">Nueva Feria</span>
+                        <Plus size={22} strokeWidth={3} />
+                        <span className="text-base">Nueva Feria</span>
                     </button>
                 </div>
             </div>
 
-            {/* List Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* List Grid - Mobile optimized gap */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
                 {(fairs || []).map(fair => {
                     const stats = getFairStats(fair.id);
                     const isFinished = isPast(fair.date);
 
                     return (
-                        <div key={fair.id} onClick={() => onSelect(fair.id)} className="group relative cursor-pointer h-full">
-                            <div className="absolute -inset-0.5 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-[2rem] opacity-0 group-hover:opacity-100 blur transition duration-500"></div>
-                            <div className="bg-white dark:bg-slate-900 rounded-[1.9rem] p-6 border border-slate-200 dark:border-slate-800 relative h-full flex flex-col transition-transform duration-300 group-hover:-translate-y-1">
+                        <div key={fair.id} onClick={() => onSelect(fair.id)} className="group relative cursor-pointer h-full active:scale-[0.98] transition-transform">
+                            <div className="absolute -inset-0.5 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl sm:rounded-[2rem] opacity-0 group-hover:opacity-100 blur transition duration-500"></div>
+                            <div className="bg-white dark:bg-slate-900 rounded-xl sm:rounded-[1.9rem] p-4 sm:p-6 border border-slate-200 dark:border-slate-800 relative h-full flex flex-col transition-transform duration-300 group-hover:-translate-y-1">
 
                                 {/* Status Badge */}
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${isFinished
+                                <div className="flex justify-between items-start mb-4 sm:mb-6">
+                                    <div className={`px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${isFinished
                                         ? 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                                         : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
                                         }`}>
-                                        <div className={`w-2 h-2 rounded-full ${isFinished ? 'bg-slate-400' : 'bg-emerald-500 animate-pulse'}`}></div>
+                                        <div className={`w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full ${isFinished ? 'bg-slate-400' : 'bg-emerald-500 animate-pulse'}`}></div>
                                         {isFinished ? 'Finalizada' : 'Activa'}
                                     </div>
 
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setCurrentFair(fair); setIsEditing(true); }}
-                                        className="p-2 -mr-2 -mt-2 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all"
+                                        className="p-2.5 sm:p-2 -mr-1 sm:-mr-2 -mt-1 sm:-mt-2 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all"
                                     >
                                         <Edit size={18} />
                                     </button>
                                 </div>
 
                                 {/* Icon & Title */}
-                                <div className="mb-6">
-                                    <div className={`w-16 h-16 rounded-2xl mb-4 flex items-center justify-center text-white shadow-lg shadow-primary-500/20 ${isFinished ? 'bg-slate-400 dark:bg-slate-700' : 'bg-gradient-to-br from-primary-500 to-primary-600'
+                                <div className="mb-4 sm:mb-6">
+                                    <div className={`w-12 sm:w-16 h-12 sm:h-16 rounded-xl sm:rounded-2xl mb-3 sm:mb-4 flex items-center justify-center text-white shadow-lg shadow-primary-500/20 ${isFinished ? 'bg-slate-400 dark:bg-slate-700' : 'bg-gradient-to-br from-primary-500 to-primary-600'
                                         }`}>
-                                        <Store size={32} />
+                                        <Store size={24} className="sm:w-8 sm:h-8" />
                                     </div>
-                                    <h3 className="font-bold text-2xl text-slate-900 dark:text-white leading-tight mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                    <h3 className="font-bold text-lg sm:text-2xl text-slate-900 dark:text-white leading-tight mb-1.5 sm:mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                                         {fair.name}
                                     </h3>
-                                    <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 font-medium">
-                                        <MapPin size={16} className="text-secondary-500" />
-                                        <span className="truncate">{fair.location || 'Ubicación pendientes'}</span>
+                                    <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+                                        <MapPin size={14} className="sm:w-4 sm:h-4 text-secondary-500 shrink-0" />
+                                        <span className="truncate">{fair.location || 'Ubicación pendiente'}</span>
                                     </div>
                                 </div>
 
                                 {/* Divider */}
-                                <div className="w-full h-px bg-slate-100 dark:bg-slate-800 mb-4"></div>
+                                <div className="w-full h-px bg-slate-100 dark:bg-slate-800 mb-3 sm:mb-4"></div>
 
                                 {/* Footer Stats */}
-                                <div className="mt-auto grid grid-cols-2 gap-4">
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-bold mb-1">FECHA</p>
-                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                <div className="mt-auto grid grid-cols-2 gap-2 sm:gap-4">
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg sm:rounded-xl p-2.5 sm:p-3">
+                                        <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold mb-0.5 sm:mb-1">FECHA</p>
+                                        <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
                                             {fair.end_date && fair.end_date !== fair.date
                                                 ? `${new Date(fair.date + 'T12:00:00').getDate()}-${new Date(fair.end_date + 'T12:00:00').getDate()} ${new Date(fair.date + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short' })}`
                                                 : new Date(fair.date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
                                             }
                                         </p>
                                     </div>
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-bold mb-1">EMPRENDEDORES</p>
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg sm:rounded-xl p-2.5 sm:p-3">
+                                        <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold mb-0.5 sm:mb-1">EMPRENDEDORES</p>
                                         <div className="flex items-center gap-1.5">
-                                            <Users size={14} className="text-primary-500" />
-                                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{stats.count}</p>
+                                            <Users size={12} className="sm:w-3.5 sm:h-3.5 text-primary-500" />
+                                            <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">{stats.count}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -178,7 +192,7 @@ function FairsOverview({ onSelect }) {
 // --- Detail View: Single Fair Panel ---
 
 function FairDetails({ fair, onBack }) {
-    const [activeTab, setActiveTab] = useState('participants'); // participants, sales
+    const [activeTab, setActiveTab] = useState('analytics'); // analytics, participants, sales
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-20">
@@ -220,10 +234,19 @@ function FairDetails({ fair, onBack }) {
                             </div>
 
                             {/* Premium Tabs */}
-                            <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl gap-1">
+                            <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl gap-1 overflow-x-auto">
+                                <button
+                                    onClick={() => setActiveTab('analytics')}
+                                    className={`px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all duration-200 whitespace-nowrap ${activeTab === 'analytics'
+                                        ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                                        }`}
+                                >
+                                    <LayoutDashboard size={18} /> Resumen
+                                </button>
                                 <button
                                     onClick={() => setActiveTab('participants')}
-                                    className={`px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all duration-200 ${activeTab === 'participants'
+                                    className={`px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all duration-200 whitespace-nowrap ${activeTab === 'participants'
                                         ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-400 shadow-sm'
                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
                                         }`}
@@ -232,7 +255,7 @@ function FairDetails({ fair, onBack }) {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('sales')}
-                                    className={`px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all duration-200 ${activeTab === 'sales'
+                                    className={`px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all duration-200 whitespace-nowrap ${activeTab === 'sales'
                                         ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-400 shadow-sm'
                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
                                         }`}
@@ -246,11 +269,854 @@ function FairDetails({ fair, onBack }) {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+                {activeTab === 'analytics' && <FairAnalytics fair={fair} />}
                 {activeTab === 'participants' && <FairParticipants fairId={fair.id} />}
                 {activeTab === 'sales' && <FairSalesTracker fairId={fair.id} />}
             </div>
         </div>
     )
+}
+
+function FairAnalytics({ fair }) {
+    const { fairSales, fairAssignments, fairEntrepreneurs, entrepreneurs } = useData();
+    const [selectedCategoryDetails, setSelectedCategoryDetails] = useState(null);
+
+    // -- Data Processing --
+
+    // 1. Sales Data
+    const currentSales = (fairSales || []).filter(s => s.fair_id === fair.id);
+    const totalRevenue = currentSales.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+    const totalSalesCount = currentSales.length;
+    const averageTicket = totalSalesCount > 0 ? totalRevenue / totalSalesCount : 0;
+
+    // 2. Participants Data
+    const currentAssignments = (fairAssignments || []).filter(a => a.fair_id === fair.id && a.status === 'confirmed');
+    const participantsCount = currentAssignments.length;
+
+    // -- Color Palette & Consistency Logic --
+    const categoryColorMap = useMemo(() => {
+        const uniqueCategories = new Set();
+        (fairEntrepreneurs || []).forEach(e => {
+            if (e.category) uniqueCategories.add(e.category.trim());
+        });
+
+        const map = new Map();
+        // Premium Palette: Blue, Purple, Emerald, Amber, Red, Pink, Cyan, Lime, Indigo, Orange
+        const palette = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#84cc16', '#6366f1', '#f97316'];
+
+        Array.from(uniqueCategories).sort().forEach((cat, index) => {
+            map.set(cat, palette[index % palette.length]);
+        });
+
+        // Default fallbacks
+        map.set('Sin Categoría', '#94a3b8');
+        map.set('Otros', '#64748b');
+
+        return map;
+    }, [fairEntrepreneurs]);
+
+    const getColor = (cat) => categoryColorMap.get((cat || '').trim()) || '#94a3b8';
+
+    // 3. Top Entrepreneurs Logic (Updated with Colors)
+    const salesByEntrepreneur = useMemo(() => {
+        const map = new Map();
+
+        currentSales.forEach(sale => {
+            const current = map.get(sale.entrepreneur_id) || 0;
+            map.set(sale.entrepreneur_id, current + Number(sale.amount));
+        });
+
+        const result = [];
+        map.forEach((amount, id) => {
+            const ent = fairEntrepreneurs.find(e => e.id === id);
+            if (ent) {
+                const category = ent.category || 'Sin Categoría';
+                result.push({
+                    name: ent.business_name || ent.name,
+                    amount,
+                    id,
+                    category,
+                    fill: getColor(category)
+                });
+            }
+        });
+
+        return result.sort((a, b) => b.amount - a.amount).slice(0, 5); // Top 5
+    }, [currentSales, fairEntrepreneurs, categoryColorMap]);
+
+    // 4. Sales by Category Logic (Updated with Colors)
+    const salesByCategory = useMemo(() => {
+        const catMap = new Map();
+
+        currentSales.forEach(sale => {
+            const ent = fairEntrepreneurs.find(e => e.id === sale.entrepreneur_id);
+            const category = ent?.category || 'Sin Categoría';
+            const current = catMap.get(category) || 0;
+            catMap.set(category, current + Number(sale.amount));
+        });
+
+        const sorted = Array.from(catMap.entries())
+            .map(([name, value]) => ({
+                name,
+                value,
+                fill: getColor(name)
+            }))
+            .sort((a, b) => b.value - a.value);
+
+        // Group smaller categories if we have too many
+        if (sorted.length > 6) {
+            const top = sorted.slice(0, 5);
+            const others = sorted.slice(5);
+            const othersValue = others.reduce((acc, curr) => acc + curr.value, 0);
+
+            if (othersValue > 0) {
+                top.push({ name: 'Otros', value: othersValue, fill: '#64748b' });
+            }
+            return top;
+        }
+
+        return sorted;
+    }, [currentSales, fairEntrepreneurs, categoryColorMap]);
+
+    // 5. Daily Sales Trend
+    // Aggregate by date
+    const dailyTrend = useMemo(() => {
+        const dateMap = new Map();
+
+        currentSales.forEach(sale => {
+            const date = sale.sale_date; // YYYY-MM-DD
+            if (date) {
+                const current = dateMap.get(date) || 0;
+                dateMap.set(date, current + Number(sale.amount));
+            }
+        });
+
+        // Sort by date
+        return Array.from(dateMap.entries())
+            .map(([date, amount]) => ({
+                date,
+                formattedDate: new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+                amount
+            }))
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
+    }, [currentSales]);
+
+
+    // 6. Detailed Category Performance
+    const categoryPerformance = useMemo(() => {
+        const stats = new Map();
+
+        currentSales.forEach(sale => {
+            const ent = fairEntrepreneurs.find(e => e.id === sale.entrepreneur_id);
+            const category = ent?.category || 'Sin Categoría';
+
+            if (!stats.has(category)) {
+                stats.set(category, { name: category, revenue: 0, count: 0 });
+            }
+
+            const catStat = stats.get(category);
+            catStat.revenue += Number(sale.amount);
+            catStat.count += 1;
+        });
+
+        return Array.from(stats.values())
+            .map(stat => ({
+                ...stat,
+                avgTicket: stat.count > 0 ? stat.revenue / stat.count : 0,
+                percentage: totalRevenue > 0 ? (stat.revenue / totalRevenue) * 100 : 0,
+                fill: getColor(stat.name)
+            }))
+            .sort((a, b) => b.revenue - a.revenue);
+    }, [currentSales, fairEntrepreneurs, totalRevenue, categoryColorMap]);
+
+    // 7. Entrepreneur Performance (Full List for Table)
+    const entrepreneurPerformance = useMemo(() => {
+        const stats = new Map();
+
+        currentSales.forEach(sale => {
+            const entId = sale.entrepreneur_id;
+            if (!stats.has(entId)) {
+                const ent = fairEntrepreneurs.find(e => e.id === entId);
+                const category = ent?.category || 'N/A';
+                stats.set(entId, {
+                    id: entId,
+                    name: ent?.business_name || ent?.name || 'Desconocido',
+                    category: category,
+                    fill: getColor(category),
+                    revenue: 0,
+                    count: 0
+                });
+            }
+
+            const entStat = stats.get(entId);
+            entStat.revenue += Number(sale.amount);
+            entStat.count += 1;
+        });
+
+        return Array.from(stats.values())
+            .sort((a, b) => b.revenue - a.revenue)
+            .slice(0, 10); // Show top 10 in the detailed list
+    }, [currentSales, fairEntrepreneurs, categoryColorMap]);
+
+    // 8. City Performance Logic
+    // 8. City Performance Logic
+    const cityPerformance = useMemo(() => {
+        const stats = new Map();
+
+        currentSales.forEach(sale => {
+            const ent = fairEntrepreneurs.find(e => e.id === sale.entrepreneur_id);
+
+            // Try to find city in the fair entrepreneur record, or fallback to main list
+            let city = (ent?.ciudad || '').trim().toUpperCase(); // Normalize to uppercase
+
+            if (!city && ent) {
+                const mainEnt = entrepreneurs.find(me =>
+                    (me.nombre_emprendimiento && me.nombre_emprendimiento === ent.business_name) ||
+                    (me.persona_contacto && me.persona_contacto === ent.name)
+                );
+                if (mainEnt) city = (mainEnt.ciudad || '').trim().toUpperCase(); // Normalize
+            }
+
+            if (!city) city = 'NO REGISTRADA';
+
+            if (!stats.has(city)) {
+                stats.set(city, { name: city, revenue: 0, count: 0 });
+            }
+
+            const cityStat = stats.get(city);
+            cityStat.revenue += Number(sale.amount);
+            cityStat.count += 1;
+        });
+
+        return Array.from(stats.values())
+            .map(stat => ({
+                ...stat,
+                percentage: totalRevenue > 0 ? (stat.revenue / totalRevenue) * 100 : 0
+            }))
+            .sort((a, b) => b.revenue - a.revenue);
+    }, [currentSales, fairEntrepreneurs, totalRevenue, entrepreneurs]);
+
+    // Handle Export for Report
+    const handleDownloadReport = () => {
+        // Create workbook
+        const wb = XLSX.utils.book_new();
+
+        // ===== Sheet 1: RESUMEN GENERAL =====
+        const summaryData = [
+            ['REPORTE COMPLETO DE FERIA'],
+            [],
+            ['INFORMACIÓN DE LA FERIA'],
+            ['Nombre', fair.name],
+            ['Ubicación', fair.location || 'No especificada'],
+            ['Fecha Inicio', fair.date ? new Date(fair.date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'],
+            ['Fecha Fin', fair.end_date ? new Date(fair.end_date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'],
+            ['Estado', fair.end_date && new Date(fair.end_date) < new Date() ? 'Finalizada' : 'Activa'],
+            [],
+            ['INDICADORES CLAVE'],
+            ['Recaudación Total', `$${totalRevenue.toLocaleString()}`],
+            ['Total Participantes', participantsCount],
+            ['Registros de Venta', totalSalesCount],
+            ['Ticket Promedio', `$${averageTicket.toFixed(2)}`],
+            [],
+            ['Fecha de generación', new Date().toLocaleString('es-ES')]
+        ];
+        const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+        wsSummary['!cols'] = [{ wch: 25 }, { wch: 50 }];
+        XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumen');
+
+        // ===== Sheet 2: CATEGORÍAS =====
+        const categoryData = [
+            ['RENDIMIENTO POR CATEGORÍA'],
+            [],
+            ['Categoría', 'Ingresos ($)', '% del Total', 'Transacciones', 'Ticket Promedio ($)'],
+            ...categoryPerformance.map(e => [
+                e.name,
+                e.revenue,
+                `${e.percentage.toFixed(1)}%`,
+                e.count,
+                Number(e.avgTicket.toFixed(2))
+            ])
+        ];
+        const wsCategories = XLSX.utils.aoa_to_sheet(categoryData);
+        wsCategories['!cols'] = [
+            { wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 15 }, { wch: 18 }
+        ];
+        XLSX.utils.book_append_sheet(wb, wsCategories, 'Categorías');
+
+        // ===== Sheet 3: CIUDADES =====
+        const cityData = [
+            ['RENDIMIENTO POR CIUDAD'],
+            [],
+            ['Ciudad', 'Ingresos ($)', '% del Total', 'N° Ventas'],
+            ...cityPerformance.map(e => [
+                e.name,
+                e.revenue,
+                `${e.percentage.toFixed(1)}%`,
+                e.count
+            ])
+        ];
+        const wsCities = XLSX.utils.aoa_to_sheet(cityData);
+        wsCities['!cols'] = [{ wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 12 }];
+        XLSX.utils.book_append_sheet(wb, wsCities, 'Ciudades');
+
+        // ===== Sheet 4: TOP EMPRENDEDORES =====
+        const entrepreneurData = [
+            ['TOP EMPRENDEDORES POR VENTAS'],
+            [],
+            ['#', 'Emprendimiento', 'Propietario', 'Categoría', 'Ciudad', 'Teléfono', 'Ventas ($)', 'N° Registros'],
+            ...entrepreneurPerformance.map((e, i) => {
+                const ent = fairEntrepreneurs.find(fe => fe.id === e.id);
+                return [
+                    i + 1,
+                    e.name,
+                    ent?.name || 'N/A',
+                    e.category,
+                    ent?.ciudad || 'N/A',
+                    ent?.phone || 'N/A',
+                    e.revenue,
+                    e.count
+                ];
+            })
+        ];
+        const wsTopEntrepreneurs = XLSX.utils.aoa_to_sheet(entrepreneurData);
+        wsTopEntrepreneurs['!cols'] = [
+            { wch: 4 }, { wch: 30 }, { wch: 25 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }
+        ];
+        XLSX.utils.book_append_sheet(wb, wsTopEntrepreneurs, 'Top Emprendedores');
+
+        // ===== Sheet 5: LISTA COMPLETA DE PARTICIPANTES =====
+        const allParticipants = fairEntrepreneurs.filter(p => p.status === 'confirmed');
+        const participantsData = [
+            ['LISTA COMPLETA DE PARTICIPANTES CONFIRMADOS'],
+            [],
+            ['#', 'Emprendimiento', 'Propietario', 'Categoría', 'Ciudad', 'Teléfono', 'Email', 'Instagram', 'Descripción'],
+            ...allParticipants.map((p, i) => [
+                i + 1,
+                p.business_name || p.name,
+                p.name,
+                p.category || 'Sin categoría',
+                p.ciudad || 'N/A',
+                p.phone || 'N/A',
+                p.email || 'N/A',
+                p.instagram || 'N/A',
+                p.activity || 'N/A'
+            ])
+        ];
+        const wsParticipants = XLSX.utils.aoa_to_sheet(participantsData);
+        wsParticipants['!cols'] = [
+            { wch: 4 }, { wch: 30 }, { wch: 25 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 25 }, { wch: 20 }, { wch: 40 }
+        ];
+        XLSX.utils.book_append_sheet(wb, wsParticipants, 'Participantes');
+
+        // ===== Sheet 6: REGISTRO DE VENTAS =====
+        const salesData = [
+            ['REGISTRO COMPLETO DE VENTAS'],
+            [],
+            ['Fecha', 'Emprendimiento', 'Propietario', 'Categoría', 'Monto ($)'],
+            ...currentSales.map(sale => {
+                const ent = fairEntrepreneurs.find(e => e.id === sale.entrepreneur_id);
+                return [
+                    sale.date ? new Date(sale.date).toLocaleDateString('es-ES') : 'N/A',
+                    ent?.business_name || ent?.name || 'Desconocido',
+                    ent?.name || 'N/A',
+                    ent?.category || 'Sin categoría',
+                    Number(sale.amount)
+                ];
+            }).sort((a, b) => new Date(b[0]) - new Date(a[0]))
+        ];
+        const wsSales = XLSX.utils.aoa_to_sheet(salesData);
+        wsSales['!cols'] = [
+            { wch: 15 }, { wch: 30 }, { wch: 25 }, { wch: 18 }, { wch: 12 }
+        ];
+        XLSX.utils.book_append_sheet(wb, wsSales, 'Ventas');
+
+        // Download
+        const fileName = `Reporte_Completo_${fair.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+    };
+
+
+    // -- Charts Colors --
+    // Vibrant, distinct colors for the dark/light theme
+    const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#64748b'];
+
+    return (
+        <div className="space-y-5 sm:space-y-8 animate-fade-in">
+            {/* KPI Cards Row - 2 columns on mobile */}
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+                <KPICard
+                    title="Recaudación Total"
+                    value={`$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(totalRevenue)}`}
+                    icon={DollarSign}
+                    trend="Actualizado"
+                    trendUp={true}
+                    color="primary"
+                />
+                <KPICard
+                    title="Participantes Confirmados"
+                    value={participantsCount}
+                    icon={Users}
+                    color="secondary"
+                />
+                <KPICard
+                    title="Registros de Venta"
+                    value={totalSalesCount}
+                    icon={FileText}
+                    color="emerald"
+                />
+                <KPICard
+                    title="Ticket Promedio"
+                    value={`$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(averageTicket)}`}
+                    icon={TrendingUp}
+                    color="amber"
+                />
+            </div>
+
+            {/* Main Charts Row - Stack on mobile */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8">
+                {/* Top Entrepreneurs Bar Chart */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-sm h-[300px] sm:h-[400px] flex flex-col">
+                    <h3 className="text-sm sm:text-lg font-bold text-slate-900 dark:text-white mb-4 sm:mb-6 flex items-center gap-2">
+                        <Users size={18} className="sm:w-5 sm:h-5 text-primary-500" />
+                        Top 5 Emprendedores
+                    </h3>
+                    <div className="flex-1 w-full min-h-0">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={salesByEntrepreneur} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    type="category"
+                                    dataKey="name"
+                                    width={140}
+                                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                                    interval={0}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: 'transparent' }}
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                                    formatter={(value, name, props) => {
+                                        return [`$${value.toFixed(2)}`, `Ventas (${props.payload.category})`];
+                                    }}
+                                />
+                                <Bar dataKey="amount" radius={[0, 4, 4, 0]} barSize={24} animationDuration={1000}>
+                                    {salesByEntrepreneur.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* Sales By Category - Mobile Optimized */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-sm min-h-[280px] sm:h-[400px] flex flex-col">
+                    <div className="flex justify-between items-center mb-3 sm:mb-4">
+                        <h3 className="text-sm sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <Tag size={16} className="sm:w-5 sm:h-5 text-fuchsia-500" />
+                            Ventas por Categoría
+                        </h3>
+                        {/* Total badge on mobile */}
+                        <div className="sm:hidden bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-full">
+                            <span className="text-xs font-bold text-slate-800 dark:text-white">
+                                TOTAL {new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(totalRevenue)}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 w-full min-h-0 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        {/* Chart Side - Hidden on mobile */}
+                        <div className="hidden md:block h-full relative">
+                            {salesByCategory.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={salesByCategory}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={60}
+                                            outerRadius={90}
+                                            paddingAngle={4}
+                                            dataKey="value"
+                                            stroke="none"
+                                            cornerRadius={6}
+                                        >
+                                            {salesByCategory.map((entry, index) => (
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={entry.fill}
+                                                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                                                    onClick={() => setSelectedCategoryDetails(entry)}
+                                                />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                                            formatter={(value) => [`$${value.toFixed(2)}`, 'Ventas']}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                                    <p>No hay datos</p>
+                                </div>
+                            )}
+                            {/* Centered Total Label */}
+                            {salesByCategory.length > 0 && (
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div className="text-center">
+                                        <span className="text-xs text-slate-400 font-bold uppercase block">Total</span>
+                                        <span className="text-lg font-black text-slate-800 dark:text-white">
+                                            {new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(totalRevenue)}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Category List - Full width on mobile */}
+                        <div className="h-full overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
+                            <div className="space-y-2 sm:space-y-3">
+                                {salesByCategory.map((cat, i) => (
+                                    <div
+                                        key={i}
+                                        onClick={() => setSelectedCategoryDetails(cat)}
+                                        className="flex items-center justify-between p-2.5 sm:p-2 rounded-xl sm:rounded-lg bg-slate-50 dark:bg-slate-700/30 sm:bg-transparent sm:dark:bg-transparent hover:bg-slate-100 sm:hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group active:scale-[0.98]"
+                                    >
+                                        <div className="flex items-center gap-2.5 sm:gap-3">
+                                            <span className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full flex-shrink-0 shadow-sm group-hover:scale-110 transition-transform" style={{ backgroundColor: cat.fill }}></span>
+                                            <div>
+                                                <p className="text-xs sm:text-xs font-bold text-slate-700 dark:text-slate-200 leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{cat.name}</p>
+                                                <p className="text-[10px] text-slate-400 font-medium">
+                                                    {((cat.value / totalRevenue) * 100).toFixed(1)}% del total
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className="text-sm sm:text-xs font-bold text-slate-900 dark:text-white">
+                                            ${new Intl.NumberFormat('en-US', { compactDisplay: "short" }).format(cat.value)}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Category Details Modal */}
+                {selectedCategoryDetails && (
+                    <CategoryDetailsModal
+                        category={selectedCategoryDetails.name}
+                        color={selectedCategoryDetails.fill}
+                        sales={currentSales} // Pass raw sales to calculate aggregation in modal
+                        fairEntrepreneurs={fairEntrepreneurs}
+                        onClose={() => setSelectedCategoryDetails(null)}
+                    />
+                )}
+            </div>
+
+            {/* City Performance & Trend Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* City Bar Chart - NEW */}
+                <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-200 dark:border-slate-700 shadow-sm h-[400px] flex flex-col">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                        <MapPin size={20} className="text-orange-500" />
+                        Ventas por Ciudad
+                    </h3>
+                    <div className="flex-1 w-full min-h-0">
+                        {cityPerformance.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={cityPerformance} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
+                                    <XAxis type="number" hide />
+                                    <YAxis
+                                        type="category"
+                                        dataKey="name"
+                                        width={100}
+                                        tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                                        interval={0}
+                                    />
+                                    <Tooltip
+                                        cursor={{ fill: 'transparent' }}
+                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+                                        formatter={(value) => [`$${value.toFixed(2)}`, 'Recaudado']}
+                                    />
+                                    <Bar dataKey="revenue" fill="#f97316" radius={[0, 6, 6, 0]} barSize={24}>
+                                        {cityPerformance.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                                <p>No hay datos de ciudades</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Daily Trend Area Chart */}
+                <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-200 dark:border-slate-700 shadow-sm h-[400px] flex flex-col">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                        <TrendingUp size={20} className="text-emerald-500" />
+                        Tendencia de Ventas
+                    </h3>
+                    <div className="flex-1 w-full min-h-0">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={dailyTrend} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <XAxis
+                                    dataKey="formattedDate"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#94a3b8', fontSize: 12 }}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#94a3b8', fontSize: 12 }}
+                                    tickFormatter={(value) => `$${value}`}
+                                />
+                                <CartesianGrid vertical={false} stroke="#f1f5f9" strokeDasharray="3 3" />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                                    formatter={(value) => [`$${value.toFixed(2)}`, 'Ventas']}
+                                    labelStyle={{ color: '#64748b', fontWeight: 'bold' }}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="amount"
+                                    stroke="#10b981"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#colorSales)"
+                                    animationDuration={2000}
+                                    activeDot={{ r: 6, strokeWidth: 0 }}
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            </div>
+
+            {/* Detailed Report Section - Mobile Optimized */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                <div className="p-4 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+                    <div>
+                        <h3 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <FileText size={18} className="sm:w-6 sm:h-6 text-primary-500" />
+                            Detalle de Rendimiento
+                        </h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-0.5 sm:mt-1 hidden sm:block">Desglose completo con ciudades para reportes de gestión</p>
+                    </div>
+                    <button
+                        onClick={handleDownloadReport}
+                        className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 font-bold text-xs sm:text-sm transition-colors active:scale-[0.98] w-full sm:w-auto justify-center"
+                    >
+                        <Download size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        Descargar Reporte Excel
+                    </button>
+                </div>
+
+                <div className="p-4 sm:p-8">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-10">
+                        {/* 1. Category Breakdown */}
+                        <div>
+                            <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white mb-4 sm:mb-6 flex items-center gap-2 border-l-4 border-fuchsia-500 pl-3">
+                                Rendimiento por Categoría
+                            </h4>
+
+                            {/* Mobile Card View */}
+                            <div className="sm:hidden space-y-2">
+                                {categoryPerformance.map((cat, i) => (
+                                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30">
+                                        <div className="flex items-center gap-2.5">
+                                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.fill }}></span>
+                                            <span className="font-medium text-xs text-slate-700 dark:text-slate-200">{cat.name}</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="font-bold text-sm text-slate-900 dark:text-white">${cat.revenue.toLocaleString()}</span>
+                                            <span className="ml-2 px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 text-[10px] font-bold">
+                                                {cat.percentage.toFixed(1)}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Desktop Table View */}
+                            <div className="hidden sm:block overflow-x-auto">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700">
+                                        <tr>
+                                            <th className="pb-3 pl-2">Categoría</th>
+                                            <th className="pb-3 text-right">Ingresos</th>
+                                            <th className="pb-3 text-center">% Global</th>
+                                            <th className="pb-3 text-right pr-2">Ticket Prom.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
+                                        {categoryPerformance.map((cat, i) => (
+                                            <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                                <td className="py-3 pl-2 font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.fill }}></span>
+                                                    {cat.name}
+                                                </td>
+                                                <td className="py-3 text-right font-bold text-slate-900 dark:text-white">${cat.revenue.toLocaleString()}</td>
+                                                <td className="py-3 text-center">
+                                                    <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 text-xs font-bold">
+                                                        {cat.percentage.toFixed(1)}%
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 text-right pr-2 text-slate-500 dark:text-slate-400">${cat.avgTicket.toFixed(2)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* City Breakdown */}
+                            <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white mb-4 sm:mb-6 mt-6 sm:mt-10 flex items-center gap-2 border-l-4 border-orange-500 pl-3">
+                                Rendimiento por Ciudad
+                            </h4>
+
+                            {/* Mobile Card View for Cities */}
+                            <div className="sm:hidden space-y-2">
+                                {cityPerformance.map((city, i) => (
+                                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30">
+                                        <span className="font-medium text-xs text-slate-700 dark:text-slate-200">{city.name}</span>
+                                        <div className="text-right">
+                                            <span className="font-bold text-sm text-slate-900 dark:text-white">${city.revenue.toLocaleString()}</span>
+                                            <span className="ml-2 px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 text-[10px] font-bold">
+                                                {city.percentage.toFixed(1)}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Desktop Table for Cities */}
+                            <div className="hidden sm:block overflow-x-auto">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700">
+                                        <tr>
+                                            <th className="pb-3 pl-2">Ciudad</th>
+                                            <th className="pb-3 text-right">Ingresos</th>
+                                            <th className="pb-3 text-center">% Global</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
+                                        {cityPerformance.map((city, i) => (
+                                            <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                                <td className="py-3 pl-2 font-medium text-slate-700 dark:text-slate-200">{city.name}</td>
+                                                <td className="py-3 text-right font-bold text-slate-900 dark:text-white">${city.revenue.toLocaleString()}</td>
+                                                <td className="py-3 text-center">
+                                                    <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 text-xs font-bold">
+                                                        {city.percentage.toFixed(1)}%
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+
+                        {/* 2. Top Entrepreneurs List */}
+                        <div>
+                            <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white mb-4 sm:mb-6 flex items-center gap-2 border-l-4 border-blue-500 pl-3">
+                                Mejores Emprendimientos (Top 10)
+                            </h4>
+
+                            {/* Mobile Card View for Entrepreneurs */}
+                            <div className="sm:hidden space-y-2">
+                                {entrepreneurPerformance.map((ent, i) => (
+                                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30">
+                                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                                            <span className="font-bold text-slate-300 dark:text-slate-500 text-xs w-5">#{i + 1}</span>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="font-medium text-xs text-slate-700 dark:text-slate-200 truncate">{ent.name}</p>
+                                                <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                                                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: ent.fill }}></span>
+                                                    {ent.category}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400 ml-2">${ent.revenue.toLocaleString()}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Desktop Table for Entrepreneurs */}
+                            <div className="hidden sm:block overflow-x-auto">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700">
+                                        <tr>
+                                            <th className="pb-3 pl-2">Emprendimiento</th>
+                                            <th className="pb-3">Categoría</th>
+                                            <th className="pb-3 text-right">Total Ventas</th>
+                                            <th className="pb-3 text-right pr-2"># Reg</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
+                                        {entrepreneurPerformance.map((ent, i) => (
+                                            <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                                <td className="py-3 pl-2 max-w-[150px] truncate font-medium text-slate-700 dark:text-slate-200" title={ent.name}>
+                                                    <span className="mr-2 font-bold text-slate-300 dark:text-slate-600">#{i + 1}</span>
+                                                    {ent.name}
+                                                </td>
+                                                <td className="py-3 text-xs text-slate-500 dark:text-slate-400 uppercase">
+                                                    <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: ent.fill }}></span>
+                                                    {ent.category}
+                                                </td>
+                                                <td className="py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">${ent.revenue.toLocaleString()}</td>
+                                                <td className="py-3 text-right pr-2 text-slate-500 dark:text-slate-400">{ent.count}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function KPICard({ title, value, icon: Icon, trend, trendUp, color }) {
+    const colors = {
+        primary: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400',
+        secondary: 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400',
+        emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
+        amber: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400',
+    };
+
+    return (
+        <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start mb-2 sm:mb-4">
+                <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${colors[color] || colors.primary} flex items-center justify-center`}>
+                    <Icon size={18} className="sm:w-6 sm:h-6" />
+                </div>
+                {trend && (
+                    <span className={`text-[8px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full ${trendUp ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {trend}
+                    </span>
+                )}
+            </div>
+            <div className="space-y-0.5 sm:space-y-1">
+                <p className="text-slate-500 dark:text-slate-400 text-[9px] sm:text-xs uppercase tracking-wider font-bold leading-tight">{title}</p>
+                <h3 className="text-base sm:text-2xl font-black text-slate-900 dark:text-white truncate">{value}</h3>
+            </div>
+        </div>
+    );
 }
 
 function FairParticipants({ fairId }) {
@@ -358,7 +1224,8 @@ function FairParticipants({ fairId }) {
             const term = filter.toLowerCase();
             return (
                 e.name.toLowerCase().includes(term) ||
-                (e.business_name && e.business_name.toLowerCase().includes(term))
+                (e.business_name && e.business_name.toLowerCase().includes(term)) ||
+                (e.category && e.category.toLowerCase().includes(term))
             );
         });
 
@@ -374,7 +1241,7 @@ function FairParticipants({ fairId }) {
                         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                         <input
                             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-slate-900 dark:text-white font-medium"
-                            placeholder="Buscar participante..."
+                            placeholder="Buscar participante, categoría..."
                             value={filter}
                             onChange={e => setFilter(e.target.value)}
                         />
@@ -419,18 +1286,23 @@ function FairParticipants({ fairId }) {
                     const assignment = assignmentMap.get(e.id);
                     const isConfirmed = assignment?.status === 'confirmed';
 
-                    // Fallback to find description from main list if missing
+                    // Fallback to find description/city from main list if missing
                     let displayActivity = e.activity;
-                    if (!displayActivity && entrepreneurs) {
+                    let displayCity = e.ciudad;
+
+                    if ((!displayActivity || !displayCity) && entrepreneurs) {
                         const match = entrepreneurs.find(ent =>
                             (ent.nombre_emprendimiento && ent.nombre_emprendimiento === e.business_name) ||
                             (ent.persona_contacto && ent.persona_contacto === e.name)
                         );
-                        if (match) displayActivity = match.actividad_economica;
+                        if (match) {
+                            if (!displayActivity) displayActivity = match.actividad_economica;
+                            if (!displayCity) displayCity = match.ciudad;
+                        }
                     }
 
-                    // Create object with activity for modal
-                    const participantWithDetails = { ...e, activity: displayActivity };
+                    // Create object with details for modal
+                    const participantWithDetails = { ...e, activity: displayActivity, ciudad: displayCity };
 
                     return (
                         <div key={e.id} className={`group bg-white dark:bg-slate-800 p-4 rounded-xl border transition-all duration-300 flex flex-col gap-3 relative ${isConfirmed
@@ -529,7 +1401,7 @@ function FairParticipants({ fairId }) {
                             name: emp.persona_contacto || emp.nombre_emprendimiento,
                             business_name: emp.nombre_emprendimiento,
                             category: emp.categoria_principal,
-                            // activity: emp.actividad_economica, // Removed as column doesn't exist
+                            ciudad: emp.ciudad || '', // Include city
                             phone: emp.telefono,
                             email: emp.correo,
                             status: 'active'
@@ -1540,11 +2412,73 @@ function ImportModal({ onClose, onImport, existingParticipants }) {
 }
 
 
-function ParticipantDetailsModal({ participant, onClose, fairId }) {
+function ParticipantDetailsModal({ participant: initialParticipant, onClose, fairId }) {
     const {
         fairAssignments,
-        updateFairAssignmentStatus
+        updateFairAssignmentStatus,
+        updateEntrepreneur, // For updating main entrepreneurs table
+        entrepreneurs, // Main entrepreneurs list to find matching record
+        fairEntrepreneurs // Use fair entrepreneurs list for live updates
     } = useData();
+
+    // Local state for editing city
+    const [isAddingCity, setIsAddingCity] = useState(false);
+    const [newCityValue, setNewCityValue] = useState('');
+    const [displayCity, setDisplayCity] = useState(initialParticipant.ciudad || '');
+
+    // Ref to track local updates and prevent race-condition rebounds
+    const lastUpdateRef = useRef(0);
+
+    // Merge passed participant with latest global data from fairEntrepreneurs
+    const participant = useMemo(() => {
+        const freshData = fairEntrepreneurs?.find(e => String(e.id) === String(initialParticipant.id));
+        return { ...initialParticipant, ...freshData };
+    }, [initialParticipant, fairEntrepreneurs]);
+
+    // Find matching main entrepreneur
+    const mainEntrepreneur = useMemo(() => {
+        if (!entrepreneurs) return null;
+        return entrepreneurs.find(ent =>
+            (ent.nombre_emprendimiento && ent.nombre_emprendimiento === participant.business_name) ||
+            (ent.persona_contacto && ent.persona_contacto === participant.name)
+        );
+    }, [entrepreneurs, participant.business_name, participant.name]);
+
+    useEffect(() => {
+        // If we recently updated locally (within 5 seconds), ignore external reverts
+        if (Date.now() - lastUpdateRef.current < 5000) return;
+
+        // Check both fair entrepreneur and main entrepreneur for city
+        const cityFromFair = participant.ciudad;
+        const cityFromMain = mainEntrepreneur?.ciudad;
+        const effectiveCity = cityFromFair || cityFromMain || '';
+
+        if (effectiveCity && effectiveCity !== displayCity) {
+            setDisplayCity(effectiveCity);
+        }
+    }, [participant.ciudad, mainEntrepreneur?.ciudad]);
+
+    const handleSaveCity = async () => {
+        if (!newCityValue.trim()) return;
+        const formattedCity = newCityValue.trim().toUpperCase();
+
+        // Optimistic update
+        setDisplayCity(formattedCity);
+        setIsAddingCity(false);
+        lastUpdateRef.current = Date.now(); // Mark as locally updated
+
+        try {
+            // Update in MAIN entrepreneurs table (which has the ciudad field working)
+            if (mainEntrepreneur) {
+                console.log('DEBUG: Updating main entrepreneur ID:', mainEntrepreneur.id, 'with ciudad:', formattedCity);
+                await updateEntrepreneur(mainEntrepreneur.id, { ciudad: formattedCity });
+            } else {
+                console.warn('No matching main entrepreneur found for:', participant.business_name, participant.name);
+            }
+        } catch (error) {
+            console.error("Failed to save city:", error);
+        }
+    };
 
     // Find assignment status
     const assignment = (fairAssignments || []).find(a => a.fair_id === fairId && a.entrepreneur_id === participant.id);
@@ -1560,45 +2494,45 @@ function ParticipantDetailsModal({ participant, onClose, fairId }) {
     }, [onClose]);
 
     return createPortal(
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center sm:p-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
-            <div className="relative bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-lg shadow-2xl border border-slate-200 dark:border-slate-800 animate-scale-in overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="relative bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-[2.5rem] w-full sm:max-w-lg shadow-2xl border border-slate-200 dark:border-slate-800 animate-scale-in overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[85vh]">
 
-                {/* Clean Header - White/Transparent */}
-                <div className="absolute top-0 right-0 p-6 z-10">
-                    <button onClick={onClose} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-400 rounded-full transition-colors">
+                {/* Close Button - Mobile friendly */}
+                <div className="absolute top-3 sm:top-6 right-3 sm:right-6 z-10">
+                    <button onClick={onClose} className="p-2.5 sm:p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-400 rounded-full transition-colors active:scale-95">
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="p-8 pb-0 pt-12 flex-1 overflow-y-auto">
-                    {/* Centered Big Avatar */}
+                <div className="p-5 sm:p-8 pb-0 pt-12 sm:pt-12 flex-1 overflow-y-auto">
+                    {/* Centered Big Avatar - Smaller on mobile */}
                     <div className="flex flex-col items-center text-center">
-                        <div className="w-32 h-32 rounded-3xl bg-white dark:bg-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 dark:border-slate-700 flex items-center justify-center text-5xl font-bold text-slate-300 dark:text-slate-600 mb-6">
+                        <div className="w-20 sm:w-32 h-20 sm:h-32 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 dark:border-slate-700 flex items-center justify-center text-3xl sm:text-5xl font-bold text-slate-300 dark:text-slate-600 mb-4 sm:mb-6">
                             {participant.business_name?.charAt(0) || participant.name.charAt(0)}
                         </div>
 
-                        <h2 className="text-3xl font-bold text-slate-900 dark:text-white leading-tight mb-2">
+                        <h2 className="text-xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-tight mb-1.5 sm:mb-2 px-2">
                             {participant.business_name || participant.name}
                         </h2>
 
-                        <div className="flex items-center gap-2 mb-4 justify-center text-slate-500 dark:text-slate-400 font-medium">
-                            <Users size={16} className="text-primary-500" />
+                        <div className="flex items-center gap-2 mb-3 sm:mb-4 justify-center text-slate-500 dark:text-slate-400 font-medium text-sm sm:text-base">
+                            <Users size={14} className="sm:w-4 sm:h-4 text-primary-500" />
                             <span>{participant.name}</span>
                         </div>
 
-                        <div className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider border mb-8 flex items-center gap-2 ${isConfirmed
+                        <div className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider border mb-6 sm:mb-8 flex items-center gap-2 ${isConfirmed
                             ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
                             : 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
                             }`}>
-                            <div className={`w-2 h-2 rounded-full ${isConfirmed ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></div>
+                            <div className={`w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full ${isConfirmed ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></div>
                             {isConfirmed ? 'ASISTENCIA CONFIRMADA' : 'PENDIENTE DE CONFIRMACIÓN'}
                         </div>
                     </div>
 
-                    {/* Info Sections */}
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 space-y-6">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Información de Contacto</h4>
+                    {/* Info Sections - Mobile optimized */}
+                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-6">
+                        <h4 className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 sm:mb-4">Información de Contacto</h4>
 
                         {participant.phone && (
                             <div className="flex items-center justify-between group">
@@ -1639,6 +2573,51 @@ function ParticipantDetailsModal({ participant, onClose, fairId }) {
                             <div className="text-left">
                                 <div className="text-xs text-slate-400 font-medium mb-0.5">Categoría</div>
                                 <div className="font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">{participant.category || 'GENERAL'}</div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 dark:border-slate-700">
+                                <MapPin size={18} />
+                            </div>
+                            <div className="text-left w-full">
+                                <div className="text-xs text-slate-400 font-medium mb-0.5">Ciudad</div>
+
+                                {displayCity ? (
+                                    <div className="font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">{displayCity}</div>
+                                ) : isAddingCity ? (
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <input
+                                            autoFocus
+                                            className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary-500/50"
+                                            placeholder="Ingresa la ciudad..."
+                                            value={newCityValue}
+                                            onChange={e => setNewCityValue(e.target.value)}
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter') handleSaveCity();
+                                            }}
+                                        />
+                                        <button
+                                            onClick={handleSaveCity}
+                                            className="p-1.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                                        >
+                                            <Check size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => setIsAddingCity(false)}
+                                            className="p-1.5 bg-slate-100 text-slate-500 rounded-lg hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-400 transition-colors"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => setIsAddingCity(true)}
+                                        className="text-sm font-bold text-primary-500 hover:text-primary-600 underline decoration-dashed underline-offset-4 flex items-center gap-1"
+                                    >
+                                        + Agregar Ciudad
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>

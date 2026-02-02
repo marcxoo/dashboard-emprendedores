@@ -40,18 +40,27 @@ export class Database {
         let history = [];
         let generalNotes = '';
         let noContesto = false;
+        let pRuc = '';
+        let pCiudad = '';
 
         // Check if notes is a JSON string containing our structure
-        if (notes.trim().startsWith('{') && notes.includes('"history":')) {
+        // Relaxed check: just starts with {
+        if (notes.trim().startsWith('{')) {
           try {
             const parsed = JSON.parse(notes);
             history = parsed.history || [];
             generalNotes = parsed.general_notes || '';
-            // New: Extract RUC from notes if available
-            if (parsed.ruc) {
-              e.ruc = parsed.ruc;
+            // New: Extract RUC and CIUDAD from notes if available
+            if (parsed.ruc) pRuc = parsed.ruc;
+            if (parsed.ciudad) pCiudad = parsed.ciudad;
+
+            // Console log to debug specific case (remove later)
+            if (e.id === '33' || e.name?.includes('Biscutycake')) {
+              console.log('DEBUG LOAD:', e.name, 'Parsed Ciudad:', pCiudad, 'Parsed RUC:', pRuc);
             }
-          } catch {
+
+          } catch (err) {
+            console.warn('Failed to parse notes JSON:', err);
             // Fallback if parse fails
             generalNotes = notes;
           }
@@ -65,11 +74,9 @@ export class Database {
           ...e,
           no_contesto: noContesto, // Keep for legacy compatibility if needed
           notas: generalNotes,
-          ...e,
-          no_contesto: noContesto, // Keep for legacy compatibility if needed
-          notas: generalNotes,
           followUpHistory: history,
-          ruc: e.ruc || '' // Ensure top-level property
+          ruc: e.ruc || pRuc || '', // Prefer column, fallback to notes
+          ciudad: e.ciudad || pCiudad || '' // Prefer column, fallback to notes
         };
       });
 
@@ -672,7 +679,7 @@ export class Database {
   }
 
   async updateEntrepreneur(id, data) {
-    const index = this.emprendedores.findIndex(e => e.id === id);
+    const index = this.emprendedores.findIndex(e => String(e.id) === String(id));
     if (index >= 0) {
       const current = this.emprendedores[index];
 
@@ -691,11 +698,15 @@ export class Database {
       const currentRuc = current.ruc || '';
       const newRuc = updates.ruc !== undefined ? updates.ruc : currentRuc;
 
+      const currentCiudad = current.ciudad || '';
+      const newCiudad = updates.ciudad !== undefined ? updates.ciudad : currentCiudad;
+
       // Construct JSON for DB
       const notesObject = {
         general_notes: newGeneralNotes,
         history: currentHistory,
-        ruc: newRuc
+        ruc: newRuc,
+        ciudad: newCiudad
       };
 
       const supabaseUpdates = {
@@ -705,12 +716,10 @@ export class Database {
         correo: updates.correo ?? current.correo,
         categoria_principal: updates.categoria_principal ?? current.categoria_principal,
         actividad_economica: updates.actividad_economica ?? current.actividad_economica,
-        ciudad: updates.ciudad ?? current.ciudad,
+        // ciudad: updates.ciudad ?? current.ciudad, // Commented out to avoid schema error
         red_social: updates.red_social ?? current.red_social,
         subcategoria_interna: updates.categoria_principal ?? current.subcategoria_interna,
         semaforizacion: updates.tipo_emprendedor ?? current.semaforizacion,
-        semaforizacion: updates.tipo_emprendedor ?? current.semaforizacion,
-        // ruc: updates.ruc ?? current.ruc, // Removed: Not a column
         notas: JSON.stringify(notesObject)
       };
 
@@ -720,7 +729,8 @@ export class Database {
         ...updates,
         notas: newGeneralNotes,
         followUpHistory: currentHistory,
-        ruc: newRuc
+        ruc: newRuc,
+        ciudad: newCiudad
       };
 
       const { error } = await supabase
@@ -925,6 +935,8 @@ export class Database {
   }
 
   async updateFairEntrepreneur(id, updates) {
+    console.log('DEBUG: updateFairEntrepreneur called with id:', id, 'updates:', updates);
+
     const { data, error } = await supabase
       .from('fair_entrepreneurs')
       .update(updates)
@@ -934,8 +946,11 @@ export class Database {
 
     if (error) {
       console.error('Error updating fair entrepreneur:', error);
+      console.error('Error details:', error.message, error.details, error.hint);
       return null;
     }
+
+    console.log('DEBUG: updateFairEntrepreneur success, returned data:', data);
     this.fairEntrepreneurs = this.fairEntrepreneurs.map(e => e.id === id ? data : e);
     return data;
   }
