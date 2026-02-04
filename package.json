@@ -19,6 +19,7 @@
     "dotenv": "^17.2.3",
     "framer-motion": "^12.24.10",
     "html2canvas": "^1.4.1",
+    "iconv-lite": "^0.7.2",
     "jspdf": "^4.0.0",
     "jszip": "^3.10.1",
     "lucide-react": "^0.555.0",

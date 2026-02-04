@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import EntrepreneurDetail from './EntrepreneurDetail';
 import { getDateRangeFromWeek } from '../utils/dateUtils';
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, Phone, Mail, User, Users, Edit, Sparkles, X, Building2, Tag, ChevronDown, FileText, Save, Plus, MessageCircle, Clock, Calendar, CheckCircle, XCircle, List, History, Trash2, Store, Eye, Globe, Instagram, Facebook, Video } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, Phone, Mail, User, Users, Edit, Sparkles, X, Building2, Tag, ChevronDown, FileText, Save, Plus, MessageCircle, Clock, Calendar, CheckCircle, XCircle, List, History, Trash2, Store, Eye, Globe, Instagram, Facebook, Video, GraduationCap } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 const MobileEntrepreneurCard = ({
@@ -134,6 +134,7 @@ export default function EntrepreneursList() {
     const [selectedEntrepreneurForFollowUp, setSelectedEntrepreneurForFollowUp] = useState(null);
 
     const [filterCategory, setFilterCategory] = useState('');
+    const [filterTipo, setFilterTipo] = useState('');
 
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState({ key: 'nombre_emprendimiento', direction: 'asc' });
@@ -145,6 +146,17 @@ export default function EntrepreneursList() {
     const filteredData = useMemo(() => {
         let data = entrepreneurs.filter(e => {
             if (filterCategory && e.categoria_principal !== filterCategory) return false;
+            // Filtro por tipo de emprendedor
+            if (filterTipo) {
+                const tipoEmprendedor = e.semaforizacion || 'Externo';
+                if (filterTipo === 'UNEMI') {
+                    // Incluir tanto 'Estudiante / Graduado UNEMI' como 'Graduado'
+                    if (tipoEmprendedor !== 'Estudiante / Graduado UNEMI' && tipoEmprendedor !== 'Graduado') return false;
+                } else if (filterTipo === 'Externo') {
+                    // Los que tienen null o 'Externo' son externos
+                    if (tipoEmprendedor !== 'Externo') return false;
+                }
+            }
             if (searchTerm) {
                 const term = searchTerm.toLowerCase();
                 return (
@@ -170,7 +182,7 @@ export default function EntrepreneursList() {
         }
 
         return data;
-    }, [entrepreneurs, filterCategory, searchTerm, sortConfig]);
+    }, [entrepreneurs, filterCategory, filterTipo, searchTerm, sortConfig]);
 
     const paginatedData = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
@@ -514,6 +526,25 @@ Atentamente,`;
                     >
                         <option value="">Todas las Categorías</option>
                         {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                        <ChevronDown size={16} />
+                    </div>
+                </div>
+
+                {/* Filtro por Tipo de Emprendedor */}
+                <div className="relative w-full md:w-64">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                        <GraduationCap size={18} />
+                    </div>
+                    <select
+                        className="w-full pl-11 pr-10 py-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-700"
+                        value={filterTipo}
+                        onChange={e => { setFilterTipo(e.target.value); setCurrentPage(1); }}
+                    >
+                        <option value="">Todos los Tipos</option>
+                        <option value="Externo">Emprendedor Externo</option>
+                        <option value="UNEMI">Estudiante / Egresado UNEMI</option>
                     </select>
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                         <ChevronDown size={16} />
