@@ -1,15 +1,39 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, MessageSquare, LogOut, ArrowRight, Sparkles, CalendarDays, Send, Award, Briefcase } from 'lucide-react';
+import { Users, MessageSquare, LogOut, ArrowRight, Sparkles, CalendarDays, Send, Award, Briefcase, Database, Loader2, Check, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ShineBorder } from './ui/ShineBorder';
 
 function Portal() {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const [syncStatus, setSyncStatus] = useState('idle'); // idle, syncing, success, error
 
     const handleLogout = async () => {
         await logout();
         navigate('/');
+    };
+
+    const handleSync = async () => {
+        setSyncStatus('syncing');
+        try {
+            // Try to call the local sync server to trigger a full backup
+            const response = await fetch('http://localhost:3001/sync/full-backup', {
+                method: 'POST',
+                signal: AbortSignal.timeout(60000) // 60 second timeout for full backup
+            });
+
+            if (response.ok) {
+                setSyncStatus('success');
+                setTimeout(() => setSyncStatus('idle'), 3000);
+            } else {
+                throw new Error('Sync failed');
+            }
+        } catch (err) {
+            console.error('Sync error:', err);
+            setSyncStatus('error');
+            setTimeout(() => setSyncStatus('idle'), 3000);
+        }
     };
 
     return (
@@ -35,15 +59,49 @@ function Portal() {
                         </div>
                     </div>
 
-                    {/* Logout Button - Absolute on mobile, Normal on Desktop */}
-                    <button
-                        onClick={handleLogout}
-                        className="absolute top-4 right-4 md:static p-2 md:px-6 md:py-3 rounded-xl bg-transparent md:bg-white md:dark:bg-slate-800 border border-transparent md:border-slate-200 md:dark:border-slate-700 text-slate-400 md:text-slate-500 hover:text-red-500 hover:bg-red-50 md:hover:bg-red-50 md:dark:hover:bg-red-900/10 hover:border-red-100 md:dark:hover:border-red-900/30 transition-all font-medium shadow-none md:shadow-sm md:hover:shadow-md active:scale-95 flex items-center gap-2 justify-center"
-                        title="Cerrar Sesión"
-                    >
-                        <LogOut size={24} className="md:w-5 md:h-5" />
-                        <span className="hidden md:inline">Cerrar Sesión</span>
-                    </button>
+                    {/* Action Buttons */}
+                    <div className="absolute top-4 right-4 md:static flex items-center gap-2">
+                        {/* Sync Backup Button */}
+                        <button
+                            onClick={handleSync}
+                            disabled={syncStatus === 'syncing'}
+                            className={`p-2 md:px-5 md:py-3 rounded-xl border transition-all font-medium shadow-none md:shadow-sm md:hover:shadow-md active:scale-95 flex items-center gap-2 justify-center
+                                ${syncStatus === 'success'
+                                    ? 'bg-green-500 text-white border-green-500'
+                                    : syncStatus === 'error'
+                                        ? 'bg-red-500 text-white border-red-500'
+                                        : 'bg-transparent md:bg-white md:dark:bg-slate-800 border-transparent md:border-slate-200 md:dark:border-slate-700 text-slate-400 md:text-slate-500 hover:text-primary-500 hover:bg-primary-50 md:dark:hover:bg-primary-900/10 hover:border-primary-100 md:dark:hover:border-primary-900/30'
+                                }
+                            `}
+                            title="Sincronizar con PostgreSQL Local"
+                        >
+                            {syncStatus === 'syncing' ? (
+                                <Loader2 size={24} className="md:w-5 md:h-5 animate-spin" />
+                            ) : syncStatus === 'success' ? (
+                                <Check size={24} className="md:w-5 md:h-5" />
+                            ) : syncStatus === 'error' ? (
+                                <AlertCircle size={24} className="md:w-5 md:h-5" />
+                            ) : (
+                                <Database size={24} className="md:w-5 md:h-5" />
+                            )}
+                            <span className="hidden md:inline">
+                                {syncStatus === 'syncing' ? 'Sincronizando...'
+                                    : syncStatus === 'success' ? '¡Backup Listo!'
+                                        : syncStatus === 'error' ? 'Error'
+                                            : 'Backup Local'}
+                            </span>
+                        </button>
+
+                        {/* Logout Button */}
+                        <button
+                            onClick={handleLogout}
+                            className="p-2 md:px-6 md:py-3 rounded-xl bg-transparent md:bg-white md:dark:bg-slate-800 border border-transparent md:border-slate-200 md:dark:border-slate-700 text-slate-400 md:text-slate-500 hover:text-red-500 hover:bg-red-50 md:hover:bg-red-50 md:dark:hover:bg-red-900/10 hover:border-red-100 md:dark:hover:border-red-900/30 transition-all font-medium shadow-none md:shadow-sm md:hover:shadow-md active:scale-95 flex items-center gap-2 justify-center"
+                            title="Cerrar Sesión"
+                        >
+                            <LogOut size={24} className="md:w-5 md:h-5" />
+                            <span className="hidden md:inline">Cerrar Sesión</span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Cards Grid - 2x2 Layout */}

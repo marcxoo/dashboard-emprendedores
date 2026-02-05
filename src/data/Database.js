@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { syncEntrepreneurToLocal, syncAssignmentToLocal } from '../lib/localSync';
 import { compareWeeks } from '../utils/dateUtils';
 
 export const STANDS = [
@@ -675,6 +676,10 @@ export class Database {
     };
 
     this.emprendedores.push(newEmp);
+
+    // Sync to local PostgreSQL (non-blocking)
+    syncEntrepreneurToLocal(inserted).catch(() => { });
+
     return newEmp;
   }
 
@@ -739,6 +744,10 @@ export class Database {
         .eq('id', id);
 
       if (error) console.error('Error updating entrepreneur:', error);
+
+      // Sync to local PostgreSQL (non-blocking)
+      syncEntrepreneurToLocal({ id, ...supabaseUpdates }).catch(() => { });
+
       return this.emprendedores[index];
     }
     return null;
