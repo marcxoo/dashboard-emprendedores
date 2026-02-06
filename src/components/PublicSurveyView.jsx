@@ -275,6 +275,27 @@ function PublicSurveyView() {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary-50/50 rounded-bl-full -mr-16 -mt-16 pointer-events-none opacity-60"></div>
 
                     <div className="relative z-10">
+                        {/* Sponsor Logos */}
+                        <div className="flex flex-col items-center gap-4 mb-6 md:mb-8 py-5 px-6 bg-slate-50/80 rounded-2xl border border-slate-100">
+                            <img
+                                src="https://i.imgur.com/9VlCMnD.png"
+                                alt="Escuela de Emprendimiento UNEMI"
+                                className="h-16 md:h-20 w-auto object-contain"
+                            />
+                            <div className="w-full h-px bg-slate-200"></div>
+                            <div className="flex items-center justify-center gap-8 md:gap-16">
+                                <img
+                                    src="https://i.imgur.com/mltK17L.png"
+                                    alt="Cooperativa Jardín Azuayo"
+                                    className="h-14 md:h-16 w-auto object-contain max-w-[160px] md:max-w-[200px]"
+                                />
+                                <img
+                                    src="https://i.imgur.com/PWgoHmu.png"
+                                    alt="Cooperativa Santa Rosa"
+                                    className="h-14 md:h-16 w-auto object-contain max-w-[160px] md:max-w-[200px]"
+                                />
+                            </div>
+                        </div>
                         {/* Status Badge - Moved above title */}
                         <div className="mb-8">
                             {/* Urgent Banner - Hidden if disabled or not applicable */}

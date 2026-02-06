@@ -1080,15 +1080,38 @@ export class Database {
       this.emprendedores.splice(index, 1);
       this.asignaciones = this.asignaciones.filter(a => a.id_emprendedor !== id);
 
-      // Delete assignments first (foreign key constraint might handle this if cascade is set, but let's be safe)
-      await supabase.from('assignments').delete().eq('id_emprendedor', id);
+      try {
+        // Delete all related records first to avoid foreign key constraints
 
-      const { error } = await supabase
-        .from('entrepreneurs')
-        .delete()
-        .eq('id', id);
+        // 1. Delete assignments
+        await supabase.from('assignments').delete().eq('id_emprendedor', id);
 
-      return !error;
+        // 2. Delete invitation logs
+        await supabase.from('invitation_logs').delete().eq('entrepreneur_id', id);
+
+        // 3. Delete survey responses
+        await supabase.from('survey_responses').delete().eq('entrepreneur_id', id);
+
+        // 4. Delete fair assignments
+        await supabase.from('fair_assignments').delete().eq('entrepreneur_id', id);
+
+        // 5. Finally delete the entrepreneur
+        const { error } = await supabase
+          .from('entrepreneurs')
+          .delete()
+          .eq('id', id);
+
+        if (error) {
+          console.error('Error deleting entrepreneur:', error);
+          return false;
+        }
+
+        console.log('✅ Emprendedor eliminado:', id);
+        return true;
+      } catch (err) {
+        console.error('Error in deleteEntrepreneur:', err);
+        return false;
+      }
     }
     return false;
   }
