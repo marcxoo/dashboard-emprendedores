@@ -569,7 +569,7 @@ function EventDashboard() {
                             return (
                                 <div
                                     key={ev.id}
-                                    className="group relative bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 dark:border-white/5 flex flex-col"
+                                    className={`group relative bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 dark:border-white/5 flex flex-col ${new Date(ev.date) < new Date().setHours(0, 0, 0, 0) ? 'grayscale opacity-75 hover:grayscale-0 hover:opacity-100' : ''}`}
                                 >
                                     {/* Header Gradient / Image Area */}
                                     <div className={`h-56 relative overflow-hidden rounded-t-[2rem] ${getEventImage(ev) ? 'bg-slate-900' :
@@ -769,7 +769,7 @@ function EventDashboard() {
                             const trackingTotal = Array.isArray(ev.tracking) ? ev.tracking.length : 0;
 
                             return (
-                                <div key={ev.id} className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-lg border border-slate-100 dark:border-white/5 overflow-visible relative flex flex-col">
+                                <div key={ev.id} className={`bg-white dark:bg-slate-800 rounded-[2rem] shadow-lg border border-slate-100 dark:border-white/5 overflow-visible relative flex flex-col ${new Date(ev.date) < new Date().setHours(0, 0, 0, 0) ? 'grayscale opacity-75' : ''}`}>
                                     {/* Header Gradient */}
                                     <div className={`h-52 relative rounded-t-[2rem] overflow-hidden ${getEventImage(ev) ? 'bg-slate-900' :
                                         index % 4 === 0 ? 'bg-gradient-to-br from-blue-600 to-indigo-600' :
@@ -1390,7 +1390,7 @@ function EventDashboard() {
                                         await supabase.from('events_2026').update({ tracking: newTracking }).eq('id', ev.id);
                                     }}
                                     className="w-full mt-6 py-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-sm font-bold uppercase tracking-wide hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-primary-300 dark:hover:border-primary-700 hover:text-primary-600 dark:hover:text-primary-400 transition-all flex items-center justify-center gap-2 group"
-                                    >
+                                >
                                     <div className="p-1 rounded-md bg-slate-100 dark:bg-slate-800 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
                                         <Plus size={16} className="group-hover:scale-110 transition-transform" />
                                     </div>
