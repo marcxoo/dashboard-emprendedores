@@ -261,7 +261,19 @@ function PublicSurveyView() {
     const hasLimit = survey.limit && survey.limit > 0;
     const responsesCount = survey.responses?.length || 0;
     const percentage = hasLimit ? Math.round((responsesCount / survey.limit) * 100) : 0;
-    const notesContent = survey.note || (hasLimit ? "Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales." : null);
+    // Parse note if it's JSON (for folders)
+    let parsedNote = survey.note;
+    try {
+        if (parsedNote && typeof parsedNote === 'string' && parsedNote.trim().startsWith('{')) {
+            const jsonNote = JSON.parse(parsedNote);
+            parsedNote = jsonNote.content || null;
+        }
+    } catch (e) {
+        // If parsing fails, use original note
+        console.warn('Failed to parse survey note JSON:', e);
+    }
+
+    const notesContent = parsedNote || (hasLimit ? "Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales." : null);
 
     return (
         <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8 flex items-center justify-center">

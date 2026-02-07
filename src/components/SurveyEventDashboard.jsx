@@ -21,6 +21,32 @@ const parseSurveyNote = (noteString) => {
     }
 };
 
+const SurveyDescription = ({ description }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const text = description || 'Sin descripción';
+    const shouldTruncate = text.length > 60;
+
+    return (
+        <div className="mb-6 flex-1">
+            <p className={`text-sm text-slate-300 leading-relaxed ${isExpanded ? '' : 'line-clamp-2'}`}>
+                {text}
+            </p>
+            {shouldTruncate && (
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsExpanded(!isExpanded);
+                    }}
+                    className="text-xs font-bold text-indigo-400 hover:text-indigo-300 mt-2 flex items-center gap-1 transition-colors"
+                >
+                    {isExpanded ? 'Ver menos' : 'Ver más'}
+                </button>
+            )}
+        </div>
+    );
+};
+
 function SurveyEventDashboard() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [view, setView] = useState('list'); // 'list' | 'create'
@@ -1271,7 +1297,7 @@ function SurveyEventDashboard() {
                                 </div>
                             ) : (
                                 <div
-                                    className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 transition-colors duration-300 rounded-[3rem] p-4 -m-4 ${isDraggingOverMain ? 'bg-indigo-500/10 ring-2 ring-indigo-500/30' : ''}`}
+                                    className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8 transition-colors duration-300 rounded-[3rem] p-2 -m-2 md:p-4 md:-m-4 ${isDraggingOverMain ? 'bg-indigo-500/10 ring-2 ring-indigo-500/30' : ''}`}
                                     onDragOver={handleMainDragOver}
                                     onDragLeave={handleMainDragLeave}
                                     onDrop={handleMainDrop}
@@ -1287,16 +1313,32 @@ function SurveyEventDashboard() {
                                                 return group === activeFolder;
                                             });
 
-                                            // Enhanced Folder Header View
+                                            // Sort surveys by event date: Upcoming (Ascending) -> Past (Ascending)
+                                            const now = new Date();
+                                            now.setHours(0, 0, 0, 0);
+
+                                            surveysToRender = surveysToRender.sort((a, b) => {
+                                                const dateA = a.eventDate ? new Date(a.eventDate) : new Date(0); // No date = Past
+                                                const dateB = b.eventDate ? new Date(b.eventDate) : new Date(0);
+
+                                                const isFutureA = dateA >= now;
+                                                const isFutureB = dateB >= now;
+
+                                                if (isFutureA && !isFutureB) return -1; // A is future, B is past -> A first
+                                                if (!isFutureA && isFutureB) return 1;  // B is future, A is past -> B first
+
+                                                // If both are future or both are past/invalid, sort by date ascending
+                                                return dateA - dateB;
+                                            });
                                             return (
                                                 <div className="col-span-full space-y-8 animate-fade-in">
                                                     {/* Folder Header */}
-                                                    <div className="bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-purple-500/20 p-8 relative overflow-hidden group">
+                                                    <div className="bg-slate-900/50 backdrop-blur-xl rounded-[1.5rem] md:rounded-[2.5rem] border border-purple-500/20 p-5 md:p-8 relative overflow-hidden group">
                                                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-500 opacity-50"></div>
                                                         <div className="absolute inset-0 bg-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
 
-                                                        <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                                                            <div className="flex items-center gap-6">
+                                                        <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
+                                                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6 w-full md:w-auto">
                                                                 <button
                                                                     onClick={() => { setActiveFolder(null); setView('list'); }}
                                                                     className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 hover:-translate-x-1 transition-all"
@@ -1313,7 +1355,7 @@ function SurveyEventDashboard() {
                                                                     </div>
 
                                                                     {isRenamingFolder ? (
-                                                                        <div className="flex items-center gap-2">
+                                                                        <div className="flex items-center gap-2 w-full max-w-[280px] sm:max-w-none">
                                                                             <input
                                                                                 autoFocus
                                                                                 type="text"
@@ -1333,13 +1375,13 @@ function SurveyEventDashboard() {
                                                                             </button>
                                                                         </div>
                                                                     ) : (
-                                                                        <h2 className="text-4xl font-black text-white tracking-tight">{activeFolder}</h2>
+                                                                        <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight break-all md:break-normal">{activeFolder}</h2>
                                                                     )}
                                                                 </div>
                                                             </div>
 
-                                                            <div className="flex items-center gap-6">
-                                                                <div className="flex gap-8 px-6 py-3 bg-black/20 rounded-2xl border border-white/5">
+                                                            <div className="flex flex-wrap items-center gap-4 md:gap-6 w-full md:w-auto mt-2 md:mt-0">
+                                                                <div className="flex gap-4 md:gap-8 px-4 md:px-6 py-3 bg-black/20 rounded-2xl border border-white/5 flex-1 md:flex-none justify-center">
                                                                     <div className="text-center">
                                                                         <p className="text-2xl font-bold text-white">{surveysToRender.length}</p>
                                                                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Formularios</p>
@@ -1375,7 +1417,7 @@ function SurveyEventDashboard() {
                                                     </div>
 
                                                     {/* Grid of Surveys in Folder */}
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8">
                                                         {surveysToRender.map(survey => {
                                                             const responsesCount = survey.responses?.length || 0;
                                                             const hasLimit = survey.limit && survey.limit > 0;
@@ -1387,13 +1429,13 @@ function SurveyEventDashboard() {
                                                                     draggable={true}
                                                                     onDragStart={(e) => handleSurveyDragStart(e, survey.id)}
                                                                     onDragEnd={handleSurveyDragEnd}
-                                                                    className="group bg-slate-800/80 hover:bg-slate-800/90 backdrop-blur-xl rounded-[2rem] shadow-xl shadow-black/30 border border-white/10 overflow-hidden flex flex-col hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/50 transition-all duration-300 relative cursor-grab active:cursor-grabbing"
+                                                                    className="group bg-slate-800/80 hover:bg-slate-800/90 backdrop-blur-xl rounded-2xl md:rounded-[2rem] shadow-xl shadow-black/30 border border-white/10 overflow-hidden flex flex-col hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/50 transition-all duration-300 relative cursor-grab active:cursor-grabbing"
                                                                 >
                                                                     {/* Top glowing accent */}
                                                                     <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
 
                                                                     {/* Survey Content */}
-                                                                    <div className="p-6 flex-1 relative flex flex-col">
+                                                                    <div className="p-5 md:p-6 flex-1 relative flex flex-col">
                                                                         {/* Header */}
                                                                         <div className="flex justify-between items-start mb-4">
                                                                             <div className={`px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider border ${survey.survey_type === 'invitation' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' :
@@ -1412,7 +1454,7 @@ function SurveyEventDashboard() {
                                                                         </div>
 
                                                                         <h3 className="text-xl font-bold text-white mb-2 leading-tight group-hover:text-indigo-400 transition-colors">{survey.title}</h3>
-                                                                        <p className="text-sm text-slate-300 line-clamp-2 mb-6 leading-relaxed flex-1">{survey.description || 'Sin descripción'}</p>
+                                                                        <SurveyDescription description={survey.description} />
 
                                                                         {/* Stats - Improved Contrast */}
                                                                         <div className="grid grid-cols-2 gap-3 mt-auto">
@@ -1434,7 +1476,7 @@ function SurveyEventDashboard() {
                                                                     </div>
 
                                                                     {/* Actions Footer - Lighter bg */}
-                                                                    <div className="px-6 py-4 bg-white/5 border-t border-white/5 grid grid-cols-4 gap-2">
+                                                                    <div className="px-5 md:px-6 py-4 bg-white/5 border-t border-white/5 grid grid-cols-4 gap-2">
                                                                         <button
                                                                             onClick={() => copyToClipboard(survey.id)}
                                                                             className="col-span-1 p-2 rounded-xl flex items-center justify-center transition-all duration-300 text-slate-400 hover:text-white hover:bg-white/10 hover:shadow-lg hover:shadow-black/20"
@@ -1492,11 +1534,56 @@ function SurveyEventDashboard() {
                                         });
 
                                         return Object.entries(grouped).sort((a, b) => {
-                                            // Sort groups first, then singles
-                                            if (a[0].startsWith('group_') && !b[0].startsWith('group_')) return -1;
-                                            if (!a[0].startsWith('group_') && b[0].startsWith('group_')) return 1;
-                                            return a[0].localeCompare(b[0]);
+                                            const now = new Date();
+                                            now.setHours(0, 0, 0, 0);
+
+                                            // Helper to get the most relevant date in a group (Nearest Future OR Most Recent Past)
+                                            const getRelevantDate = (items) => {
+                                                if (!items || items.length === 0) return new Date(0);
+
+                                                // Find earliest future date
+                                                const futureDates = items
+                                                    .map(i => i.eventDate ? new Date(i.eventDate) : new Date(0))
+                                                    .filter(d => d >= now)
+                                                    .sort((d1, d2) => d1 - d2);
+
+                                                if (futureDates.length > 0) return futureDates[0];
+
+                                                // If no future dates, find dates (will be past)
+                                                const pastDates = items
+                                                    .map(i => i.eventDate ? new Date(i.eventDate) : new Date(0))
+                                                    .sort((d1, d2) => d2 - d1); // Descending
+
+                                                return pastDates[0] || new Date(0);
+                                            };
+
+                                            const dateA = getRelevantDate(a[1]);
+                                            const dateB = getRelevantDate(b[1]);
+
+                                            const isFutureA = dateA >= now;
+                                            const isFutureB = dateB >= now;
+
+                                            if (isFutureA && !isFutureB) return -1;
+                                            if (!isFutureA && isFutureB) return 1;
+
+                                            return dateA - dateB;
                                         }).map(([key, groupItems]) => {
+                                            // Sort items within the group
+                                            groupItems.sort((a, b) => {
+                                                const now = new Date();
+                                                now.setHours(0, 0, 0, 0);
+
+                                                const dateA = a.eventDate ? new Date(a.eventDate) : new Date(0);
+                                                const dateB = b.eventDate ? new Date(b.eventDate) : new Date(0);
+
+                                                const isFutureA = dateA >= now;
+                                                const isFutureB = dateB >= now;
+
+                                                if (isFutureA && !isFutureB) return -1;
+                                                if (!isFutureA && isFutureB) return 1;
+
+                                                return dateA - dateB;
+                                            });
                                             // 1. Group Card
                                             if (key.startsWith('group_')) {
                                                 const groupName = key.replace('group_', '');
@@ -1564,17 +1651,7 @@ function SurveyEventDashboard() {
                                                             })}
                                                         </div>
 
-                                                        <div className="p-2 border-t border-white/5 bg-black/20 text-center">
-                                                            <button
-                                                                onClick={() => {
-                                                                    setFormData(prev => ({ ...prev, groupName: groupName }));
-                                                                    setView('create');
-                                                                }}
-                                                                className="text-[10px] font-bold text-purple-400 hover:text-purple-300 uppercase tracking-widest py-2 w-full hover:bg-white/5 rounded-xl transition-colors"
-                                                            >
-                                                                + Agregar al Grupo
-                                                            </button>
-                                                        </div>
+
                                                     </div>
                                                 );
                                             }
@@ -1592,12 +1669,12 @@ function SurveyEventDashboard() {
                                                     draggable={true}
                                                     onDragStart={(e) => handleSurveyDragStart(e, survey.id)}
                                                     onDragEnd={handleSurveyDragEnd}
-                                                    className="group bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-black/20 border border-white/5 overflow-hidden flex flex-col hover:-translate-y-2 hover:shadow-black/40 transition-all duration-500 relative cursor-grab active:cursor-grabbing"
+                                                    className="group bg-slate-800/40 backdrop-blur-xl rounded-2xl md:rounded-[2.5rem] shadow-2xl shadow-black/20 border border-white/5 overflow-hidden flex flex-col hover:-translate-y-2 hover:shadow-black/40 transition-all duration-500 relative cursor-grab active:cursor-grabbing"
                                                 >
                                                     {/* Top glowing accent */}
                                                     <div className={`absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500`}></div>
 
-                                                    <div className="p-8 pb-6 flex-1 relative">
+                                                    <div className="p-5 md:p-8 pb-6 flex-1 relative flex flex-col">
                                                         {/* Status Badge */}
                                                         <div className="flex justify-between items-start mb-6">
                                                             <div className="bg-white/5 border border-white/5 rounded-xl p-1 flex gap-1">
@@ -1628,21 +1705,20 @@ function SurveyEventDashboard() {
                                                             )}
                                                         </div>
 
-                                                        <h3 className="font-bold text-xl text-white line-clamp-2 leading-snug tracking-tight mb-8 group-hover:text-indigo-300 transition-colors h-14">
-                                                            {survey.title}
-                                                        </h3>
+                                                        <h3 className="text-xl font-bold text-white mb-2 leading-tight group-hover:text-indigo-400 transition-colors">{survey.title}</h3>
+                                                        <SurveyDescription description={survey.description} />
 
-                                                        {/* Progress Section */}
-                                                        <div className="bg-black/20 rounded-2xl p-5 border border-white/5">
-                                                            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest mb-3">
-                                                                <span className="text-slate-500">Registros</span>
+                                                        {/* Progress Section - Improved Contrast */}
+                                                        <div className="bg-slate-900/50 rounded-2xl p-5 border border-white/10 group-hover:border-white/20 transition-colors mt-auto">
+                                                            <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest mb-3">
+                                                                <span className="text-slate-400">Registros</span>
                                                                 <span className="text-white">
-                                                                    {responsesCount} <span className="text-slate-600">{hasLimit ? `/ ${survey.limit}` : ''}</span>
+                                                                    {responsesCount} <span className="text-slate-500">{hasLimit ? `/ ${survey.limit}` : ''}</span>
                                                                 </span>
                                                             </div>
 
                                                             {hasLimit ? (
-                                                                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                                <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
                                                                     <div
                                                                         className={`h-full rounded-full transition-all duration-1000 ease-out shadow-lg relative ${isFull ? 'bg-red-500' : 'bg-indigo-500'}`}
                                                                         style={{ width: `${percentage}%` }}
@@ -1651,8 +1727,8 @@ function SurveyEventDashboard() {
                                                                     </div>
                                                                 </div>
                                                             ) : (
-                                                                <div className="flex items-center gap-2 text-[10px] text-indigo-300 font-bold bg-indigo-500/10 py-1.5 px-3 rounded-lg border border-indigo-500/20 w-fit">
-                                                                    <div className="w-1 h-1 rounded-full bg-indigo-400 animate-pulse"></div>
+                                                                <div className="flex items-center gap-2 text-[10px] text-indigo-300 font-bold bg-indigo-500/20 py-2 px-3 rounded-lg border border-indigo-500/30 w-fit">
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
                                                                     Cupos Ilimitados
                                                                 </div>
                                                             )}
