@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
 import Share2 from 'lucide-react/dist/esm/icons/share-2';
 import LayoutDashboard from 'lucide-react/dist/esm/icons/layout-dashboard';
 import Calendar from 'lucide-react/dist/esm/icons/calendar';
@@ -42,24 +42,55 @@ import { CategoryDetailsModal } from './CategoryDetailsModal';
 // XLSX is lazy-loaded when needed for exports
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, AreaChart, Area } from 'recharts';
 
+// Helper to convert fair name to URL slug
+function toSlug(name) {
+    return (name || '')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+}
+
 export default function FairsDashboard() {
-    const { fairs } = useData();
-    const [selectedFairId, setSelectedFairId] = useState(null);
+    return (
+        <Routes>
+            <Route index element={<FairsOverviewPage />} />
+            <Route path=":fairSlug/*" element={<FairDetailsPage />} />
+        </Routes>
+    );
+}
 
-    // If a fair is selected, show the details view
-    const selectedFair = fairs.find(f => f.id === selectedFairId);
-
-    if (selectedFair) {
-        return <FairDetails fair={selectedFair} onBack={() => setSelectedFairId(null)} />;
-    }
-
+// Wrapper that renders FairsOverview inside the page layout
+function FairsOverviewPage() {
+    const navigate = useNavigate();
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-20 font-sans transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
-                <FairsOverview onSelect={setSelectedFairId} />
+                <FairsOverview onSelect={(fair) => navigate(`/ferias/${toSlug(fair.name)}`)} />
             </div>
         </div>
     );
+}
+
+// Wrapper that reads fairSlug from URL params and renders FairDetails
+function FairDetailsPage() {
+    const { fairSlug } = useParams();
+    const { fairs } = useData();
+    const navigate = useNavigate();
+    const selectedFair = fairs.find(f => toSlug(f.name) === fairSlug);
+
+    if (!selectedFair) {
+        return (
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-slate-500 dark:text-slate-400 text-lg">Feria no encontrada</p>
+                    <button onClick={() => navigate('/ferias')} className="mt-4 text-primary-600 hover:underline">Volver a Ferias</button>
+                </div>
+            </div>
+        );
+    }
+
+    return <FairDetails fair={selectedFair} onBack={() => navigate('/ferias')} />;
 }
 
 // --- High Level View: List of Fairs ---
@@ -138,7 +169,7 @@ function FairsOverview({ onSelect }) {
                     const isFinished = isPast(fair.date);
 
                     return (
-                        <div key={fair.id} onClick={() => onSelect(fair.id)} className="group relative cursor-pointer h-full active:scale-[0.98] transition-transform">
+                        <div key={fair.id} onClick={() => onSelect(fair)} className="group relative cursor-pointer h-full active:scale-[0.98] transition-transform">
                             <div className="absolute -inset-0.5 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl sm:rounded-[2rem] opacity-0 group-hover:opacity-100 blur transition duration-500"></div>
                             <div className="bg-white dark:bg-slate-900 rounded-xl sm:rounded-[1.9rem] p-4 sm:p-6 border border-slate-200 dark:border-slate-800 relative h-full flex flex-col transition-transform duration-300 group-hover:-translate-y-1">
 
@@ -225,7 +256,19 @@ function FairsOverview({ onSelect }) {
 // --- Detail View: Single Fair Panel ---
 
 function FairDetails({ fair, onBack }) {
-    const [activeTab, setActiveTab] = useState('analytics'); // analytics, participants, sales
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // Derive activeTab from URL: /ferias/:id/analiticas -> 'analiticas'
+    const activeTab = useMemo(() => {
+        const segments = location.pathname.split('/').filter(Boolean);
+        // segments: ['ferias', ':fairId', 'analiticas']
+        return segments[2] || 'analiticas';
+    }, [location.pathname]);
+
+    const handleTabChange = (tab) => {
+        navigate(`/ferias/${toSlug(fair.name)}/${tab}`);
+    };
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-20">
@@ -269,8 +312,8 @@ function FairDetails({ fair, onBack }) {
                             {/* Premium Tabs */}
                             <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl gap-1 overflow-x-auto">
                                 <button
-                                    onClick={() => setActiveTab('analytics')}
-                                    className={`px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all duration-200 whitespace-nowrap ${activeTab === 'analytics'
+                                    onClick={() => handleTabChange('analiticas')}
+                                    className={`px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all duration-200 whitespace-nowrap ${activeTab === 'analiticas'
                                         ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-400 shadow-sm'
                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
                                         }`}
@@ -278,8 +321,8 @@ function FairDetails({ fair, onBack }) {
                                     <LayoutDashboard size={18} /> Resumen
                                 </button>
                                 <button
-                                    onClick={() => setActiveTab('participants')}
-                                    className={`px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all duration-200 whitespace-nowrap ${activeTab === 'participants'
+                                    onClick={() => handleTabChange('participantes')}
+                                    className={`px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all duration-200 whitespace-nowrap ${activeTab === 'participantes'
                                         ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-400 shadow-sm'
                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
                                         }`}
@@ -287,8 +330,8 @@ function FairDetails({ fair, onBack }) {
                                     <Users size={18} /> Participantes
                                 </button>
                                 <button
-                                    onClick={() => setActiveTab('sales')}
-                                    className={`px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all duration-200 whitespace-nowrap ${activeTab === 'sales'
+                                    onClick={() => handleTabChange('ventas')}
+                                    className={`px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all duration-200 whitespace-nowrap ${activeTab === 'ventas'
                                         ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-400 shadow-sm'
                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
                                         }`}
@@ -302,9 +345,9 @@ function FairDetails({ fair, onBack }) {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
-                {activeTab === 'analytics' ? <FairAnalytics fair={fair} /> : null}
-                {activeTab === 'participants' ? <FairParticipants fairId={fair.id} /> : null}
-                {activeTab === 'sales' ? <FairSalesTracker fairId={fair.id} /> : null}
+                {activeTab === 'analiticas' ? <FairAnalytics fair={fair} /> : null}
+                {activeTab === 'participantes' ? <FairParticipants fairId={fair.id} /> : null}
+                {activeTab === 'ventas' ? <FairSalesTracker fairId={fair.id} /> : null}
             </div>
         </div>
     )

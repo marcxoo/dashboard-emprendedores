@@ -45,58 +45,56 @@ function App() {
             <BrowserRouter>
               <Suspense fallback={<LoadingFallback />}>
                 <Routes>
-                  {/* Public Route for Surveys */}
+                  {/* Public Routes */}
                   <Route path="/forms/:id" element={<PublicSurveyView />} />
-
-                  {/* Secure Login & Portal Entry Point */}
                   <Route path="/portal" element={<PortalGate />} />
 
-                  {/* Root & Catch-all -> 404 (Hidden Login) */}
-                  <Route path="/" element={<NotFound />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-
                   {/* Protected Routes */}
-                  <Route path="/dashboard/*" element={
+                  <Route path="/panel/*" element={
                     <ProtectedRoute>
                       <EntrepreneurDashboard />
                     </ProtectedRoute>
                   } />
 
-                  <Route path="/events/*" element={
+                  <Route path="/eventos/*" element={
                     <ProtectedRoute>
                       <EventDashboard />
                     </ProtectedRoute>
                   } />
 
-                  <Route path="/fairs/*" element={
+                  <Route path="/ferias/*" element={
                     <ProtectedRoute>
                       <FairsDashboard />
                     </ProtectedRoute>
                   } />
 
-                  <Route path="/surveys/*" element={
+                  <Route path="/encuestas/*" element={
                     <ProtectedRoute>
                       <SurveyEventDashboard />
                     </ProtectedRoute>
                   } />
 
-                  <Route path="/invitations/*" element={
+                  <Route path="/invitaciones/*" element={
                     <ProtectedRoute>
                       <InvitationsDashboard />
                     </ProtectedRoute>
                   } />
 
-                  <Route path="/raffle/:id" element={
+                  <Route path="/sorteo/:id" element={
                     <ProtectedRoute>
                       <SurveyRaffle />
                     </ProtectedRoute>
                   } />
 
-                  <Route path="/certificates/*" element={
+                  <Route path="/certificados/*" element={
                     <ProtectedRoute>
                       <CertificatesDashboard />
                     </ProtectedRoute>
                   } />
+
+                  {/* Root & Catch-all -> 404 (Hidden Login) */}
+                  <Route path="/" element={<NotFound />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
             </BrowserRouter>

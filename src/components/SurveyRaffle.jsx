@@ -102,7 +102,7 @@ export default function SurveyRaffle() {
             <div className={`border-r border-white/5 bg-[#0f172a]/95 backdrop-blur-3xl flex flex-col h-screen z-30 shadow-[4px_0_24px_rgba(0,0,0,0.2)] transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] absolute md:relative ${isWheelSpinning || winner ? '-ml-80 opacity-0' : (isSidebarOpen ? 'w-80 translate-x-0' : 'w-0 -ml-4 opacity-0 overflow-hidden')} `}>
                 <div className="p-6 border-b border-white/5 bg-gradient-to-b from-white/5 to-transparent min-w-[320px]">
                     <button
-                        onClick={() => navigate('/surveys')}
+                        onClick={() => navigate('/encuestas')}
                         className="flex items-center text-slate-400 hover:text-white mb-8 transition-colors text-xs font-bold tracking-widest uppercase group"
                     >
                         <div className="bg-white/5 p-1.5 rounded-lg mr-2 group-hover:bg-orange-500 group-hover:text-white transition-all">

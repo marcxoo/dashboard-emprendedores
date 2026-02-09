@@ -148,7 +148,7 @@ function Portal() {
                             backgroundImage: '/images/fondo-emprendedores.png',
                             backgroundPosition: 'object-bottom'
                         }}
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/panel')}
                     />
 
                     {/* Secondary Module: Events (Large Vertical) */}
@@ -161,7 +161,7 @@ function Portal() {
                         gradient="from-orange-500/10 to-red-500/10"
                         delay={2}
                         stats={{ value: upcomingEventsCount.toString(), label: 'Eventos' }}
-                        onClick={() => navigate('/events')}
+                        onClick={() => navigate('/eventos')}
                     />
 
                     {/* Quick Access: Invitations */}
@@ -173,7 +173,7 @@ function Portal() {
                         iconColor="text-green-500"
                         gradient="from-green-500/10 to-emerald-500/10"
                         delay={3}
-                        onClick={() => navigate('/invitations')}
+                        onClick={() => navigate('/invitaciones')}
                     />
 
                     {/* Quick Access: Forms */}
@@ -185,7 +185,7 @@ function Portal() {
                         iconColor="text-fuchsia-500"
                         gradient="from-fuchsia-500/10 to-purple-500/10"
                         delay={4}
-                        onClick={() => navigate('/surveys')}
+                        onClick={() => navigate('/encuestas')}
                     />
 
                     {/* Utility: Fairs */}
@@ -197,7 +197,7 @@ function Portal() {
                         iconColor="text-indigo-500"
                         gradient="from-indigo-500/10 to-violet-500/10"
                         delay={5}
-                        onClick={() => navigate('/fairs')}
+                        onClick={() => navigate('/ferias')}
                     />
 
                     {/* Utility: Certificates */}
@@ -209,7 +209,7 @@ function Portal() {
                         iconColor="text-amber-500"
                         gradient="from-amber-500/10 to-yellow-500/10"
                         delay={6}
-                        onClick={() => navigate('/certificates')}
+                        onClick={() => navigate('/certificados')}
                     />
                 </div>
 

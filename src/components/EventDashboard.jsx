@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { responsibleOptions } from '../data/eventsData';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import AvatarGroup from './ui/AvatarGroup';
 import { useMemo } from 'react';
 // Image Mapping for Events
@@ -64,12 +64,24 @@ const getAvatarUrl = (name) => {
 
 function EventDashboard() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [selectedResponsible, setSelectedResponsible] = useState('Todos');
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // URL-driven helper
+    const updateParams = (updates) => {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            Object.entries(updates).forEach(([k, v]) => {
+                if (v === null || v === undefined || v === '') next.delete(k);
+                else next.set(k, v);
+            });
+            return next;
+        }, { replace: true });
+    };
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [trackingModalOpen, setTrackingModalOpen] = useState(null);
-    const [isFormOpen, setIsFormOpen] = useState(false);
+    // Derived from URL search params
+    const trackingModalOpen = searchParams.get('seguimiento') || null;
+    const isFormOpen = searchParams.has('modal');
     const [currentEvent, setCurrentEvent] = useState(null);
     const [formData, setFormData] = useState({
         month: 'ENERO',
@@ -232,7 +244,7 @@ function EventDashboard() {
 
     const handleAddNew = () => {
         resetForm();
-        setIsFormOpen(true);
+        updateParams({ modal: 'nuevo' });
     };
 
     const handleEdit = (event) => {
@@ -242,8 +254,28 @@ function EventDashboard() {
             startTime: event.startTime ? event.startTime.slice(0, 5) : '',
             endTime: event.endTime ? event.endTime.slice(0, 5) : ''
         });
-        setIsFormOpen(true);
+        updateParams({ modal: 'editar', eventoId: event.id });
     };
+
+    // Sync edit modal from URL on load (deep-link support)
+    useEffect(() => {
+        const modalType = searchParams.get('modal');
+        const eventId = searchParams.get('eventoId');
+        if (modalType === 'editar' && eventId && events.length > 0 && !currentEvent) {
+            const ev = events.find(e => e.id === eventId);
+            if (ev) {
+                setCurrentEvent(ev);
+                setFormData({
+                    ...ev,
+                    startTime: ev.startTime ? ev.startTime.slice(0, 5) : '',
+                    endTime: ev.endTime ? ev.endTime.slice(0, 5) : ''
+                });
+            }
+        }
+        if (modalType === 'nuevo' && !currentEvent) {
+            resetForm();
+        }
+    }, [searchParams, events]);
 
     const handleDelete = async (id) => {
         if (window.confirm('¿Estás seguro de eliminar este evento?')) {
@@ -290,7 +322,7 @@ function EventDashboard() {
         }
 
         await fetchEvents(); // Refresh to get correct IDs/Data
-        setIsFormOpen(false);
+        updateParams({ modal: null, eventoId: null });
         resetForm();
     };
 
@@ -344,7 +376,9 @@ function EventDashboard() {
         return monthNames[new Date().getMonth()];
     };
 
-    const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthName());
+    const selectedMonth = searchParams.get('mes') || getCurrentMonthName();
+    const selectedResponsible = searchParams.get('responsable') || 'Todos';
+    const searchTerm = searchParams.get('buscar') || '';
     const months = ['Todos', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
 
     const filteredEvents = events.filter(ev => {
@@ -520,7 +554,7 @@ function EventDashboard() {
                                     type="text"
                                     placeholder="Buscar evento por nombre, tipo..."
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={(e) => updateParams({ buscar: e.target.value || null })}
                                     className="w-full pl-14 pr-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 focus:border-slate-400 dark:focus:border-slate-600 focus:ring-4 focus:ring-slate-100 dark:focus:ring-slate-800/50 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 text-slate-900 dark:text-slate-200 font-medium"
                                 />
                             </div>
@@ -535,7 +569,7 @@ function EventDashboard() {
                                     {months.map(month => (
                                         <button
                                             key={month}
-                                            onClick={() => setSelectedMonth(month)}
+                                            onClick={() => updateParams({ mes: month === getCurrentMonthName() ? null : month })}
                                             className={`px-6 py-2.5 rounded-2xl text-xs font-black tracking-wide whitespace-nowrap snap-center transition-all duration-300 border uppercase ${selectedMonth === month
                                                 ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-lg shadow-slate-900/20 dark:shadow-[0_0_20px_rgba(255,255,255,0.1)] transform scale-105'
                                                 : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700 dark:bg-slate-800/50 dark:text-slate-500 dark:border-slate-700/50 dark:hover:bg-slate-800 dark:hover:border-slate-600 dark:hover:text-slate-300'
@@ -555,7 +589,7 @@ function EventDashboard() {
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     <button
-                                        onClick={() => setSelectedResponsible('Todos')}
+                                        onClick={() => updateParams({ responsable: null })}
                                         className={`px-6 py-2.5 rounded-2xl text-xs font-black tracking-wide transition-all duration-300 border uppercase ${selectedResponsible === 'Todos'
                                             ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-lg shadow-slate-900/20 dark:shadow-[0_0_20px_rgba(255,255,255,0.1)] transform scale-105'
                                             : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700 dark:bg-slate-800/50 dark:text-slate-500 dark:border-slate-700/50 dark:hover:bg-slate-800 dark:hover:border-slate-600 dark:hover:text-slate-300'
@@ -566,7 +600,7 @@ function EventDashboard() {
                                     {responsibleOptions.map(resp => (
                                         <button
                                             key={resp}
-                                            onClick={() => setSelectedResponsible(resp)}
+                                            onClick={() => updateParams({ responsable: resp })}
                                             className={`pl-5 pr-6 py-2.5 rounded-2xl text-xs font-black tracking-wide transition-all duration-300 flex items-center gap-2.5 border uppercase ${selectedResponsible === resp
                                                 ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-lg shadow-slate-900/20 dark:shadow-[0_0_20px_rgba(255,255,255,0.1)] transform scale-105'
                                                 : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700 dark:bg-slate-800/50 dark:text-slate-500 dark:border-slate-700/50 dark:hover:bg-slate-800 dark:hover:border-slate-600 dark:hover:text-slate-300'
@@ -707,7 +741,7 @@ function EventDashboard() {
 
                                             <div className="flex items-center gap-2">
                                                 <button
-                                                    onClick={() => setTrackingModalOpen(ev.id)}
+                                                    onClick={() => updateParams({ seguimiento: ev.id })}
                                                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${trackingTotal > 0 && trackingCount === trackingTotal
                                                         ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-500/20'
                                                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
@@ -771,9 +805,7 @@ function EventDashboard() {
                                 </p>
                                 <button
                                     onClick={() => {
-                                        setSearchTerm('');
-                                        setSelectedResponsible('Todos');
-                                        setSelectedMonth('Todos');
+                                        updateParams({ buscar: null, responsable: null, mes: null });
                                     }}
                                     className="mt-6 text-primary-600 dark:text-primary-400 font-bold hover:underline"
                                 >
@@ -900,7 +932,7 @@ function EventDashboard() {
 
                                             <div className="flex items-center gap-2">
                                                 <button
-                                                    onClick={() => setTrackingModalOpen(ev.id)}
+                                                    onClick={() => updateParams({ seguimiento: ev.id })}
                                                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${trackingTotal > 0 && trackingCount === trackingTotal
                                                         ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-500/20'
                                                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
@@ -942,7 +974,7 @@ function EventDashboard() {
                                     {/* Tracking Modal Logic Reuse */}
                                     {trackingModalOpen === ev.id && (
                                         <>
-                                            <div className="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm transition-opacity" onClick={() => setTrackingModalOpen(null)}></div>
+                                            <div className="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm transition-opacity" onClick={() => updateParams({ seguimiento: null })}></div>
                                             <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-[2.5rem] z-50 p-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.2)] animate-in slide-in-from-bottom-full duration-300 border-t border-slate-200 dark:border-white/10 max-h-[85vh] flex flex-col">
 
                                                 {/* Mobile Header */}
@@ -966,7 +998,7 @@ function EventDashboard() {
                                                                 {ev.name || ev.type}
                                                             </h3>
                                                         </div>
-                                                        <button onClick={() => setTrackingModalOpen(null)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-400">
+                                                        <button onClick={() => updateParams({ seguimiento: null })} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-400">
                                                             <X size={20} />
                                                         </button>
                                                     </div>
@@ -1084,7 +1116,7 @@ function EventDashboard() {
                 {
                     isFormOpen && (
                         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={() => setIsFormOpen(false)}></div>
+                            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={() => updateParams({ modal: null, eventoId: null })}></div>
                             <div className="relative bg-white dark:bg-slate-900 rounded-[2rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-white/10 animate-in zoom-in-95 duration-200 custom-scrollbar">
                                 <div className="px-8 py-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-10 transition-all">
                                     <div>
@@ -1095,7 +1127,7 @@ function EventDashboard() {
                                             Completa la información del evento
                                         </p>
                                     </div>
-                                    <button onClick={() => setIsFormOpen(false)} className="p-2.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors text-slate-500 dark:text-slate-400">
+                                    <button onClick={() => updateParams({ modal: null, eventoId: null })} className="p-2.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors text-slate-500 dark:text-slate-400">
                                         <X size={20} />
                                     </button>
                                 </div>
@@ -1257,7 +1289,7 @@ function EventDashboard() {
 
                                 <div className="p-6 border-t border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md sticky bottom-0 z-10">
                                     <button
-                                        onClick={() => setIsFormOpen(false)}
+                                        onClick={() => updateParams({ modal: null, eventoId: null })}
                                         className="px-6 py-3 rounded-xl font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
                                     >
                                         Cancelar
@@ -1287,13 +1319,13 @@ function EventDashboard() {
 
                 return (
                     <>
-                        <div className="fixed inset-0 bg-slate-900/60 z-[60] backdrop-blur-sm transition-all duration-300" onClick={() => setTrackingModalOpen(null)}></div>
+                        <div className="fixed inset-0 bg-slate-900/60 z-[60] backdrop-blur-sm transition-all duration-300" onClick={() => updateParams({ seguimiento: null })}></div>
                         <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2rem] z-[70] p-0 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-white/10 overflow-hidden">
 
                             {/* Header with Progress */}
                             <div className="bg-slate-50 dark:bg-white/5 p-8 pb-10 border-b border-slate-100 dark:border-white/5 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-6 z-20">
-                                    <button onClick={() => setTrackingModalOpen(null)} className="p-2.5 bg-white dark:bg-slate-800 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
+                                    <button onClick={() => updateParams({ seguimiento: null })} className="p-2.5 bg-white dark:bg-slate-800 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
                                         <X size={20} strokeWidth={2.5} />
                                     </button>
                                 </div>

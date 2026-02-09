@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import EntrepreneurDetail from './EntrepreneurDetail';
 import { getDateRangeFromWeek } from '../utils/dateUtils';
@@ -161,21 +162,40 @@ const MobileEntrepreneurCard = ({
 
 export default function EntrepreneursList() {
     const { entrepreneurs, assignments, currentWeek, currentBlock, addEntrepreneur, updateEntrepreneur, deleteEntrepreneur } = useData();
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingEntrepreneur, setEditingEntrepreneur] = useState(null);
-    const [contactSelection, setContactSelection] = useState(null);
+    const [searchParams, setSearchParams] = useSearchParams();
 
-    // Follow-up Modals State
-    const [followUpModalOpen, setFollowUpModalOpen] = useState(false);
-    const [historyModalOpen, setHistoryModalOpen] = useState(false);
-    const [selectedEntrepreneurForFollowUp, setSelectedEntrepreneurForFollowUp] = useState(null);
+    // URL-driven helper
+    const updateParams = (updates) => {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            Object.entries(updates).forEach(([k, v]) => {
+                if (v === null || v === undefined || v === '') next.delete(k);
+                else next.set(k, String(v));
+            });
+            return next;
+        }, { replace: true });
+    };
 
-    const [filterCategory, setFilterCategory] = useState('');
-    const [filterTipo, setFilterTipo] = useState('');
+    // Modals derived from URL
+    const isModalOpen = searchParams.has('modal');
+    const editingId = searchParams.get('editarId');
+    const editingEntrepreneur = editingId ? entrepreneurs.find(e => e.id === editingId) || null : null;
+    const detailId = searchParams.get('detalle');
+    const selectedEntrepreneur = detailId ? entrepreneurs.find(e => e.id === detailId) || null : null;
+    const followUpId = searchParams.get('observacion');
+    const followUpModalOpen = !!followUpId;
+    const historyId = searchParams.get('historial');
+    const historyModalOpen = !!historyId;
+    const selectedEntrepreneurForFollowUp = followUpId ? entrepreneurs.find(e => e.id === followUpId) || null
+        : historyId ? entrepreneurs.find(e => e.id === historyId) || null : null;
+    const contactSelection = searchParams.get('contacto') || null;
 
-    const [searchTerm, setSearchTerm] = useState('');
+    // Filters derived from URL
+    const filterCategory = searchParams.get('categoria') || '';
+    const filterTipo = searchParams.get('tipo') || '';
+    const searchTerm = searchParams.get('buscar') || '';
+    const currentPage = parseInt(searchParams.get('pagina') || '1', 10);
     const [sortConfig, setSortConfig] = useState({ key: 'nombre_emprendimiento', direction: 'asc' });
-    const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
     const categories = useMemo(() => [...new Set(entrepreneurs.map(e => e.categoria_principal))].sort(), [entrepreneurs]);
@@ -244,7 +264,7 @@ export default function EntrepreneursList() {
     const handleContactClick = (phone, e) => {
         e.stopPropagation();
         if (!phone) return;
-        setContactSelection(phone);
+        updateParams({ contacto: phone });
     };
 
     const handleEmail = (email, e) => {
@@ -443,28 +463,26 @@ Atentamente,`;
         window.open(gmailUrlWithBody, '_blank');
     };
 
-    const [selectedEntrepreneur, setSelectedEntrepreneur] = useState(null);
+
 
     return (
         <div className="flex flex-col gap-8 animate-fade-in relative pb-20">
             {/* Detail Slide-over */}
             <EntrepreneurDetail
                 entrepreneur={selectedEntrepreneur}
-                onClose={() => setSelectedEntrepreneur(null)}
+                onClose={() => updateParams({ detalle: null })}
                 onDelete={(id) => {
                     deleteEntrepreneur(id);
-                    setSelectedEntrepreneur(null);
+                    updateParams({ detalle: null });
                 }}
                 onEdit={(entrepreneur) => {
-                    setSelectedEntrepreneur(null);
-                    setEditingEntrepreneur(entrepreneur);
-                    setIsModalOpen(true);
+                    updateParams({ detalle: null, modal: 'editar', editarId: entrepreneur.id });
                 }}
             />
 
             <ContactSelectionModal
                 isOpen={!!contactSelection}
-                onClose={() => setContactSelection(null)}
+                onClose={() => updateParams({ contacto: null })}
                 phoneNumber={contactSelection}
             />
 
@@ -492,8 +510,7 @@ Atentamente,`;
                     </button>
                     <button
                         onClick={() => {
-                            setEditingEntrepreneur(null);
-                            setIsModalOpen(true);
+                            updateParams({ modal: 'nuevo', editarId: null });
                         }}
                         className="btn flex-1 md:flex-none bg-primary-600 hover:bg-primary-700 text-white shadow-lg shadow-primary-600/25 hover:shadow-primary-600/40 px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
                     >
@@ -506,12 +523,12 @@ Atentamente,`;
             {/* Modals */}
             <FollowUpModal
                 isOpen={followUpModalOpen}
-                onClose={() => setFollowUpModalOpen(false)}
+                onClose={() => updateParams({ observacion: null })}
                 entrepreneur={selectedEntrepreneurForFollowUp}
             />
             <HistoryModal
                 isOpen={historyModalOpen}
-                onClose={() => setHistoryModalOpen(false)}
+                onClose={() => updateParams({ historial: null })}
                 entrepreneur={selectedEntrepreneurForFollowUp}
             />
 
@@ -525,7 +542,7 @@ Atentamente,`;
                         className="glass-input w-full pl-12 pr-4 py-3 rounded-xl outline-none placeholder:text-slate-400 font-medium text-slate-700 dark:text-white focus:ring-4 focus:ring-primary-500/10 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600"
                         placeholder="Buscar por nombre, teléfono o correo..."
                         value={searchTerm}
-                        onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                        onChange={e => { updateParams({ buscar: e.target.value || null, pagina: null }); }}
                     />
                 </div>
 
@@ -559,7 +576,7 @@ Atentamente,`;
                     <select
                         className="w-full pl-11 pr-10 py-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-700"
                         value={filterCategory}
-                        onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }}
+                        onChange={e => { updateParams({ categoria: e.target.value || null, pagina: null }); }}
                     >
                         <option value="">Todas las Categorías</option>
                         {categories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -577,7 +594,7 @@ Atentamente,`;
                     <select
                         className="w-full pl-11 pr-10 py-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-700"
                         value={filterTipo}
-                        onChange={e => { setFilterTipo(e.target.value); setCurrentPage(1); }}
+                        onChange={e => { updateParams({ tipo: e.target.value || null, pagina: null }); }}
                     >
                         <option value="">Todos los Tipos</option>
                         <option value="Externo">Emprendedor Externo</option>
@@ -606,7 +623,7 @@ Atentamente,`;
                 {paginatedData.map((e) => (
                     <div
                         key={e.id}
-                        onClick={() => setSelectedEntrepreneur(e)}
+                        onClick={() => updateParams({ detalle: e.id })}
                         className={`group rounded-xl p-4 flex items-center shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden ${selectedEntrepreneur?.id === e.id
                             ? 'bg-primary-50 dark:bg-primary-900/10 border border-primary-500 dark:border-primary-500 ring-1 ring-primary-500 dark:ring-primary-500 z-10'
                             : 'bg-white dark:bg-slate-800 hover:bg-slate-50/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 hover:border-primary-200 dark:hover:border-primary-500/30'
@@ -670,8 +687,7 @@ Atentamente,`;
                         <div className="w-[25%] pl-4 flex items-center justify-end gap-2" onClick={ev => ev.stopPropagation()}>
                             <button
                                 onClick={() => {
-                                    setSelectedEntrepreneurForFollowUp(e);
-                                    setFollowUpModalOpen(true);
+                                    updateParams({ observacion: e.id });
                                 }}
                                 className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 border border-slate-200 dark:border-slate-600 hover:border-primary-200 dark:hover:border-primary-500/30 transition-all"
                                 title="Añadir Observación"
@@ -680,8 +696,7 @@ Atentamente,`;
                             </button>
                             <button
                                 onClick={() => {
-                                    setSelectedEntrepreneurForFollowUp(e);
-                                    setHistoryModalOpen(true);
+                                    updateParams({ historial: e.id });
                                 }}
                                 className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-secondary hover:text-white border border-slate-200 dark:border-slate-600 hover:border-secondary transition-all"
                                 title="Historial"
@@ -709,17 +724,15 @@ Atentamente,`;
                     <MobileEntrepreneurCard
                         key={e.id}
                         e={e}
-                        onSelect={setSelectedEntrepreneur}
+                        onSelect={(ent) => updateParams({ detalle: ent.id })}
                         onContact={handleContactClick}
                         onFollowUp={() => {
-                            setSelectedEntrepreneurForFollowUp(e);
-                            setFollowUpModalOpen(true);
+                            updateParams({ observacion: e.id });
                         }}
                         onEmail={handleEmail}
                         onOffer={handleStandOfferEmail}
                         onHistory={() => {
-                            setSelectedEntrepreneurForFollowUp(e);
-                            setHistoryModalOpen(true);
+                            updateParams({ historial: e.id });
                         }}
                     />
                 ))}
@@ -733,7 +746,7 @@ Atentamente,`;
                 <div className="flex items-center gap-2">
                     <button
                         className="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:hover:bg-white dark:disabled:hover:bg-slate-800 transition-all"
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        onClick={() => updateParams({ pagina: Math.max(1, currentPage - 1) || null })}
                         disabled={currentPage === 1}
                     >
                         <ArrowUp className="-rotate-90" size={18} />
@@ -743,7 +756,7 @@ Atentamente,`;
                     </div>
                     <button
                         className="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:hover:bg-white dark:disabled:hover:bg-slate-800 transition-all"
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        onClick={() => updateParams({ pagina: Math.min(totalPages, currentPage + 1) })}
                         disabled={currentPage === totalPages}
                     >
                         <ArrowUp className="rotate-90" size={18} />
@@ -753,7 +766,7 @@ Atentamente,`;
 
             <EntrepreneurModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => updateParams({ modal: null, editarId: null })}
                 onSave={(data) => {
                     if (editingEntrepreneur) {
                         return updateEntrepreneur(editingEntrepreneur.id, data);

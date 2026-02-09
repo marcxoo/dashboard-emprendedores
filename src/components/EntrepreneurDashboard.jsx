@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import LayoutDashboard from 'lucide-react/dist/esm/icons/layout-dashboard';
 import Users from 'lucide-react/dist/esm/icons/users';
 import History from 'lucide-react/dist/esm/icons/history';
@@ -16,18 +16,25 @@ import EntrepreneursList from './EntrepreneursList';
 import AssignmentsHistory from './AssignmentsHistory';
 import Statistics from './Statistics';
 import SurveysDashboard from './SurveysDashboard';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 function EntrepreneurDashboard() {
-    const [currentView, setCurrentView] = useState('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { isLoaded } = useData();
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Derive currentView from URL path
+    const currentView = useMemo(() => {
+        const segments = location.pathname.split('/').filter(Boolean);
+        // /panel/emprendedores -> 'emprendedores', /panel -> 'inicio'
+        return segments[1] || 'inicio';
+    }, [location.pathname]);
 
     // Close sidebar when view changes on mobile
     const handleViewChange = (view) => {
-        setCurrentView(view);
+        navigate(`/panel/${view}`);
         setIsSidebarOpen(false);
     };
 
@@ -93,63 +100,63 @@ function EntrepreneurDashboard() {
                 {/* Navigation */}
                 <nav className="p-4 space-y-2 flex-1 overflow-y-auto custom-scrollbar">
                     <button
-                        onClick={() => handleViewChange('dashboard')}
-                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${currentView === 'dashboard'
+                        onClick={() => handleViewChange('inicio')}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${currentView === 'inicio'
                             ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20 border border-transparent'
                             : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'
                             }`}
                     >
-                        <LayoutDashboard size={22} strokeWidth={1.5} className={`transition-transform group-hover:scale-105 ${currentView === 'dashboard' ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400'}`} />
+                        <LayoutDashboard size={22} strokeWidth={1.5} className={`transition-transform group-hover:scale-105 ${currentView === 'inicio' ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400'}`} />
                         <span className="font-medium tracking-wide">Dashboard</span>
-                        {currentView === 'dashboard' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow"></span>}
+                        {currentView === 'inicio' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow"></span>}
                     </button>
 
                     <button
-                        onClick={() => handleViewChange('entrepreneurs')}
-                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${currentView === 'entrepreneurs'
+                        onClick={() => handleViewChange('emprendedores')}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${currentView === 'emprendedores'
                             ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20 border border-transparent'
                             : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'
                             }`}
                     >
-                        <Users size={22} strokeWidth={1.5} className={`transition-transform group-hover:scale-105 ${currentView === 'entrepreneurs' ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400'}`} />
+                        <Users size={22} strokeWidth={1.5} className={`transition-transform group-hover:scale-105 ${currentView === 'emprendedores' ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400'}`} />
                         <span className="font-medium tracking-wide">Emprendedores</span>
-                        {currentView === 'entrepreneurs' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow"></span>}
+                        {currentView === 'emprendedores' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow"></span>}
                     </button>
 
                     <button
-                        onClick={() => handleViewChange('history')}
-                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${currentView === 'history'
+                        onClick={() => handleViewChange('historial')}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${currentView === 'historial'
                             ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20 border border-transparent'
                             : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'
                             }`}
                     >
-                        <History size={22} strokeWidth={1.5} className={`transition-transform group-hover:scale-105 ${currentView === 'history' ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400'}`} />
+                        <History size={22} strokeWidth={1.5} className={`transition-transform group-hover:scale-105 ${currentView === 'historial' ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400'}`} />
                         <span className="font-medium tracking-wide">Historial</span>
-                        {currentView === 'history' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow"></span>}
+                        {currentView === 'historial' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow"></span>}
                     </button>
 
                     <button
-                        onClick={() => handleViewChange('statistics')}
-                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${currentView === 'statistics'
+                        onClick={() => handleViewChange('estadisticas')}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${currentView === 'estadisticas'
                             ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20 border border-transparent'
                             : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'
                             }`}
                     >
-                        <DollarSign size={22} strokeWidth={1.5} className={`transition-transform group-hover:scale-105 ${currentView === 'statistics' ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400'}`} />
+                        <DollarSign size={22} strokeWidth={1.5} className={`transition-transform group-hover:scale-105 ${currentView === 'estadisticas' ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400'}`} />
                         <span className="font-medium tracking-wide">Estadísticas</span>
-                        {currentView === 'statistics' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow"></span>}
+                        {currentView === 'estadisticas' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow"></span>}
                     </button>
 
                     <button
-                        onClick={() => handleViewChange('surveys')}
-                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${currentView === 'surveys'
+                        onClick={() => handleViewChange('encuestas')}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group ${currentView === 'encuestas'
                             ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20 border border-transparent'
                             : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'
                             }`}
                     >
-                        <MessageSquare size={22} strokeWidth={1.5} className={`transition-transform group-hover:scale-105 ${currentView === 'surveys' ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400'}`} />
+                        <MessageSquare size={22} strokeWidth={1.5} className={`transition-transform group-hover:scale-105 ${currentView === 'encuestas' ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400'}`} />
                         <span className="font-medium tracking-wide">Encuestas</span>
-                        {currentView === 'surveys' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow"></span>}
+                        {currentView === 'encuestas' && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow"></span>}
                     </button>
                 </nav>
 
@@ -194,13 +201,15 @@ function EntrepreneurDashboard() {
                             </div>
                         </div>
                     ) : (
-                        <>
-                            {currentView === 'dashboard' && <Dashboard />}
-                            {currentView === 'entrepreneurs' && <EntrepreneursList />}
-                            {currentView === 'history' && <AssignmentsHistory />}
-                            {currentView === 'statistics' && <Statistics />}
-                            {currentView === 'surveys' && <SurveysDashboard />}
-                        </>
+                        <Routes>
+                            <Route index element={<Navigate to="inicio" replace />} />
+                            <Route path="inicio" element={<Dashboard />} />
+                            <Route path="emprendedores" element={<EntrepreneursList />} />
+                            <Route path="historial" element={<AssignmentsHistory />} />
+                            <Route path="estadisticas" element={<Statistics />} />
+                            <Route path="encuestas" element={<SurveysDashboard />} />
+                            <Route path="*" element={<Navigate to="inicio" replace />} />
+                        </Routes>
                     )}
                 </div>
             </main>
