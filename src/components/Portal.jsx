@@ -24,6 +24,9 @@ function Portal() {
     const [syncStatus, setSyncStatus] = useState('idle'); // idle, syncing, success, error
     const [currentTime, setCurrentTime] = useState(new Date());
 
+    // Detectar si estamos en localhost (el sync solo funciona localmente)
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
     // Calculate upcoming events (surveys with eventDate in the future)
     const upcomingEventsCount = (customSurveys || []).filter(survey => {
         if (!survey.eventDate) return false;
@@ -96,25 +99,27 @@ function Portal() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <button
-                            onClick={handleSync}
-                            disabled={syncStatus === 'syncing'}
-                            className={`group relative overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 px-5 py-3 rounded-2xl font-bold text-sm transition-all hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-3 ${syncStatus === 'success' ? '!border-green-500 !text-green-500' :
-                                syncStatus === 'error' ? '!border-red-500 !text-red-500' : ''
-                                }`}
-                        >
-                            {syncStatus === 'syncing' ? <Loader2 size={18} className="animate-spin" /> :
-                                syncStatus === 'success' ? <Check size={18} /> :
-                                    syncStatus === 'error' ? <AlertCircle size={18} /> :
-                                        <Database size={18} className="text-slate-400 group-hover:text-cyan-500 transition-colors" />}
+                        {isLocalhost && (
+                            <button
+                                onClick={handleSync}
+                                disabled={syncStatus === 'syncing'}
+                                className={`group relative overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 px-5 py-3 rounded-2xl font-bold text-sm transition-all hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-3 ${syncStatus === 'success' ? '!border-green-500 !text-green-500' :
+                                    syncStatus === 'error' ? '!border-red-500 !text-red-500' : ''
+                                    }`}
+                            >
+                                {syncStatus === 'syncing' ? <Loader2 size={18} className="animate-spin" /> :
+                                    syncStatus === 'success' ? <Check size={18} /> :
+                                        syncStatus === 'error' ? <AlertCircle size={18} /> :
+                                            <Database size={18} className="text-slate-400 group-hover:text-cyan-500 transition-colors" />}
 
-                            <span className="relative z-10">
-                                {syncStatus === 'syncing' ? 'Sincronizando...' :
-                                    syncStatus === 'success' ? 'Backup Completado' :
-                                        syncStatus === 'error' ? 'Error al Sincronizar' :
-                                            'Sincronizar Datos'}
-                            </span>
-                        </button>
+                                <span className="relative z-10">
+                                    {syncStatus === 'syncing' ? 'Sincronizando...' :
+                                        syncStatus === 'success' ? 'Backup Completado' :
+                                            syncStatus === 'error' ? 'Error al Sincronizar' :
+                                                'Sincronizar Datos'}
+                                </span>
+                            </button>
+                        )}
 
                         <button
                             onClick={handleLogout}
