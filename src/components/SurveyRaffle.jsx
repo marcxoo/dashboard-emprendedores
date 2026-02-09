@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, Trash2, Shuffle, Users, Trophy, RefreshCw, Sparkles, AlertCircle } from 'lucide-react';
+import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
+import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+import Shuffle from 'lucide-react/dist/esm/icons/shuffle';
+import Users from 'lucide-react/dist/esm/icons/users';
+import Trophy from 'lucide-react/dist/esm/icons/trophy';
+import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
+import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
+import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
 import PrizeWheel from './ui/PrizeWheel';
 
 export default function SurveyRaffle() {

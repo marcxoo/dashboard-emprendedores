@@ -28,15 +28,15 @@ export class Database {
 
   async loadData() {
     try {
-      const { data: entrepreneurs, error: empError } = await supabase
-        .from('entrepreneurs')
-        .select('*')
-        .order('id', { ascending: true });
+      const [empRes, assignRes, surveyRes, logsRes] = await Promise.all([
+        supabase.from('entrepreneurs').select('*').order('id', { ascending: true }),
+        supabase.from('assignments').select('*'),
+        supabase.from('custom_surveys').select('*, survey_responses(*)'),
+        supabase.from('invitation_logs').select('*').order('created_at', { ascending: true }).range(0, 4999)
+      ]);
 
-      if (empError) throw empError;
-
-      // Parse 'notas' to extract history or legacy notes
-      this.emprendedores = (entrepreneurs || []).map(e => {
+      if (empRes.error) throw empRes.error;
+      this.emprendedores = (empRes.data || []).map(e => {
         let notes = e.notas || '';
         let history = [];
         let generalNotes = '';
@@ -44,112 +44,62 @@ export class Database {
         let pRuc = '';
         let pCiudad = '';
 
-        // Check if notes is a JSON string containing our structure
-        // Relaxed check: just starts with {
         if (notes.trim().startsWith('{')) {
           try {
             const parsed = JSON.parse(notes);
             history = parsed.history || [];
             generalNotes = parsed.general_notes || '';
-            // New: Extract RUC and CIUDAD from notes if available
             if (parsed.ruc) pRuc = parsed.ruc;
             if (parsed.ciudad) pCiudad = parsed.ciudad;
-
-            // Console log to debug specific case (remove later)
-            if (e.id === '33' || e.name?.includes('Biscutycake')) {
-              console.log('DEBUG LOAD:', e.name, 'Parsed Ciudad:', pCiudad, 'Parsed RUC:', pRuc);
-            }
-
           } catch (err) {
             console.warn('Failed to parse notes JSON:', err);
-            // Fallback if parse fails
             generalNotes = notes;
           }
         } else {
-          // Legacy format
           noContesto = notes.includes('{{NC}}');
           generalNotes = notes.replace('{{NC}}', '').trim();
         }
 
         return {
           ...e,
-          no_contesto: noContesto, // Keep for legacy compatibility if needed
+          no_contesto: noContesto,
           notas: generalNotes,
           followUpHistory: history,
-          ruc: e.ruc || pRuc || '', // Prefer column, fallback to notes
-          ciudad: e.ciudad || pCiudad || '' // Prefer column, fallback to notes
+          ruc: e.ruc || pRuc || '',
+          ciudad: e.ciudad || pCiudad || '',
+          logo_url: e.logo_url || ''
         };
       });
 
-      const { data: assignments, error: assignError } = await supabase
-        .from('assignments')
-        .select('*');
+      if (assignRes.error) throw assignRes.error;
+      this.asignaciones = assignRes.data || [];
 
-      if (assignError) throw assignError;
-      this.asignaciones = assignments || [];
-
-      // Load Custom Surveys from Supabase
-      const { data: surveys, error: surveyError } = await supabase
-        .from('custom_surveys')
-        .select('*, survey_responses(*)');
-
-      if (surveyError) {
-        console.error("Error loading surveys:", surveyError);
+      if (surveyRes.error) {
+        console.error("Error loading surveys:", surveyRes.error);
         this.customSurveys = [];
       } else {
-        this.customSurveys = (surveys || []).map(s => ({
+        this.customSurveys = (surveyRes.data || []).map(s => ({
           ...s,
-          createdAt: s.created_at, // Map DB column to frontend prop
-          limit: s.response_limit, // Map DB column to frontend prop
+          createdAt: s.created_at,
+          limit: s.response_limit,
           eventDate: s.event_date,
           eventTime: s.event_time,
           eventLocation: s.event_location,
-          eventLocation: s.event_location,
-          showUrgencyBanner: s.show_urgency_banner, // Map DB column to frontend prop
-          responses: s.survey_responses || [] // Map relation to frontend prop
+          showUrgencyBanner: s.show_urgency_banner,
+          responses: s.survey_responses || []
         }));
       }
 
-      // Recalculate stats based on confirmed assignments (asistio === true)
-      // This ensures 'veces_en_stand' reflects actual participation, not just scheduling
-      this.emprendedores = this.emprendedores.map(e => {
-        const confirmedAssignments = this.asignaciones.filter(a =>
-          a.id_emprendedor === e.id && a.asistio === true
-        );
+      this.invitationLogs = logsRes.data || [];
+      if (logsRes.error) console.warn("Could not load invitation logs", logsRes.error);
 
-        // Sort to find latest week
-        confirmedAssignments.sort((a, b) => compareWeeks(b.semana, a.semana));
-
-        return {
-          ...e,
-          veces_en_stand: confirmedAssignments.length,
-          ultima_semana_participacion: confirmedAssignments.length > 0 ? confirmedAssignments[0].semana : null
-        };
-      });
-
-
-      // Fetch Invitation Logs
-      const { data: logs, error: logError } = await supabase
-        .from('invitation_logs')
-        .select('*')
-        .order('created_at', { ascending: true })
-        .range(0, 4999);
-
-      this.invitationLogs = logs || [];
-
-      if (logError) {
-        // If table doesn't exist yet, just ignore to avoid breaking the app
-        console.warn("Could not load invitation logs (table might stay missing)", logError);
-      }
-
-      // Merge logs into entrepreneurs
+      // Post-processing
       this.emprendedores = this.emprendedores.map(e => {
         const confirmedAssignments = this.asignaciones.filter(a =>
           a.id_emprendedor === e.id && a.asistio === true
         );
         confirmedAssignments.sort((a, b) => compareWeeks(b.semana, a.semana));
 
-        // Find last invitation
         const myLogs = this.invitationLogs.filter(l => l.entrepreneur_id === e.id);
         const lastLog = myLogs.length > 0 ? myLogs[0] : null;
 
@@ -161,11 +111,10 @@ export class Database {
         };
       });
 
-
-
-      await this.loadEarnings();
-      // Load Fairs Portal Data
-      await this.loadFairsData();
+      await Promise.all([
+        this.loadEarnings(),
+        this.loadFairsData()
+      ]);
 
       this.normalizeCategories();
       return true;
@@ -645,6 +594,7 @@ export class Database {
       subcategoria_interna: data.categoria_principal,
       categoria_principal: data.categoria_principal,
       semaforizacion: data.tipo_emprendedor || 'Externo',
+      logo_url: data.logo_url || '',
 
       veces_en_stand: 0,
       ultima_semana_participacion: null,
@@ -664,7 +614,7 @@ export class Database {
 
     if (error) {
       console.error('Error adding entrepreneur:', error);
-      return null;
+      throw new Error(error.message || 'No se pudo guardar el emprendedor en Supabase');
     }
 
     // Transform back for local state
@@ -678,7 +628,9 @@ export class Database {
     this.emprendedores.push(newEmp);
 
     // Sync to local PostgreSQL (non-blocking)
-    syncEntrepreneurToLocal(inserted).catch(() => { });
+    syncEntrepreneurToLocal(inserted).catch(err => {
+      console.warn('Sync a PostgreSQL local falló:', err);
+    });
 
     return newEmp;
   }
@@ -725,6 +677,7 @@ export class Database {
         red_social: updates.red_social ?? current.red_social,
         subcategoria_interna: updates.categoria_principal ?? current.subcategoria_interna,
         semaforizacion: updates.tipo_emprendedor ?? current.semaforizacion,
+        logo_url: updates.logo_url ?? current.logo_url,
         notas: JSON.stringify(notesObject)
       };
 
@@ -743,10 +696,15 @@ export class Database {
         .update(supabaseUpdates)
         .eq('id', id);
 
-      if (error) console.error('Error updating entrepreneur:', error);
+      if (error) {
+        console.error('Error updating entrepreneur:', error);
+        throw new Error(error.message || 'No se pudo actualizar el emprendedor en Supabase');
+      }
 
       // Sync to local PostgreSQL (non-blocking)
-      syncEntrepreneurToLocal({ id, ...supabaseUpdates }).catch(() => { });
+      syncEntrepreneurToLocal({ id, ...supabaseUpdates }).catch(err => {
+        console.warn('Sync a PostgreSQL local falló:', err);
+      });
 
       return this.emprendedores[index];
     }
@@ -830,47 +788,24 @@ export class Database {
 
   async loadFairsData() {
     try {
-      // Load Fairs
-      const { data: fairs, error: fairsError } = await supabase
-        .from('fairs')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const [fairsRes, fairEntsRes, assignmentsRes, salesRes] = await Promise.all([
+        supabase.from('fairs').select('*').order('created_at', { ascending: false }),
+        supabase.from('fair_entrepreneurs').select('*').order('name', { ascending: true }),
+        supabase.from('fair_assignments').select('*'),
+        supabase.from('fair_sales').select('*')
+      ]);
 
-      if (fairsError && fairsError.code !== '42P01') { // Ignore if table doesn't exist yet
-        console.error('Error loading fairs:', fairsError);
-      }
-      this.fairs = fairs || [];
+      if (fairsRes.error && fairsRes.error.code !== '42P01') console.error('Error loading fairs:', fairsRes.error);
+      this.fairs = fairsRes.data || [];
 
-      // Load Fair Entrepreneurs
-      const { data: fairEnts, error: entError } = await supabase
-        .from('fair_entrepreneurs')
-        .select('*')
-        .order('name', { ascending: true });
+      if (fairEntsRes.error && fairEntsRes.error.code !== '42P01') console.error('Error loading fair entrepreneurs:', fairEntsRes.error);
+      this.fairEntrepreneurs = fairEntsRes.data || [];
 
-      if (entError && entError.code !== '42P01') {
-        console.error('Error loading fair entrepreneurs:', entError);
-      }
-      this.fairEntrepreneurs = fairEnts || [];
+      if (assignmentsRes.error && assignmentsRes.error.code !== '42P01') console.error('Error loading fair assignments:', assignmentsRes.error);
+      this.fairAssignments = assignmentsRes.data || [];
 
-      // Load Assignments
-      const { data: assignments, error: assignError } = await supabase
-        .from('fair_assignments')
-        .select('*');
-
-      if (assignError && assignError.code !== '42P01') {
-        console.error('Error loading fair assignments:', assignError);
-      }
-      this.fairAssignments = assignments || [];
-
-      // Load Fair Sales
-      const { data: sales, error: salesError } = await supabase
-        .from('fair_sales')
-        .select('*');
-
-      if (salesError && salesError.code !== '42P01') {
-        console.error('Error loading fair sales:', salesError);
-      }
-      this.fairSales = sales || [];
+      if (salesRes.error && salesRes.error.code !== '42P01') console.error('Error loading fair sales:', salesRes.error);
+      this.fairSales = salesRes.data || [];
 
     } catch (error) {
       console.error('Error loading fairs data:', error);

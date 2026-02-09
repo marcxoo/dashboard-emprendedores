@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, useAnimation, useMotionValue } from 'framer-motion';
-import { Trophy, Sparkles, Gift } from 'lucide-react';
+import Trophy from 'lucide-react/dist/esm/icons/trophy';
+import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
+import Gift from 'lucide-react/dist/esm/icons/gift';
 
 // Vibrant Casino Palette (Red, Blue, Green, Yellow, Purple, Orange)
 const WHEEL_COLORS = [

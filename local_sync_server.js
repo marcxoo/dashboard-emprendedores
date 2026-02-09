@@ -9,8 +9,16 @@ import express from 'express';
 import cors from 'cors';
 import pg from 'pg';
 import dotenv from 'dotenv';
+import { v2 as cloudinary } from 'cloudinary';
 
 dotenv.config();
+
+// Configurar Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const app = express();
 app.use(cors());
@@ -53,13 +61,15 @@ app.post('/sync/entrepreneur', async (req, res) => {
                 veces_en_stand = $12,
                 ultima_semana_participacion = $13,
                 ruc = $14,
-                notas = $15
+                notas = $15,
+                logo_url = $16
             WHERE id = $1
         `, [
             e.id, e.nombre_emprendimiento, e.persona_contacto, e.telefono,
             e.correo, e.ciudad, e.actividad_economica, e.red_social,
             e.subcategoria_interna, e.categoria_principal, e.semaforizacion,
-            e.veces_en_stand, e.ultima_semana_participacion, e.ruc, e.notas
+            e.veces_en_stand, e.ultima_semana_participacion, e.ruc, e.notas,
+            e.logo_url
         ]);
 
         if (updateResult.rowCount === 0) {
@@ -69,13 +79,14 @@ app.post('/sync/entrepreneur', async (req, res) => {
                     id, nombre_emprendimiento, persona_contacto, telefono,
                     correo, ciudad, actividad_economica, red_social,
                     subcategoria_interna, categoria_principal, semaforizacion,
-                    veces_en_stand, ultima_semana_participacion, ruc, notas
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                    veces_en_stand, ultima_semana_participacion, ruc, notas, logo_url
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
             `, [
                 e.id, e.nombre_emprendimiento, e.persona_contacto, e.telefono,
                 e.correo, e.ciudad, e.actividad_economica, e.red_social,
                 e.subcategoria_interna, e.categoria_principal, e.semaforizacion,
-                e.veces_en_stand || 0, e.ultima_semana_participacion, e.ruc, e.notas
+                e.veces_en_stand || 0, e.ultima_semana_participacion, e.ruc, e.notas,
+                e.logo_url
             ]);
             console.log(`✅ [INSERT] Emprendedor: ${e.persona_contacto}`);
         } else {
@@ -166,13 +177,13 @@ app.post('/sync/full-backup', async (req, res) => {
                         id, created_at, nombre_emprendimiento, persona_contacto, telefono,
                         correo, ciudad, actividad_economica, red_social, subcategoria_interna,
                         categoria_principal, semaforizacion, veces_en_stand, 
-                        ultima_semana_participacion, ruc, notas
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+                        ultima_semana_participacion, ruc, notas, logo_url
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
                 `, [
                     e.id, e.created_at, e.nombre_emprendimiento, e.persona_contacto, e.telefono,
                     e.correo, e.ciudad, e.actividad_economica, e.red_social, e.subcategoria_interna,
                     e.categoria_principal, e.semaforizacion, e.veces_en_stand,
-                    e.ultima_semana_participacion, e.ruc, e.notas
+                    e.ultima_semana_participacion, e.ruc, e.notas, e.logo_url
                 ]);
                 inserted++;
             } catch (err) {
@@ -193,6 +204,23 @@ app.post('/sync/full-backup', async (req, res) => {
         console.error('❌ Error en backup completo:', err.message);
         res.status(500).json({ error: err.message });
     }
+});
+
+// === CLOUDINARY SIGNING ENDPOINT ===
+app.get('/sign-cloudinary', (req, res) => {
+    const timestamp = Math.round((new Date).getTime() / 1000);
+    const signature = cloudinary.utils.api_sign_request({
+        timestamp: timestamp,
+        source: 'uw',
+        folder: 'dashboard_uploads'
+    }, process.env.CLOUDINARY_API_SECRET);
+
+    res.json({
+        signature,
+        timestamp,
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY
+    });
 });
 
 // Health check

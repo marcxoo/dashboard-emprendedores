@@ -5,7 +5,17 @@ import EntrepreneurDetail from './EntrepreneurDetail';
 import { getDateRangeFromWeek, sortWeeksDesc } from '../utils/dateUtils';
 import { useData } from '../context/DataContext';
 import { STANDS } from '../data/Database';
-import { Trash2, Download, CheckCircle, XCircle, Clock, Calendar, AlertTriangle, FileText, X, Sparkles, Link } from 'lucide-react';
+import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+import Download from 'lucide-react/dist/esm/icons/download';
+import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
+import XCircle from 'lucide-react/dist/esm/icons/x-circle';
+import Clock from 'lucide-react/dist/esm/icons/clock';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
+import FileText from 'lucide-react/dist/esm/icons/file-text';
+import X from 'lucide-react/dist/esm/icons/x';
+import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
+import Link from 'lucide-react/dist/esm/icons/link';
 
 // Modal Component for Attendance Observations
 const AttendanceModal = ({ isOpen, onClose, onConfirm, entrepreneurName }) => {

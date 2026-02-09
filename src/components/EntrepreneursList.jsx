@@ -2,8 +2,42 @@ import { useState, useMemo, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import EntrepreneurDetail from './EntrepreneurDetail';
 import { getDateRangeFromWeek } from '../utils/dateUtils';
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, Phone, Mail, User, Users, Edit, Sparkles, X, Building2, Tag, ChevronDown, FileText, Save, Plus, MessageCircle, Clock, Calendar, CheckCircle, XCircle, List, History, Trash2, Store, Eye, Globe, Instagram, Facebook, Video, GraduationCap } from 'lucide-react';
+import ArrowUpDown from 'lucide-react/dist/esm/icons/arrow-up-down';
+import ArrowUp from 'lucide-react/dist/esm/icons/arrow-up';
+import ArrowDown from 'lucide-react/dist/esm/icons/arrow-down';
+import Search from 'lucide-react/dist/esm/icons/search';
+import Phone from 'lucide-react/dist/esm/icons/phone';
+import Mail from 'lucide-react/dist/esm/icons/mail';
+import User from 'lucide-react/dist/esm/icons/user';
+import Users from 'lucide-react/dist/esm/icons/users';
+import Edit from 'lucide-react/dist/esm/icons/pencil';
+import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
+import X from 'lucide-react/dist/esm/icons/x';
+import Building2 from 'lucide-react/dist/esm/icons/building-2';
+import Tag from 'lucide-react/dist/esm/icons/tag';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
+import FileText from 'lucide-react/dist/esm/icons/file-text';
+import Save from 'lucide-react/dist/esm/icons/save';
+import Plus from 'lucide-react/dist/esm/icons/plus';
+import MessageCircle from 'lucide-react/dist/esm/icons/message-circle';
+import Clock from 'lucide-react/dist/esm/icons/clock';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
+import XCircle from 'lucide-react/dist/esm/icons/x-circle';
+import List from 'lucide-react/dist/esm/icons/list';
+import History from 'lucide-react/dist/esm/icons/history';
+import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+import Store from 'lucide-react/dist/esm/icons/store';
+import Eye from 'lucide-react/dist/esm/icons/eye';
+import Globe from 'lucide-react/dist/esm/icons/globe';
+import Instagram from 'lucide-react/dist/esm/icons/instagram';
+import Facebook from 'lucide-react/dist/esm/icons/facebook';
+import Video from 'lucide-react/dist/esm/icons/video';
+import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
+import Upload from 'lucide-react/dist/esm/icons/upload';
+import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import { createPortal } from 'react-dom';
+import { uploadImage } from '../lib/cloudinary';
 
 const MobileEntrepreneurCard = ({
     e,
@@ -23,8 +57,12 @@ const MobileEntrepreneurCard = ({
         >
             <div className="flex justify-between items-start">
                 <div className="flex gap-4 min-w-0">
-                    <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-xl shrink-0 mt-0.5 border border-slate-100 dark:border-slate-600">
-                        {e.nombre_emprendimiento.charAt(0).toUpperCase()}
+                    <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-xl shrink-0 mt-0.5 border border-slate-100 dark:border-slate-600 overflow-hidden">
+                        {e.logo_url ? (
+                            <img src={e.logo_url} alt={e.nombre_emprendimiento} className="w-full h-full object-cover" />
+                        ) : (
+                            e.nombre_emprendimiento.charAt(0).toUpperCase()
+                        )}
                     </div>
                     <div className="min-w-0 flex flex-col">
                         <h3 className="font-bold text-slate-800 dark:text-white text-lg leading-snug break-words">{e.nombre_emprendimiento}</h3>
@@ -39,7 +77,7 @@ const MobileEntrepreneurCard = ({
             </div>
 
             {/* Activity Snippet - Expandable */}
-            {e.actividad_economica && (
+            {e.actividad_economica ? (
                 <div
                     onClick={(ev) => {
                         ev.stopPropagation();
@@ -50,14 +88,13 @@ const MobileEntrepreneurCard = ({
                     <p className={expanded ? '' : 'line-clamp-3'}>
                         {e.actividad_economica}
                     </p>
-                    {!expanded && e.actividad_economica.length > 80 && (
+                    {(!expanded && e.actividad_economica.length > 80) ? (
                         <div className="text-primary-600 dark:text-primary-400 font-bold text-sm mt-2 flex items-center gap-1">
                             Ver más <span className="text-xs">↓</span>
                         </div>
-                    )}
+                    ) : null}
                 </div>
-            )
-            }
+            ) : null}
 
             <div className="grid grid-cols-2 gap-3.5" onClick={ev => ev.stopPropagation()}>
                 <button
@@ -581,8 +618,12 @@ Atentamente,`;
                         {/* Col 1: Identity */}
                         <div className="w-[35%] pr-4">
                             <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-sm shrink-0 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors mt-1">
-                                    {e.nombre_emprendimiento.charAt(0).toUpperCase()}
+                                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-sm shrink-0 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors mt-1 overflow-hidden">
+                                    {e.logo_url ? (
+                                        <img src={e.logo_url} alt={e.nombre_emprendimiento} className="w-full h-full object-cover" />
+                                    ) : (
+                                        e.nombre_emprendimiento.charAt(0).toUpperCase()
+                                    )}
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <h3 className="font-bold text-slate-800 dark:text-white text-base active:text-primary-700 leading-tight">{e.nombre_emprendimiento}</h3>
@@ -715,9 +756,9 @@ Atentamente,`;
                 onClose={() => setIsModalOpen(false)}
                 onSave={(data) => {
                     if (editingEntrepreneur) {
-                        updateEntrepreneur(editingEntrepreneur.id, data);
+                        return updateEntrepreneur(editingEntrepreneur.id, data);
                     } else {
-                        addEntrepreneur(data);
+                        return addEntrepreneur(data);
                     }
                 }}
                 categories={categories}
@@ -760,6 +801,7 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
         no_contesto: false
     });
     const [isCustomCategory, setIsCustomCategory] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
 
     const [socialOverride, setSocialOverride] = useState('instagram');
 
@@ -778,7 +820,8 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
                     tipo_emprendedor: initialData.semaforizacion || 'Externo',
                     notas: initialData.notas || '',
                     no_contesto: initialData.no_contesto || false,
-                    ruc: initialData.ruc || ''
+                    ruc: initialData.ruc || '',
+                    logo_url: initialData.logo_url || ''
                 });
                 setIsCustomCategory(!categories.includes(initialData.categoria_principal) && initialData.categoria_principal !== '');
             } else {
@@ -793,7 +836,8 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
                     ciudad: '',
                     red_social: '',
                     ruc: '',
-                    no_contesto: false
+                    no_contesto: false,
+                    logo_url: ''
                 });
                 setIsCustomCategory(false);
             }
@@ -808,7 +852,23 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e) => {
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const url = await uploadImage(file);
+            setFormData(prev => ({ ...prev, logo_url: url }));
+        } catch (error) {
+            console.error(error);
+            alert('Error al subir la imagen');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!formData.nombre_emprendimiento || !formData.persona_contacto || !formData.categoria_principal) {
@@ -817,11 +877,13 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
         }
 
         try {
-            onSave(formData);
+            console.log('Solicitud de guardado iniciada:', formData);
+            await onSave(formData);
+            console.log('Guardado completado exitosamente');
             alert(initialData ? 'Emprendedor actualizado exitosamente' : 'Emprendedor guardado exitosamente');
             onClose();
         } catch (error) {
-            console.error(error);
+            console.error('Error capturado en handleSubmit:', error);
             alert('Error al guardar: ' + error.message);
         }
     };
@@ -859,6 +921,44 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
                 <div className="flex-1 overflow-y-auto p-8 bg-slate-50/30 dark:bg-slate-800/50">
                     <form id="entrepreneur-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="col-span-1 md:col-span-2 flex flex-col items-center">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-3">
+                                    Logo del Emprendimiento
+                                </label>
+                                <div className="relative group">
+                                    <div
+                                        className={`w-32 h-32 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary-500 transition-colors bg-slate-50 dark:bg-slate-700/50 ${formData.logo_url ? 'border-none' : ''}`}
+                                        onClick={() => document.getElementById('logo-upload').click()}
+                                    >
+                                        {isUploading ? (
+                                            <Loader2 className="animate-spin text-primary-500" size={32} />
+                                        ) : formData.logo_url ? (
+                                            <img src={formData.logo_url} alt="Logo" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="flex flex-col items-center gap-2 text-slate-400">
+                                                <Upload size={24} />
+                                                <span className="text-xs font-bold">Subir Logo</span>
+                                            </div>
+                                        )}
+
+                                        {/* Overlay for edit */}
+                                        {formData.logo_url && !isUploading && (
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Edit className="text-white" size={24} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <input
+                                        id="logo-upload"
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleImageUpload}
+                                        disabled={isUploading}
+                                    />
+                                </div>
+                            </div>
+
                             <div className="col-span-1 md:col-span-2">
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
                                     Nombre del Emprendimiento <span className="text-red-500">*</span>

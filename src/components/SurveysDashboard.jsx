@@ -1,7 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../context/DataContext';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { MessageSquare, TrendingUp, DollarSign, Star, Calendar, Filter } from 'lucide-react';
+import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
+import DollarSign from 'lucide-react/dist/esm/icons/dollar-sign';
+import Star from 'lucide-react/dist/esm/icons/star';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import Filter from 'lucide-react/dist/esm/icons/filter';
 import { getDateRangeFromWeek } from '../utils/dateUtils';
 
 export default function SurveysDashboard() {

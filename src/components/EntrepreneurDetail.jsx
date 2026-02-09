@@ -1,6 +1,19 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, User, Phone, Trash2, Edit, Building2, Instagram, Facebook, Globe, Link as LinkIcon, Mail, Calendar, MapPin, MessageCircle } from 'lucide-react';
+import X from 'lucide-react/dist/esm/icons/x';
+import User from 'lucide-react/dist/esm/icons/user';
+import Phone from 'lucide-react/dist/esm/icons/phone';
+import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+import Edit from 'lucide-react/dist/esm/icons/pencil';
+import Building2 from 'lucide-react/dist/esm/icons/building-2';
+import Instagram from 'lucide-react/dist/esm/icons/instagram';
+import Facebook from 'lucide-react/dist/esm/icons/facebook';
+import Globe from 'lucide-react/dist/esm/icons/globe';
+import LinkIcon from 'lucide-react/dist/esm/icons/link';
+import Mail from 'lucide-react/dist/esm/icons/mail';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import MessageCircle from 'lucide-react/dist/esm/icons/message-circle';
 
 // Helper to parse social media
 const getSocialMediaInfo = (input) => {
@@ -71,7 +84,14 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
         setTimeout(onClose, 300); // Wait for animation
     };
 
-    const handleDelete = () => {
+    const handleDelete = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        console.log('handleDelete triggered');
+
         if (window.confirm(`¿Estás seguro de que deseas eliminar a ${entrepreneur.nombre_emprendimiento}? Esta acción no se puede deshacer.`)) {
             if (onDelete) onDelete(entrepreneur.id);
             handleClose();
@@ -101,6 +121,7 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
             {/* Slide-over Panel */}
             <div
                 className={`relative w-full max-w-lg backdrop-blur-3xl bg-slate-50/90 dark:bg-slate-900/95 h-full shadow-2xl border-l border-white/40 dark:border-slate-700/50 transform transition-transform duration-300 ease-out pointer-events-auto flex flex-col ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}
+                onClick={(e) => e.stopPropagation()}
             >
                 {/* Header (Premium Gradient) */}
                 <div className="relative bg-gradient-to-br from-primary-600 to-primary-700 dark:from-slate-800 dark:to-slate-900 text-white shrink-0 shadow-lg z-20 overflow-hidden">
@@ -118,10 +139,14 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
 
                     <div className="p-8 pb-10 relative z-10">
                         <div className="flex items-center gap-5">
-                            <div className="w-16 h-16 rounded-2xl bg-white/20 dark:bg-primary-600/20 backdrop-blur-md border border-white/30 dark:border-primary-500/30 flex items-center justify-center shadow-inner text-white dark:text-primary-500">
-                                <span className="text-3xl font-bold tracking-tight">
-                                    {entrepreneur.nombre_emprendimiento.charAt(0).toUpperCase()}
-                                </span>
+                            <div className="w-16 h-16 rounded-2xl bg-white/20 dark:bg-primary-600/20 backdrop-blur-md border border-white/30 dark:border-primary-500/30 flex items-center justify-center shadow-inner text-white dark:text-primary-500 overflow-hidden">
+                                {entrepreneur.logo_url ? (
+                                    <img src={entrepreneur.logo_url} alt={entrepreneur.nombre_emprendimiento} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-3xl font-bold tracking-tight">
+                                        {entrepreneur.nombre_emprendimiento.charAt(0).toUpperCase()}
+                                    </span>
+                                )}
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-white tracking-tight leading-tight">{entrepreneur.nombre_emprendimiento}</h2>
@@ -287,6 +312,7 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                     </button>
                     {onDelete && (
                         <button
+                            type="button"
                             className="w-full py-3.5 rounded-xl bg-white dark:bg-slate-800 text-red-600 dark:text-red-400 font-bold border border-slate-200 dark:border-slate-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800 hover:text-red-700 dark:hover:text-red-300 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm"
                             onClick={handleDelete}
                         >

@@ -1,12 +1,45 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Share2, LayoutDashboard, Calendar, Users, Briefcase, Plus, ArrowLeft, Search, MapPin, Trash2, Edit, X, Check, Filter, ChevronRight, Store, Phone, Mail, Database, DollarSign, TrendingUp, Download, ArrowUpDown, ArrowUp, ArrowDown, UserPlus, Building2, Tag, FileText, List, Instagram, Facebook, Globe, FileSpreadsheet } from 'lucide-react';
+import Share2 from 'lucide-react/dist/esm/icons/share-2';
+import LayoutDashboard from 'lucide-react/dist/esm/icons/layout-dashboard';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import Users from 'lucide-react/dist/esm/icons/users';
+import Briefcase from 'lucide-react/dist/esm/icons/briefcase';
+import Plus from 'lucide-react/dist/esm/icons/plus';
+import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
+import Search from 'lucide-react/dist/esm/icons/search';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+import Edit from 'lucide-react/dist/esm/icons/pencil';
+import X from 'lucide-react/dist/esm/icons/x';
+import Check from 'lucide-react/dist/esm/icons/check';
+import Filter from 'lucide-react/dist/esm/icons/filter';
+import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
+import Store from 'lucide-react/dist/esm/icons/store';
+import Phone from 'lucide-react/dist/esm/icons/phone';
+import Mail from 'lucide-react/dist/esm/icons/mail';
+import Database from 'lucide-react/dist/esm/icons/database';
+import DollarSign from 'lucide-react/dist/esm/icons/dollar-sign';
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
+import Download from 'lucide-react/dist/esm/icons/download';
+import ArrowUpDown from 'lucide-react/dist/esm/icons/arrow-up-down';
+import ArrowUp from 'lucide-react/dist/esm/icons/arrow-up';
+import ArrowDown from 'lucide-react/dist/esm/icons/arrow-down';
+import UserPlus from 'lucide-react/dist/esm/icons/user-plus';
+import Building2 from 'lucide-react/dist/esm/icons/building-2';
+import Tag from 'lucide-react/dist/esm/icons/tag';
+import FileText from 'lucide-react/dist/esm/icons/file-text';
+import List from 'lucide-react/dist/esm/icons/list';
+import Instagram from 'lucide-react/dist/esm/icons/instagram';
+import Facebook from 'lucide-react/dist/esm/icons/facebook';
+import Globe from 'lucide-react/dist/esm/icons/globe';
+import FileSpreadsheet from 'lucide-react/dist/esm/icons/file-spreadsheet';
 import { useData } from '../context/DataContext';
 import { EntrepreneurModal } from './EntrepreneursList';
 import { ShineBorder } from './ui/ShineBorder';
 import { CategoryDetailsModal } from './CategoryDetailsModal';
-import * as XLSX from 'xlsx';
+// XLSX is lazy-loaded when needed for exports
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, AreaChart, Area } from 'recharts';
 
 export default function FairsDashboard() {
@@ -269,9 +302,9 @@ function FairDetails({ fair, onBack }) {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
-                {activeTab === 'analytics' && <FairAnalytics fair={fair} />}
-                {activeTab === 'participants' && <FairParticipants fairId={fair.id} />}
-                {activeTab === 'sales' && <FairSalesTracker fairId={fair.id} />}
+                {activeTab === 'analytics' ? <FairAnalytics fair={fair} /> : null}
+                {activeTab === 'participants' ? <FairParticipants fairId={fair.id} /> : null}
+                {activeTab === 'sales' ? <FairSalesTracker fairId={fair.id} /> : null}
             </div>
         </div>
     )
@@ -497,7 +530,9 @@ function FairAnalytics({ fair }) {
     }, [currentSales, fairEntrepreneurs, totalRevenue, entrepreneurs]);
 
     // Handle Export for Report
-    const handleDownloadReport = () => {
+    const handleDownloadReport = async () => {
+        // Lazy-load XLSX only when needed
+        const XLSX = await import('xlsx');
         // Create workbook
         const wb = XLSX.utils.book_new();
 
@@ -1312,11 +1347,22 @@ function FairParticipants({ fairId }) {
                             {/* Card Content - Clickable Region */}
                             <div className="flex items-start justify-between cursor-pointer" onClick={() => setSelectedParticipant(participantWithDetails)}>
                                 <div className="flex items-start gap-3">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-base shadow-sm transition-colors shrink-0 ${isConfirmed
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-base shadow-sm transition-colors shrink-0 overflow-hidden ${isConfirmed
                                         ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
                                         : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 group-hover:bg-primary-50 dark:group-hover:bg-primary-500/20 group-hover:text-primary-600 dark:group-hover:text-primary-400'
                                         }`}>
-                                        {isConfirmed ? <Check size={18} strokeWidth={3} /> : (e.business_name?.charAt(0) || e.name.charAt(0))}
+                                        {(() => {
+                                            const mainEnt = entrepreneurs?.find(ent =>
+                                                (ent.nombre_emprendimiento && ent.nombre_emprendimiento === e.business_name) ||
+                                                (ent.persona_contacto && ent.persona_contacto === e.name)
+                                            );
+                                            const logoUrl = e.logo_url || mainEnt?.logo_url;
+
+                                            if (logoUrl) {
+                                                return <img src={logoUrl} alt={e.business_name || e.name} className="w-full h-full object-cover" />;
+                                            }
+                                            return isConfirmed ? <Check size={18} strokeWidth={3} /> : (e.business_name?.charAt(0) || e.name.charAt(0));
+                                        })()}
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="font-bold text-slate-800 dark:text-slate-100 truncate pr-6 text-base group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
@@ -1559,7 +1605,9 @@ function FairSalesTracker({ fairId }) {
     };
 
     // Excel Export Function
-    const handleExportExcel = () => {
+    const handleExportExcel = async () => {
+        // Lazy-load XLSX only when needed
+        const XLSX = await import('xlsx');
         // Prepare data for export with formatted currency
         const exportData = filteredAndSortedParticipants.map(p => ({
             'Emprendedor': p.displayName || '',
@@ -1881,7 +1929,7 @@ function FairSalesTracker({ fairId }) {
                             return (
                                 <div key={participant.id} className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-4 relative overflow-hidden transition-all active:scale-[0.99] duration-200">
                                     {/* Status Strip if active sale */}
-                                    {participant.hasDaySale && <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>}
+                                    {participant.hasDaySale ? <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div> : null}
 
                                     <div className="flex justify-between items-start gap-3">
                                         <div className="min-w-0 flex-1">
@@ -2334,39 +2382,48 @@ function ImportModal({ onClose, onImport, existingParticipants }) {
                                         {/* Checkbox */}
                                         <div className={`w-6 h-6 rounded-lg border-2 flex-shrink-0 flex items-center justify-center transition-all ${isSelected ? 'bg-primary-500 border-primary-500 text-white' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-transparent'
                                             }`}>
-                                            {isSelected && <Check size={14} strokeWidth={4} />}
+                                            {isSelected ? <Check size={14} strokeWidth={4} /> : null}
                                         </div>
 
                                         {/* Content */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-3 mb-1">
-                                                <span className={`font-bold truncate text-base ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200'}`}>
-                                                    {e.nombre_emprendimiento || e.name || 'Sin Nombre'}
-                                                </span>
-                                                {hasRuc && (
-                                                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 text-[10px] font-extrabold uppercase tracking-wide">
-                                                        RUC
+                                        <div className="flex items-center gap-4 mb-1">
+                                            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-500 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
+                                                {e.logo_url ? (
+                                                    <img src={e.logo_url} alt={e.nombre_emprendimiento} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    (e.nombre_emprendimiento || e.name || '?').charAt(0).toUpperCase()
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col min-w-0">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`font-bold truncate text-base ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200'}`}>
+                                                        {e.nombre_emprendimiento || e.name || 'Sin Nombre'}
                                                     </span>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-x-4 gap-y-1 text-xs text-slate-500 flex-wrap">
-                                                <span className="flex items-center gap-1.5"><Users size={12} className="text-primary-500" /> {e.persona_contacto || e.name}</span>
-                                                {e.categoria_principal && (
-                                                    <>
-                                                        <span className="w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full"></span>
-                                                        <span className="text-slate-400 uppercase tracking-wider font-medium">{e.categoria_principal}</span>
-                                                    </>
-                                                )}
-                                            </div>
-
-                                            {/* Expanded Content */}
-                                            {expandedIds.has(e.id) && (
-                                                <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700/50 text-sm text-slate-600 dark:text-slate-300 animate-fade-in block">
-                                                    <p className="font-bold text-primary-500 dark:text-primary-400 text-xs uppercase tracking-wider mb-1">Descripción / Actividad</p>
-                                                    {e.actividad_economica || 'Sin descripción disponible.'}
+                                                    {hasRuc && (
+                                                        <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 text-[10px] font-extrabold uppercase tracking-wide">
+                                                            RUC
+                                                        </span>
+                                                    )}
                                                 </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-x-4 gap-y-1 text-xs text-slate-500 flex-wrap">
+                                            <span className="flex items-center gap-1.5"><Users size={12} className="text-primary-500" /> {e.persona_contacto || e.name}</span>
+                                            {e.categoria_principal && (
+                                                <>
+                                                    <span className="w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full"></span>
+                                                    <span className="text-slate-400 uppercase tracking-wider font-medium">{e.categoria_principal}</span>
+                                                </>
                                             )}
                                         </div>
+
+                                        {/* Expanded Content */}
+                                        {expandedIds.has(e.id) && (
+                                            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700/50 text-sm text-slate-600 dark:text-slate-300 animate-fade-in block">
+                                                <p className="font-bold text-primary-500 dark:text-primary-400 text-xs uppercase tracking-wider mb-1">Descripción / Actividad</p>
+                                                {e.actividad_economica || 'Sin descripción disponible.'}
+                                            </div>
+                                        )}
 
                                         {/* Info Button */}
                                         <button
@@ -2406,7 +2463,7 @@ function ImportModal({ onClose, onImport, existingParticipants }) {
                     </div>
                 </div>
             </div>
-        </div>,
+        </div >,
         document.body
     );
 }
@@ -2508,8 +2565,14 @@ function ParticipantDetailsModal({ participant: initialParticipant, onClose, fai
                 <div className="p-5 sm:p-8 pb-0 pt-12 sm:pt-12 flex-1 overflow-y-auto">
                     {/* Centered Big Avatar - Smaller on mobile */}
                     <div className="flex flex-col items-center text-center">
-                        <div className="w-20 sm:w-32 h-20 sm:h-32 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 dark:border-slate-700 flex items-center justify-center text-3xl sm:text-5xl font-bold text-slate-300 dark:text-slate-600 mb-4 sm:mb-6">
-                            {participant.business_name?.charAt(0) || participant.name.charAt(0)}
+                        <div className="w-20 sm:w-32 h-20 sm:h-32 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 dark:border-slate-700 flex items-center justify-center text-3xl sm:text-5xl font-bold text-slate-300 dark:text-slate-600 mb-4 sm:mb-6 overflow-hidden">
+                            {(() => {
+                                const logoUrl = participant.logo_url || mainEntrepreneur?.logo_url;
+                                if (logoUrl) {
+                                    return <img src={logoUrl} alt={participant.business_name || participant.name} className="w-full h-full object-cover" />;
+                                }
+                                return participant.business_name?.charAt(0) || participant.name.charAt(0);
+                            })()}
                         </div>
 
                         <h2 className="text-xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-tight mb-1.5 sm:mb-2 px-2">

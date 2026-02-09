@@ -1,5 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, LogOut, Calendar, Home, CheckCircle, Filter, ChevronDown, CalendarDays, ArrowLeft, Plus, Pencil, Trash2, Save, Search, Clock, MapPin } from 'lucide-react';
+import Menu from 'lucide-react/dist/esm/icons/menu';
+import X from 'lucide-react/dist/esm/icons/x';
+import LogOut from 'lucide-react/dist/esm/icons/log-out';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import Home from 'lucide-react/dist/esm/icons/home';
+import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
+import Filter from 'lucide-react/dist/esm/icons/filter';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
+import CalendarDays from 'lucide-react/dist/esm/icons/calendar-days';
+import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
+import Plus from 'lucide-react/dist/esm/icons/plus';
+import Pencil from 'lucide-react/dist/esm/icons/pencil';
+import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+import Save from 'lucide-react/dist/esm/icons/save';
+import Search from 'lucide-react/dist/esm/icons/search';
+import Clock from 'lucide-react/dist/esm/icons/clock';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { responsibleOptions } from '../data/eventsData';
@@ -322,7 +338,13 @@ function EventDashboard() {
         }
     }, [formData.date]);
 
-    const [selectedMonth, setSelectedMonth] = useState('Todos');
+    // Get current month name in Spanish
+    const getCurrentMonthName = () => {
+        const monthNames = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+        return monthNames[new Date().getMonth()];
+    };
+
+    const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthName());
     const months = ['Todos', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
 
     const filteredEvents = events.filter(ev => {

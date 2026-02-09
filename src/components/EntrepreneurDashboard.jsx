@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { LayoutDashboard, Users, History, LogOut, Menu, X, Shield, DollarSign, MessageSquare } from 'lucide-react';
+import LayoutDashboard from 'lucide-react/dist/esm/icons/layout-dashboard';
+import Users from 'lucide-react/dist/esm/icons/users';
+import History from 'lucide-react/dist/esm/icons/history';
+import LogOut from 'lucide-react/dist/esm/icons/log-out';
+import Menu from 'lucide-react/dist/esm/icons/menu';
+import X from 'lucide-react/dist/esm/icons/x';
+import Shield from 'lucide-react/dist/esm/icons/shield';
+import DollarSign from 'lucide-react/dist/esm/icons/dollar-sign';
+import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 

@@ -1,6 +1,11 @@
 import { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
-import { Plus, Trash2, Search, DollarSign, Calendar, Filter } from 'lucide-react';
+import Plus from 'lucide-react/dist/esm/icons/plus';
+import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+import Search from 'lucide-react/dist/esm/icons/search';
+import DollarSign from 'lucide-react/dist/esm/icons/dollar-sign';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import Filter from 'lucide-react/dist/esm/icons/filter';
 import { sortWeeksDesc } from '../utils/dateUtils';
 
 export default function Statistics() {

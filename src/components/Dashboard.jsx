@@ -2,7 +2,18 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useData } from '../context/DataContext';
 import { STANDS } from '../data/Database';
-import { Trash2, Users, Calendar, Edit, Sun, Sunset, Search, X, Check, Loader2, CalendarDays, DollarSign } from 'lucide-react';
+import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+import Users from 'lucide-react/dist/esm/icons/users';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import Edit from 'lucide-react/dist/esm/icons/edit';
+import Sun from 'lucide-react/dist/esm/icons/sun';
+import Sunset from 'lucide-react/dist/esm/icons/sunset';
+import Search from 'lucide-react/dist/esm/icons/search';
+import X from 'lucide-react/dist/esm/icons/x';
+import Check from 'lucide-react/dist/esm/icons/check';
+import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
+import CalendarDays from 'lucide-react/dist/esm/icons/calendar-days';
+import DollarSign from 'lucide-react/dist/esm/icons/dollar-sign';
 
 export default function Dashboard() {
     const {

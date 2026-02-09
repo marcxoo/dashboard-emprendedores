@@ -1,6 +1,10 @@
 import React, { useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Tag, User, DollarSign, TrendingUp } from 'lucide-react';
+import X from 'lucide-react/dist/esm/icons/x';
+import Tag from 'lucide-react/dist/esm/icons/tag';
+import User from 'lucide-react/dist/esm/icons/user';
+import DollarSign from 'lucide-react/dist/esm/icons/dollar-sign';
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
 
 export function CategoryDetailsModal({ category, onClose, fairEntrepreneurs, sales, color }) {
     // 1. Filter Entrepreneurs in this Category

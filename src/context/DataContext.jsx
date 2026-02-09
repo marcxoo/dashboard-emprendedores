@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
 import { Database } from '../data/Database';
 import { csvContent } from '../data/csvData';
 import { generarAsignacionParaSemana } from '../data/AssignmentLogic';
@@ -139,9 +139,14 @@ export function DataProvider({ children }) {
     };
 
     const addEntrepreneur = async (data) => {
-        const newEmp = await db.addEntrepreneur(data);
-        await refreshData();
-        return newEmp;
+        try {
+            const newEmp = await db.addEntrepreneur(data);
+            await refreshData();
+            return newEmp;
+        } catch (error) {
+            console.error('DataContext addEntrepreneur error:', error);
+            throw error;
+        }
     };
 
     const updateEntrepreneur = async (id, data) => {
@@ -203,7 +208,7 @@ export function DataProvider({ children }) {
         return customSurveys.find(s => s.id === id);
     };
 
-    const value = {
+    const value = useMemo(() => ({
         db,
         isLoaded,
         entrepreneurs,
@@ -257,7 +262,7 @@ export function DataProvider({ children }) {
             if (result.success) await refreshData();
             return result;
         },
-        invitationLogs, // Exposed from state
+        invitationLogs,
 
         // Fairs Portal
         fairs,
@@ -300,25 +305,23 @@ export function DataProvider({ children }) {
             return res;
         },
         removeEntrepreneurFromFair: async (fairId, entId) => {
-            // Optimistic update - remove from UI immediately
+            // Optimistic update
             setFairAssignments(prev => prev.filter(a =>
                 !(a.fair_id === fairId && a.entrepreneur_id === entId)
             ));
 
             try {
                 const res = await db.removeEntrepreneurFromFair(fairId, entId);
-                if (res) {
-                    refreshData(); // Sync in background
-                }
+                if (res) refreshData();
                 return res;
             } catch (error) {
                 console.error("Error removing entrepreneur:", error);
-                refreshData(); // Revert to true state
+                refreshData();
                 return null;
             }
         },
         updateFairAssignmentStatus: async (fairId, entId, status) => {
-            // Optimistic update to make UI responsive immediately
+            // Optimistic update
             setFairAssignments(prev => prev.map(a =>
                 (a.fair_id === fairId && a.entrepreneur_id === entId)
                     ? { ...a, status }
@@ -327,15 +330,10 @@ export function DataProvider({ children }) {
 
             try {
                 const res = await db.updateFairAssignmentStatus(fairId, entId, status);
-                // Refresh in background to ensure consistency, don't await to block return if not needed
-                // But for safety we usually want to ensure data is synced.
-                if (res) {
-                    refreshData();
-                }
+                if (res) refreshData();
                 return res;
             } catch (error) {
                 console.error("Error updating status:", error);
-                // Revert or just refresh to get true state
                 refreshData();
                 return null;
             }
@@ -357,7 +355,10 @@ export function DataProvider({ children }) {
             if (res) await refreshData();
             return res;
         }
-    };
+    }), [
+        db, isLoaded, entrepreneurs, assignments, earnings, currentWeek, selectedDate, currentBlock,
+        customSurveys, invitationLogs, fairs, fairEntrepreneurs, fairAssignments, fairSales
+    ]);
 
     return (
         <DataContext.Provider value={value}>

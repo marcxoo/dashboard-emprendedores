@@ -1,16 +1,27 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, AlertCircle, Calendar, Clock, MapPin, ArrowRight, Trophy, Sparkles, Info } from 'lucide-react';
+import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
+import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import Clock from 'lucide-react/dist/esm/icons/clock';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
+import Trophy from 'lucide-react/dist/esm/icons/trophy';
+import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
+import Info from 'lucide-react/dist/esm/icons/info';
 import PrizeWheel from './ui/PrizeWheel';
 
 function PublicSurveyView() {
     const { id } = useParams();
+    const location = useLocation();
     const [survey, setSurvey] = useState(null);
     const [loading, setLoading] = useState(true);
     const [submitted, setSubmitted] = useState(false);
     const [isFull, setIsFull] = useState(false);
     const [formValues, setFormValues] = useState({});
+    const [entrepreneurLogo, setEntrepreneurLogo] = useState(null);
+    const [businessName, setBusinessName] = useState(null);
 
     // Prize Wheel State
     const [showWheel, setShowWheel] = useState(false);
@@ -19,7 +30,11 @@ function PublicSurveyView() {
     useEffect(() => {
         const fetchSurvey = async () => {
             try {
-                // Fetch survey and its responses count (we don't need all response content, but for now fetching all is easier/ok for small scale)
+                // Get empId from query params
+                const params = new URLSearchParams(location.search);
+                const empId = params.get('empId');
+
+                // Fetch survey and its responses count
                 const { data, error } = await supabase
                     .from('custom_surveys')
                     .select('*, survey_responses(*)')
@@ -31,17 +46,31 @@ function PublicSurveyView() {
                 if (data) {
                     const formattedSurvey = {
                         ...data,
-                        limit: data.response_limit, // Map DB column to frontend prop
-                        note: data.note, // Map DB column
+                        limit: data.response_limit,
+                        note: data.note,
                         eventDate: data.event_date,
                         eventTime: data.event_time,
                         eventLocation: data.event_location,
-                        responses: data.survey_responses || [] // Map relation
+                        responses: data.survey_responses || []
                     };
                     setSurvey(formattedSurvey);
 
                     if (formattedSurvey.limit && formattedSurvey.limit > 0 && formattedSurvey.responses.length >= formattedSurvey.limit) {
                         setIsFull(true);
+                    }
+                }
+
+                // Fetch entrepreneur logo if empId is present
+                if (empId) {
+                    const { data: empData, error: empError } = await supabase
+                        .from('entrepreneurs')
+                        .select('logo_url, nombre_emprendimiento')
+                        .eq('id', empId)
+                        .single();
+
+                    if (!empError && empData) {
+                        setEntrepreneurLogo(empData.logo_url);
+                        setBusinessName(empData.nombre_emprendimiento);
                     }
                 }
             } catch (error) {
@@ -52,7 +81,7 @@ function PublicSurveyView() {
         };
 
         fetchSurvey();
-    }, [id]);
+    }, [id, location.search]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -287,6 +316,27 @@ function PublicSurveyView() {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary-50/50 rounded-bl-full -mr-16 -mt-16 pointer-events-none opacity-60"></div>
 
                     <div className="relative z-10">
+                        {/* Entrepreneur Logo Integration */}
+                        {entrepreneurLogo && (
+                            <div className="flex flex-col items-center mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
+                                <div className="relative group">
+                                    <div className="absolute inset-0 bg-primary-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                    <div className="relative w-24 h-24 md:w-28 md:h-28 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-white/5 p-2 flex items-center justify-center overflow-hidden">
+                                        <img
+                                            src={entrepreneurLogo}
+                                            alt={businessName || "Emprendimiento"}
+                                            className="w-full h-full object-contain"
+                                        />
+                                    </div>
+                                </div>
+                                {businessName && (
+                                    <p className="mt-3 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                                        Presentado por <span className="text-primary-600 dark:text-primary-400">{businessName}</span>
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
                         {/* Sponsor Logos */}
                         <div className="flex flex-col items-center gap-4 mb-6 md:mb-8 py-5 px-6 bg-slate-50/80 rounded-2xl border border-slate-100">
                             <img

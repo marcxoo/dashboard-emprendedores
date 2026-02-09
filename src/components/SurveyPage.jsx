@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '../context/DataContext';
-import { CheckCircle, AlertCircle, Send, Star, TrendingUp, DollarSign } from 'lucide-react';
+import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
+import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
+import Send from 'lucide-react/dist/esm/icons/send';
+import Star from 'lucide-react/dist/esm/icons/star';
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
+import DollarSign from 'lucide-react/dist/esm/icons/dollar-sign';
 
 export default function SurveyPage() {
     const { id } = useParams();
