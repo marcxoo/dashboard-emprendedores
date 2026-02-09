@@ -7,8 +7,8 @@
  */
 export const uploadImage = async (file) => {
     try {
-        // 1. Get signature from local backend
-        const signResponse = await fetch('http://localhost:3001/sign-cloudinary');
+        // 1. Get signature from Vercel API
+        const signResponse = await fetch('/api/sign-cloudinary');
         if (!signResponse.ok) throw new Error('Failed to get upload signature');
 
         const { signature, timestamp, cloud_name, api_key } = await signResponse.json();
