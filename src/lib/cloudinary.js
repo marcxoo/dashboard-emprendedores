@@ -69,9 +69,13 @@ export const uploadFile = async (file) => {
         formData.append('folder', 'dashboard_uploads');
         formData.append('source', 'uw');
 
-        // 3. Upload to Cloudinary (resource_type: auto)
+        // 3. Upload to Cloudinary
+        // For PDFs, use 'raw' to avoid implicit image transformation restrictions (401)
+        const isPdf = file.type === 'application/pdf';
+        const resourceType = isPdf ? 'raw' : 'auto';
+
         const uploadResponse = await fetch(
-            `https://api.cloudinary.com/v1_1/${cloud_name}/auto/upload`,
+            `https://api.cloudinary.com/v1_1/${cloud_name}/${resourceType}/upload`,
             {
                 method: 'POST',
                 body: formData
