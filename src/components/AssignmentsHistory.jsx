@@ -113,7 +113,7 @@ export default function AssignmentsHistory() {
 
     const getEntrepreneurName = (id) => {
         if (!Array.isArray(entrepreneurs)) return 'Desconocido';
-        const emp = entrepreneurs.find(e => e.id === id);
+        const emp = entrepreneurs.find(e => String(e.id) === String(id));
         return emp ? emp.nombre_emprendimiento : 'Desconocido';
     };
 
@@ -213,7 +213,7 @@ export default function AssignmentsHistory() {
     };
 
     const handleCardClick = (entrepreneurId) => {
-        const emp = entrepreneurs.find(e => e.id === entrepreneurId);
+        const emp = entrepreneurs.find(e => String(e.id) === String(entrepreneurId));
         if (emp) {
             setViewingEntrepreneur(emp);
         }
@@ -297,7 +297,7 @@ export default function AssignmentsHistory() {
 
                         {/* Interactive Entrepreneur Type Tag */}
                         {(() => {
-                            const emp = entrepreneurs.find(e => e.id === assignment.id_emprendedor);
+                            const emp = entrepreneurs.find(e => String(e.id) === String(assignment.id_emprendedor));
                             if (!emp) return null;
                             const type = emp.semaforizacion || 'Externo';
 
@@ -467,7 +467,7 @@ export default function AssignmentsHistory() {
                             </span>
 
                             {(() => {
-                                const emp = entrepreneurs.find(e => e.id === assignment.id_emprendedor);
+                                const emp = entrepreneurs.find(e => String(e.id) === String(assignment.id_emprendedor));
                                 if (!emp) return null;
                                 const type = emp.semaforizacion || 'Externo';
 

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import EntrepreneurDetail from './EntrepreneurDetail';
 import { getDateRangeFromWeek } from '../utils/dateUtils';
+import BarChart3 from 'lucide-react/dist/esm/icons/bar-chart-3';
 import ArrowUpDown from 'lucide-react/dist/esm/icons/arrow-up-down';
 import ArrowUp from 'lucide-react/dist/esm/icons/arrow-up';
 import ArrowDown from 'lucide-react/dist/esm/icons/arrow-down';
@@ -30,6 +31,9 @@ import History from 'lucide-react/dist/esm/icons/history';
 import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
 import Store from 'lucide-react/dist/esm/icons/store';
 import Eye from 'lucide-react/dist/esm/icons/eye';
+import SearchX from 'lucide-react/dist/esm/icons/search-x';
+import Filter from 'lucide-react/dist/esm/icons/filter';
+import FilterX from 'lucide-react/dist/esm/icons/filter-x';
 import Globe from 'lucide-react/dist/esm/icons/globe';
 import Instagram from 'lucide-react/dist/esm/icons/instagram';
 import Facebook from 'lucide-react/dist/esm/icons/facebook';
@@ -38,7 +42,7 @@ import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
 import Upload from 'lucide-react/dist/esm/icons/upload';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import { createPortal } from 'react-dom';
-import { uploadImage } from '../lib/cloudinary';
+import { uploadImage, uploadFile } from '../lib/cloudinary';
 
 const MobileEntrepreneurCard = ({
     e,
@@ -179,24 +183,38 @@ export default function EntrepreneursList() {
     // Modals derived from URL
     const isModalOpen = searchParams.has('modal');
     const editingId = searchParams.get('editarId');
-    const editingEntrepreneur = editingId ? entrepreneurs.find(e => e.id === editingId) || null : null;
+    const editingEntrepreneur = editingId ? entrepreneurs.find(e => String(e.id) === String(editingId)) || null : null;
     const detailId = searchParams.get('detalle');
-    const selectedEntrepreneur = detailId ? entrepreneurs.find(e => e.id === detailId) || null : null;
+    const selectedEntrepreneur = detailId ? entrepreneurs.find(e => String(e.id) === String(detailId)) || null : null;
     const followUpId = searchParams.get('observacion');
     const followUpModalOpen = !!followUpId;
     const historyId = searchParams.get('historial');
     const historyModalOpen = !!historyId;
-    const selectedEntrepreneurForFollowUp = followUpId ? entrepreneurs.find(e => e.id === followUpId) || null
-        : historyId ? entrepreneurs.find(e => e.id === historyId) || null : null;
+    const selectedEntrepreneurForFollowUp = followUpId ? entrepreneurs.find(e => String(e.id) === String(followUpId)) || null
+        : historyId ? entrepreneurs.find(e => String(e.id) === String(historyId)) || null : null;
     const contactSelection = searchParams.get('contacto') || null;
 
     // Filters derived from URL
     const filterCategory = searchParams.get('categoria') || '';
     const filterTipo = searchParams.get('tipo') || '';
+    const filterRuc = searchParams.get('ruc') || '';
     const searchTerm = searchParams.get('buscar') || '';
     const currentPage = parseInt(searchParams.get('pagina') || '1', 10);
     const [sortConfig, setSortConfig] = useState({ key: 'nombre_emprendimiento', direction: 'asc' });
-    const itemsPerPage = 10;
+    const [expandedDescriptions, setExpandedDescriptions] = useState(new Set());
+    const itemsPerPageParam = parseInt(searchParams.get('porPagina') || '15', 10);
+    const itemsPerPage = [10, 15, 25, 50].includes(itemsPerPageParam) ? itemsPerPageParam : 15;
+
+    // Stats
+    const stats = useMemo(() => {
+        const total = entrepreneurs.length;
+        const unemi = entrepreneurs.filter(e => (e.semaforizacion || 'Externo') === 'Estudiante / Graduado UNEMI' || (e.semaforizacion || 'Externo') === 'Graduado').length;
+        const externos = total - unemi;
+        const conParticipacion = entrepreneurs.filter(e => e.veces_en_stand > 0).length;
+        return { total, unemi, externos, conParticipacion };
+    }, [entrepreneurs]);
+
+    const hasActiveFilters = filterCategory || filterTipo || filterRuc || searchTerm;
 
     const categories = useMemo(() => [...new Set(entrepreneurs.map(e => e.categoria_principal))].sort(), [entrepreneurs]);
 
@@ -213,6 +231,11 @@ export default function EntrepreneursList() {
                     // Los que tienen null o 'Externo' son externos
                     if (tipoEmprendedor !== 'Externo') return false;
                 }
+            }
+            if (filterRuc) {
+                const hasRuc = e.ruc && e.ruc.length > 0;
+                if (filterRuc === 'con_ruc' && !hasRuc) return false;
+                if (filterRuc === 'sin_ruc' && hasRuc) return false;
             }
             if (searchTerm) {
                 const term = searchTerm.toLowerCase();
@@ -465,8 +488,21 @@ Atentamente,`;
 
 
 
+    // Pagination page numbers
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxVisible = 5;
+        let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let end = Math.min(totalPages, start + maxVisible - 1);
+        if (end - start + 1 < maxVisible) {
+            start = Math.max(1, end - maxVisible + 1);
+        }
+        for (let i = start; i <= end; i++) pages.push(i);
+        return pages;
+    };
+
     return (
-        <div className="flex flex-col gap-8 animate-fade-in relative pb-20">
+        <div className="flex flex-col gap-6 animate-fade-in relative pb-20">
             {/* Detail Slide-over */}
             <EntrepreneurDetail
                 entrepreneur={selectedEntrepreneur}
@@ -487,18 +523,19 @@ Atentamente,`;
             />
 
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <div className="flex items-center gap-3 mb-1">
-                        <div className="p-2 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg shadow-lg shadow-primary-500/20 text-white">
-                            <Users size={24} />
+                        <div className="p-2.5 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-500/20 text-white">
+                            <Users size={22} />
                         </div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Emprendedores</h1>
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Emprendedores</h1>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                                Gestión y seguimiento de emprendedores
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium ml-1">
-                        Gestión general <span className="inline-block mx-2 text-slate-300 dark:text-slate-600">•</span>
-                        <span className="text-primary-600 font-bold bg-primary-50 dark:bg-primary-900/30 dark:text-primary-400 px-2 py-0.5 rounded-md">{filteredData.length} registros</span>
-                    </p>
                 </div>
                 <div className="flex flex-wrap gap-3 w-full md:w-auto">
                     <button
@@ -520,6 +557,46 @@ Atentamente,`;
                 </div>
             </div>
 
+            {/* Stats Bar */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-3 shadow-sm">
+                    <div className="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600 dark:text-primary-400">
+                        <Users size={20} />
+                    </div>
+                    <div>
+                        <p className="text-2xl font-bold text-slate-800 dark:text-white">{stats.total}</p>
+                        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total</p>
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-3 shadow-sm">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                        <GraduationCap size={20} />
+                    </div>
+                    <div>
+                        <p className="text-2xl font-bold text-slate-800 dark:text-white">{stats.unemi}</p>
+                        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">UNEMI</p>
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-3 shadow-sm">
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
+                        <Store size={20} />
+                    </div>
+                    <div>
+                        <p className="text-2xl font-bold text-slate-800 dark:text-white">{stats.externos}</p>
+                        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Externos</p>
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-3 shadow-sm">
+                    <div className="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-600 dark:text-green-400">
+                        <BarChart3 size={20} />
+                    </div>
+                    <div>
+                        <p className="text-2xl font-bold text-slate-800 dark:text-white">{stats.conParticipacion}</p>
+                        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Con Participación</p>
+                    </div>
+                </div>
+            </div>
+
             {/* Modals */}
             <FollowUpModal
                 isOpen={followUpModalOpen}
@@ -533,26 +610,26 @@ Atentamente,`;
             />
 
             {/* Search & Filter Bar */}
-            <div className="glass-panel p-4 flex flex-col md:flex-row gap-4 items-center bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                <div className="relative flex-1 w-full group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
-                        <Search size={20} />
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 flex flex-col md:flex-row gap-3 items-stretch shadow-sm">
+                <div className="relative flex-1 group">
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                        <Search size={18} />
                     </div>
                     <input
-                        className="glass-input w-full pl-12 pr-4 py-3 rounded-xl outline-none placeholder:text-slate-400 font-medium text-slate-700 dark:text-white focus:ring-4 focus:ring-primary-500/10 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg outline-none placeholder:text-slate-400 font-medium text-sm text-slate-700 dark:text-white focus:ring-2 focus:ring-primary-500/20 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 transition-all"
                         placeholder="Buscar por nombre, teléfono o correo..."
                         value={searchTerm}
                         onChange={e => { updateParams({ buscar: e.target.value || null, pagina: null }); }}
                     />
                 </div>
 
-                {/* Sort Dropdown */}
+                {/* Sort Dropdown (Mobile) */}
                 <div className="relative w-full md:hidden">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <ArrowUpDown size={18} />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                        <ArrowUpDown size={16} />
                     </div>
                     <select
-                        className="w-full pl-11 pr-10 py-3 bg-slate-50/50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium text-slate-700 dark:text-white cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-700"
+                        className="w-full pl-9 pr-8 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg outline-none transition-all appearance-none font-medium text-sm text-slate-700 dark:text-white cursor-pointer"
                         value={`${sortConfig.key}-${sortConfig.direction}`}
                         onChange={e => {
                             const [key, direction] = e.target.value.split('-');
@@ -564,162 +641,264 @@ Atentamente,`;
                         <option value="nombre_emprendimiento-asc">Nombre (A-Z)</option>
                         <option value="nombre_emprendimiento-desc">Nombre (Z-A)</option>
                     </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                        <ChevronDown size={16} />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                        <ChevronDown size={14} />
                     </div>
                 </div>
 
-                <div className="relative w-full md:w-64">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <Tag size={18} />
+                <div className="flex gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-48">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <Tag size={16} />
+                        </div>
+                        <select
+                            className="w-full pl-9 pr-8 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg outline-none transition-all appearance-none font-medium text-sm text-slate-700 dark:text-white cursor-pointer"
+                            value={filterCategory}
+                            onChange={e => { updateParams({ categoria: e.target.value || null, pagina: null }); }}
+                        >
+                            <option value="">Categoría</option>
+                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                            <ChevronDown size={14} />
+                        </div>
+                        {filterCategory && (
+                            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center">1</span>
+                        )}
                     </div>
-                    <select
-                        className="w-full pl-11 pr-10 py-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-700"
-                        value={filterCategory}
-                        onChange={e => { updateParams({ categoria: e.target.value || null, pagina: null }); }}
-                    >
-                        <option value="">Todas las Categorías</option>
-                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                        <ChevronDown size={16} />
-                    </div>
-                </div>
 
-                {/* Filtro por Tipo de Emprendedor */}
-                <div className="relative w-full md:w-64">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <GraduationCap size={18} />
+                    <div className="relative flex-1 md:w-48">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <GraduationCap size={16} />
+                        </div>
+                        <select
+                            className="w-full pl-9 pr-8 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg outline-none transition-all appearance-none font-medium text-sm text-slate-700 dark:text-white cursor-pointer"
+                            value={filterTipo}
+                            onChange={e => { updateParams({ tipo: e.target.value || null, pagina: null }); }}
+                        >
+                            <option value="">Tipo</option>
+                            <option value="Externo">Externo</option>
+                            <option value="UNEMI">UNEMI</option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                            <ChevronDown size={14} />
+                        </div>
+                        {filterTipo && (
+                            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center">1</span>
+                        )}
                     </div>
-                    <select
-                        className="w-full pl-11 pr-10 py-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-700"
-                        value={filterTipo}
-                        onChange={e => { updateParams({ tipo: e.target.value || null, pagina: null }); }}
-                    >
-                        <option value="">Todos los Tipos</option>
-                        <option value="Externo">Emprendedor Externo</option>
-                        <option value="UNEMI">Estudiante / Egresado UNEMI</option>
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                        <ChevronDown size={16} />
+
+                    <div className="relative flex-1 md:w-48">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <FileText size={16} />
+                        </div>
+                        <select
+                            className="w-full pl-9 pr-8 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg outline-none transition-all appearance-none font-medium text-sm text-slate-700 dark:text-white cursor-pointer"
+                            value={filterRuc}
+                            onChange={e => { updateParams({ ruc: e.target.value || null, pagina: null }); }}
+                        >
+                            <option value="">RUC</option>
+                            <option value="con_ruc">Con RUC</option>
+                            <option value="sin_ruc">Sin RUC</option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                            <ChevronDown size={14} />
+                        </div>
+                        {filterRuc && (
+                            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center">1</span>
+                        )}
                     </div>
+
+                    {hasActiveFilters && (
+                        <button
+                            onClick={() => updateParams({ buscar: null, categoria: null, tipo: null, ruc: null, pagina: null })}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-100 dark:border-red-900/30 transition-all whitespace-nowrap"
+                            title="Limpiar filtros"
+                        >
+                            <FilterX size={16} />
+                            <span className="hidden md:inline">Limpiar</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {/* Desktop List (Card-Rows) */}
-            <div className="hidden md:flex flex-col gap-3">
+            {/* Results count */}
+            {hasActiveFilters && (
+                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 -mt-2">
+                    <Filter size={14} />
+                    <span>
+                        Mostrando <strong className="text-slate-700 dark:text-slate-200">{filteredData.length}</strong> de {stats.total} resultados
+                        {filterCategory && <span className="ml-1">en <strong className="text-primary-600 dark:text-primary-400">{filterCategory}</strong></span>}
+                        {filterTipo && <span className="ml-1">· <strong className="text-primary-600 dark:text-primary-400">{filterTipo}</strong></span>}
+                    </span>
+                </div>
+            )}
+
+            {/* Desktop List */}
+            <div className="hidden md:flex flex-col gap-2">
                 {/* Header Row */}
-                <div className="flex px-6 py-2 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                    <div className="w-[35%] cursor-pointer hover:text-primary-600 transition-colors flex items-center gap-1" onClick={() => requestSort('nombre_emprendimiento')}>
+                <div className="flex px-4 py-2 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    <div className="w-[45%] cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1" onClick={() => requestSort('nombre_emprendimiento')}>
                         Emprendimiento {getSortIcon('nombre_emprendimiento')}
                     </div>
-                    <div className="w-[25%] pl-4">Contacto</div>
-                    <div className="w-[15%] text-center cursor-pointer hover:text-primary-600 transition-colors flex items-center justify-center gap-1" onClick={() => requestSort('veces_en_stand')}>
-                        Participación {getSortIcon('veces_en_stand')}
+                    <div className="w-[22%] pl-4">Contacto</div>
+                    <div className="w-[10%] text-center cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center justify-center gap-1" onClick={() => requestSort('veces_en_stand')}>
+                        Part. {getSortIcon('veces_en_stand')}
                     </div>
-                    <div className="w-[25%] text-right pr-4">Acciones</div>
+                    <div className="w-[23%] text-right pr-2">Acciones</div>
                 </div>
 
-                {paginatedData.map((e) => (
-                    <div
-                        key={e.id}
-                        onClick={() => updateParams({ detalle: e.id })}
-                        className={`group rounded-xl p-4 flex items-center shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden ${selectedEntrepreneur?.id === e.id
-                            ? 'bg-primary-50 dark:bg-primary-900/10 border border-primary-500 dark:border-primary-500 ring-1 ring-primary-500 dark:ring-primary-500 z-10'
-                            : 'bg-white dark:bg-slate-800 hover:bg-slate-50/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 hover:border-primary-200 dark:hover:border-primary-500/30'
-                            }`}
-                    >
-                        {/* Left Accent */}
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-primary-500 transition-colors"></div>
+                {paginatedData.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-4">
+                            <SearchX size={32} className="text-slate-300 dark:text-slate-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-600 dark:text-slate-300 mb-1">No se encontraron emprendedores</h3>
+                        <p className="text-sm text-slate-400 dark:text-slate-500 max-w-sm">
+                            Intenta ajustar los filtros de búsqueda o{' '}
+                            <button onClick={() => updateParams({ buscar: null, categoria: null, tipo: null, pagina: null })} className="text-primary-600 dark:text-primary-400 font-medium hover:underline">
+                                limpiar todos los filtros
+                            </button>
+                        </p>
+                    </div>
+                )}
 
-                        {/* Col 1: Identity */}
-                        <div className="w-[35%] pr-4">
-                            <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-sm shrink-0 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors mt-1 overflow-hidden">
-                                    {e.logo_url ? (
-                                        <img src={e.logo_url} alt={e.nombre_emprendimiento} className="w-full h-full object-cover" />
-                                    ) : (
-                                        e.nombre_emprendimiento.charAt(0).toUpperCase()
-                                    )}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-slate-800 dark:text-white text-base active:text-primary-700 leading-tight">{e.nombre_emprendimiento}</h3>
-                                    <div className="flex flex-wrap items-center gap-2 mt-1 mb-1.5">
-                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{e.persona_contacto}</span>
-                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-orange-900/20 text-slate-500 dark:text-orange-200 border border-slate-200 dark:border-orange-900/30">
-                                            {e.categoria_principal}
-                                        </span>
+                {paginatedData.map((e, index) => {
+                    const tipoEmprendedor = e.semaforizacion || 'Externo';
+                    const isUNEMI = tipoEmprendedor === 'Estudiante / Graduado UNEMI' || tipoEmprendedor === 'Graduado';
+
+                    return (
+                        <div
+                            key={e.id}
+                            onClick={() => updateParams({ detalle: e.id })}
+                            style={{ animationDelay: `${index * 30}ms` }}
+                            className={`group rounded-xl p-3 flex items-center transition-all cursor-pointer relative overflow-hidden animate-fade-in ${selectedEntrepreneur?.id === e.id
+                                ? 'bg-primary-50 dark:bg-primary-900/10 border border-primary-500 dark:border-primary-500 ring-1 ring-primary-500 dark:ring-primary-500 shadow-md z-10'
+                                : 'bg-white dark:bg-slate-800 hover:bg-slate-50/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 hover:border-primary-200 dark:hover:border-primary-500/30 shadow-sm hover:shadow-md'
+                                }`}
+                        >
+                            {/* Left Accent */}
+                            <div className={`absolute left-0 top-0 bottom-0 w-1 transition-colors ${isUNEMI ? 'bg-blue-400 dark:bg-blue-500' : 'bg-transparent group-hover:bg-primary-500'}`}></div>
+
+                            {/* Col 1: Identity */}
+                            <div className="w-[45%] pr-3 pl-1">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden transition-colors ${isUNEMI
+                                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800'
+                                        : 'bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 group-hover:text-primary-600 dark:group-hover:text-primary-400 group-hover:border-primary-200 dark:group-hover:border-primary-700'
+                                        }`}>
+                                        {e.logo_url ? (
+                                            <img src={e.logo_url} alt={e.nombre_emprendimiento} className="w-full h-full object-cover" />
+                                        ) : (
+                                            e.nombre_emprendimiento.charAt(0).toUpperCase()
+                                        )}
                                     </div>
-                                    <p className="text-xs text-slate-500 dark:text-slate-300 leading-relaxed line-clamp-2" title={e.actividad_economica}>
-                                        {e.actividad_economica || 'Sin descripción de actividad.'}
-                                    </p>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-slate-800 dark:text-white text-sm leading-tight truncate">{e.nombre_emprendimiento}</h3>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{e.persona_contacto}</p>
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 truncate max-w-[120px]">
+                                                {e.categoria_principal}
+                                            </span>
+                                            {isUNEMI && (
+                                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800">
+                                                    <GraduationCap size={10} /> UNEMI
+                                                </span>
+                                            )}
+                                        </div>
+                                        {e.actividad_economica && (
+                                            <div className="flex items-baseline gap-1 mt-0.5">
+                                                <p className={`text-[11px] text-slate-600 dark:text-slate-300 ${expandedDescriptions.has(e.id) ? '' : 'truncate'} min-w-0`}>
+                                                    {e.actividad_economica}
+                                                </p>
+                                                {e.actividad_economica.length > 40 && (
+                                                    <button
+                                                        onClick={(ev) => { ev.stopPropagation(); setExpandedDescriptions(prev => { const next = new Set(prev); next.has(e.id) ? next.delete(e.id) : next.add(e.id); return next; }); }}
+                                                        className="text-[10px] text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-bold hover:underline whitespace-nowrap shrink-0"
+                                                    >
+                                                        {expandedDescriptions.has(e.id) ? '− menos' : '+ más'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Col 2: Contact */}
-                        <div className="w-[25%] px-4 border-l border-slate-100 dark:border-slate-700">
-                            <div className="flex flex-col gap-1.5">
-                                <button className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-green-600 dark:hover:text-green-400 transition-colors w-fit" onClick={(ev) => handleContactClick(e.telefono, ev)}>
-                                    <Phone size={14} className="text-slate-400 dark:text-slate-400" />
-                                    <span className="font-mono">{e.telefono}</span>
+                            {/* Col 2: Contact */}
+                            <div className="w-[22%] px-2 border-l border-slate-100 dark:border-slate-700">
+                                <div className="flex flex-col gap-1">
+                                    <button className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 hover:text-green-600 dark:hover:text-green-400 transition-colors w-fit" onClick={(ev) => handleContactClick(e.telefono, ev)}>
+                                        <Phone size={12} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                                        <span className="font-mono truncate">{e.telefono}</span>
+                                    </button>
+                                    {e.correo && (
+                                        <button className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full text-left" onClick={(ev) => handleEmail(e.correo, ev)}>
+                                            <Mail size={12} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                                            <span className="truncate">{e.correo}</span>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Col 3: Participation */}
+                            <div className="w-[10%] flex flex-col items-center justify-center border-l border-slate-100 dark:border-slate-700 px-1">
+                                <div className={`text-lg font-bold ${e.veces_en_stand > 0 ? 'text-primary-600 dark:text-primary-400' : 'text-slate-300 dark:text-slate-600'}`}>
+                                    {e.veces_en_stand}
+                                </div>
+                                {e.veces_en_stand > 0 && e.ultima_semana_participacion && (
+                                    <div className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider text-center leading-tight">
+                                        {getDateRangeFromWeek(e.ultima_semana_participacion)}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Col 4: Actions */}
+                            <div className="w-[23%] pl-2 flex items-center justify-end gap-2 border-l border-slate-100 dark:border-slate-700" onClick={ev => ev.stopPropagation()}>
+                                <button
+                                    onClick={() => { updateParams({ observacion: e.id }); }}
+                                    className="w-9 h-9 rounded-lg flex items-center justify-center bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/40 hover:scale-105 transition-all"
+                                    title="Seguimiento"
+                                >
+                                    <Eye size={16} />
+                                </button>
+                                <button
+                                    onClick={() => { updateParams({ historial: e.id }); }}
+                                    className="w-9 h-9 rounded-lg flex items-center justify-center bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 hover:scale-105 transition-all"
+                                    title="Historial"
+                                >
+                                    <List size={16} />
                                 </button>
                                 {e.correo && (
-                                    <button className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full text-left group/email" onClick={(ev) => handleEmail(e.correo, ev)}>
-                                        <Mail size={14} className="text-slate-400 dark:text-slate-400 shrink-0 group-hover/email:text-blue-500 dark:group-hover/email:text-blue-400" />
-                                        <span className="break-all leading-tight">{e.correo}</span>
+                                    <button
+                                        onClick={(ev) => handleStandOfferEmail(e, ev)}
+                                        className="w-9 h-9 rounded-lg flex items-center justify-center bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-300 border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/40 hover:scale-105 transition-all"
+                                        title="Ofertar Stand"
+                                    >
+                                        <Store size={16} />
                                     </button>
                                 )}
                             </div>
                         </div>
-
-                        {/* Col 3: Stats */}
-                        <div className="w-[15%] flex flex-col items-center justify-center border-l border-slate-100 dark:border-slate-700 px-4">
-                            <div className={`text-xl font-bold ${e.veces_en_stand > 0 ? 'text-primary-600 dark:text-primary-400' : 'text-slate-300 dark:text-slate-600'}`}>
-                                {e.veces_en_stand}
-                            </div>
-                            <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider text-center">
-                                {e.veces_en_stand > 0 && e.ultima_semana_participacion ? getDateRangeFromWeek(e.ultima_semana_participacion) : ''}
-                            </div>
-                        </div>
-
-                        {/* Col 4: Actions */}
-                        <div className="w-[25%] pl-4 flex items-center justify-end gap-2" onClick={ev => ev.stopPropagation()}>
-                            <button
-                                onClick={() => {
-                                    updateParams({ observacion: e.id });
-                                }}
-                                className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 border border-slate-200 dark:border-slate-600 hover:border-primary-200 dark:hover:border-primary-500/30 transition-all"
-                                title="Añadir Observación"
-                            >
-                                <Eye size={16} />
-                            </button>
-                            <button
-                                onClick={() => {
-                                    updateParams({ historial: e.id });
-                                }}
-                                className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-secondary hover:text-white border border-slate-200 dark:border-slate-600 hover:border-secondary transition-all"
-                                title="Historial"
-                            >
-                                <List size={16} />
-                            </button>
-                            {e.correo && (
-                                <button
-                                    onClick={(ev) => handleStandOfferEmail(e, ev)}
-                                    className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-600 dark:hover:text-green-400 border border-slate-200 dark:border-slate-600 hover:border-green-200 dark:hover:border-green-500/30 transition-all"
-                                    title="Ofertar Stand"
-                                >
-                                    <Store size={16} />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Cards (Mobile) */}
-            {/* Cards (Mobile) */}
-            <div className="md:hidden flex flex-col gap-4">
+            <div className="md:hidden flex flex-col gap-3">
+                {paginatedData.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-3">
+                            <SearchX size={28} className="text-slate-300 dark:text-slate-500" />
+                        </div>
+                        <h3 className="text-base font-bold text-slate-600 dark:text-slate-300 mb-1">Sin resultados</h3>
+                        <p className="text-sm text-slate-400 dark:text-slate-500">
+                            <button onClick={() => updateParams({ buscar: null, categoria: null, tipo: null, pagina: null })} className="text-primary-600 dark:text-primary-400 font-medium hover:underline">
+                                Limpiar filtros
+                            </button>
+                        </p>
+                    </div>
+                )}
                 {paginatedData.map((e) => (
                     <MobileEntrepreneurCard
                         key={e.id}
@@ -739,30 +918,56 @@ Atentamente,`;
             </div>
 
             {/* Pagination */}
-            <div className="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm gap-4">
-                <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                    Mostrando <span className="font-bold text-slate-800 dark:text-slate-200">{((currentPage - 1) * itemsPerPage) + 1}</span> - <span className="font-bold text-slate-800 dark:text-slate-200">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> de <span className="font-bold text-slate-800 dark:text-slate-200">{filteredData.length}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:hover:bg-white dark:disabled:hover:bg-slate-800 transition-all"
-                        onClick={() => updateParams({ pagina: Math.max(1, currentPage - 1) || null })}
-                        disabled={currentPage === 1}
-                    >
-                        <ArrowUp className="-rotate-90" size={18} />
-                    </button>
-                    <div className="px-4 py-2 font-bold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
-                        {currentPage} / {totalPages}
+            {filteredData.length > 0 && (
+                <div className="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm gap-3">
+                    <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                        <span className="font-medium">
+                            <span className="font-bold text-slate-700 dark:text-slate-200">{((currentPage - 1) * itemsPerPage) + 1}</span>–<span className="font-bold text-slate-700 dark:text-slate-200">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> de <span className="font-bold text-slate-700 dark:text-slate-200">{filteredData.length}</span>
+                        </span>
+                        <div className="hidden md:flex items-center gap-1 border-l border-slate-200 dark:border-slate-700 pl-3">
+                            <span className="text-xs text-slate-400 dark:text-slate-500">Mostrar</span>
+                            <select
+                                className="px-2 py-1 text-xs font-medium rounded-md bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 cursor-pointer outline-none"
+                                value={itemsPerPage}
+                                onChange={e => updateParams({ porPagina: e.target.value, pagina: null })}
+                            >
+                                <option value="10">10</option>
+                                <option value="15">15</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
                     </div>
-                    <button
-                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:hover:bg-white dark:disabled:hover:bg-slate-800 transition-all"
-                        onClick={() => updateParams({ pagina: Math.min(totalPages, currentPage + 1) })}
-                        disabled={currentPage === totalPages}
-                    >
-                        <ArrowUp className="rotate-90" size={18} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                        <button
+                            className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 transition-all text-sm"
+                            onClick={() => updateParams({ pagina: Math.max(1, currentPage - 1) || null })}
+                            disabled={currentPage === 1}
+                        >
+                            <ArrowUp className="-rotate-90" size={16} />
+                        </button>
+                        {getPageNumbers().map(page => (
+                            <button
+                                key={page}
+                                className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-all ${page === currentPage
+                                    ? 'bg-primary-600 text-white shadow-sm'
+                                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600'
+                                    }`}
+                                onClick={() => updateParams({ pagina: page })}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                        <button
+                            className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 transition-all text-sm"
+                            onClick={() => updateParams({ pagina: Math.min(totalPages, currentPage + 1) })}
+                            disabled={currentPage === totalPages}
+                        >
+                            <ArrowUp className="rotate-90" size={16} />
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
 
             <EntrepreneurModal
                 isOpen={isModalOpen}
@@ -815,6 +1020,7 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
     });
     const [isCustomCategory, setIsCustomCategory] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [isRucUploading, setIsRucUploading] = useState(false);
 
     const [socialOverride, setSocialOverride] = useState('instagram');
 
@@ -834,7 +1040,9 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
                     notas: initialData.notas || '',
                     no_contesto: initialData.no_contesto || false,
                     ruc: initialData.ruc || '',
-                    logo_url: initialData.logo_url || ''
+                    ruc: initialData.ruc || '',
+                    logo_url: initialData.logo_url || '',
+                    pdf_url: initialData.pdf_url || ''
                 });
                 setIsCustomCategory(!categories.includes(initialData.categoria_principal) && initialData.categoria_principal !== '');
             } else {
@@ -850,7 +1058,10 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
                     red_social: '',
                     ruc: '',
                     no_contesto: false,
-                    logo_url: ''
+                    ruc: '',
+                    no_contesto: false,
+                    logo_url: '',
+                    pdf_url: ''
                 });
                 setIsCustomCategory(false);
             }
@@ -878,6 +1089,31 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
             alert('Error al subir la imagen');
         } finally {
             setIsUploading(false);
+        }
+    };
+
+
+
+    const handleRucUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Allow PDF, PNG, JPEG, JPG
+        const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Solo se permiten archivos PDF o imágenes (PNG, JPG)');
+            return;
+        }
+
+        setIsRucUploading(true);
+        try {
+            const url = await uploadFile(file);
+            setFormData(prev => ({ ...prev, pdf_url: url }));
+        } catch (error) {
+            console.error(error);
+            alert('Error al subir el RUC');
+        } finally {
+            setIsRucUploading(false);
         }
     };
 
@@ -968,6 +1204,49 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
                                         className="hidden"
                                         onChange={handleImageUpload}
                                         disabled={isUploading}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="col-span-1 md:col-span-2 flex flex-col items-center">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-3">
+                                    RUC (PDF o Imagen)
+                                </label>
+                                <div className="relative group w-full">
+                                    <div
+                                        className={`w-full py-4 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer hover:border-primary-500 transition-colors bg-slate-50 dark:bg-slate-700/50 ${formData.pdf_url ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : ''}`}
+                                        onClick={() => document.getElementById('ruc-upload').click()}
+                                    >
+                                        {isRucUploading ? (
+                                            <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400">
+                                                <Loader2 className="animate-spin" size={20} />
+                                                <span className="text-sm font-bold">Subiendo RUC...</span>
+                                            </div>
+                                        ) : formData.pdf_url ? (
+                                            <div className="flex items-center gap-3 text-primary-600 dark:text-primary-400">
+                                                <FileText size={20} />
+                                                <span className="text-sm font-bold">RUC Cargado Correctamente</span>
+                                                <div className="text-xs bg-primary-100 dark:bg-primary-900/30 px-2 py-0.5 rounded text-primary-700 dark:text-primary-300">
+                                                    Cambiar
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center gap-1 text-slate-400">
+                                                <div className="flex items-center gap-2">
+                                                    <Upload size={18} />
+                                                    <span className="text-sm font-bold">Subir RUC</span>
+                                                </div>
+                                                <span className="text-xs">PDF, PNG o JPG</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <input
+                                        id="ruc-upload"
+                                        type="file"
+                                        accept="application/pdf,image/png,image/jpeg,image/jpg"
+                                        className="hidden"
+                                        onChange={handleRucUpload}
+                                        disabled={isRucUploading}
                                     />
                                 </div>
                             </div>

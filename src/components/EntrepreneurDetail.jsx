@@ -14,6 +14,7 @@ import Mail from 'lucide-react/dist/esm/icons/mail';
 import Calendar from 'lucide-react/dist/esm/icons/calendar';
 import MapPin from 'lucide-react/dist/esm/icons/map-pin';
 import MessageCircle from 'lucide-react/dist/esm/icons/message-circle';
+import FileText from 'lucide-react/dist/esm/icons/file-text';
 
 // Helper to parse social media
 const getSocialMediaInfo = (input) => {
@@ -81,7 +82,16 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
 
     const handleClose = () => {
         setIsVisible(false);
-        setTimeout(onClose, 300); // Wait for animation
+        setTimeout(() => {
+            if (onClose) onClose();
+        }, 300);
+    };
+
+    const handleEdit = () => {
+        setIsVisible(false);
+        setTimeout(() => {
+            if (onEdit) onEdit(entrepreneur);
+        }, 300);
     };
 
     const handleDelete = (e) => {
@@ -90,11 +100,11 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
             e.stopPropagation();
         }
 
-        console.log('handleDelete triggered');
-
         if (window.confirm(`¿Estás seguro de que deseas eliminar a ${entrepreneur.nombre_emprendimiento}? Esta acción no se puede deshacer.`)) {
-            if (onDelete) onDelete(entrepreneur.id);
-            handleClose();
+            setIsVisible(false);
+            setTimeout(() => {
+                if (onDelete) onDelete(entrepreneur.id);
+            }, 300);
         }
     };
 
@@ -292,6 +302,19 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                                         <span className="text-xs text-slate-400">ID S.</span>
                                         <span className="text-xs font-mono text-slate-500">#{entrepreneur.id}</span>
                                     </div>
+                                    {entrepreneur.pdf_url && (
+                                        <>
+                                            <div className="h-px bg-slate-100 dark:bg-slate-700"></div>
+                                            <a
+                                                href={entrepreneur.pdf_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="mt-1 w-full py-2 rounded-lg bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-bold text-xs flex items-center justify-center gap-2 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors"
+                                            >
+                                                <FileText size={14} /> Ver Archivo RUC
+                                            </a>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -303,10 +326,7 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                 <div className="p-6 border-t border-slate-200/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shrink-0 flex flex-col gap-3">
                     <button
                         className="w-full py-3.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold shadow-lg shadow-slate-900/20 dark:shadow-white/10 hover:bg-black dark:hover:bg-slate-100 hover:shadow-slate-900/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm"
-                        onClick={() => {
-                            handleClose();
-                            if (onEdit) onEdit(entrepreneur);
-                        }}
+                        onClick={handleEdit}
                     >
                         <Edit size={18} strokeWidth={1.5} /> Editar Información Completa
                     </button>

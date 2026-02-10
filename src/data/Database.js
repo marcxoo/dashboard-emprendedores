@@ -67,7 +67,8 @@ export class Database {
           followUpHistory: history,
           ruc: e.ruc || pRuc || '',
           ciudad: e.ciudad || pCiudad || '',
-          logo_url: e.logo_url || ''
+          logo_url: e.logo_url || '',
+          pdf_url: e.pdf_url || ''
         };
       });
 
@@ -595,6 +596,7 @@ export class Database {
       categoria_principal: data.categoria_principal,
       semaforizacion: data.tipo_emprendedor || 'Externo',
       logo_url: data.logo_url || '',
+      pdf_url: data.pdf_url || '',
 
       veces_en_stand: 0,
       ultima_semana_participacion: null,
@@ -678,6 +680,7 @@ export class Database {
         subcategoria_interna: updates.categoria_principal ?? current.subcategoria_interna,
         semaforizacion: updates.tipo_emprendedor ?? current.semaforizacion,
         logo_url: updates.logo_url ?? current.logo_url,
+        pdf_url: updates.pdf_url ?? current.pdf_url,
         notas: JSON.stringify(notesObject)
       };
 

@@ -93,7 +93,7 @@ export default function Dashboard() {
     };
 
     const getEntrepreneurDetails = (id) => {
-        return entrepreneurs.find(e => e.id === id);
+        return entrepreneurs.find(e => String(e.id) === String(id));
     };
 
     const handleStandClick = (standId, jornada = 'completa') => {
