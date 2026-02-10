@@ -80,7 +80,8 @@ export class Database {
           notas: generalNotes,
           followUpHistory: history,
           // Prioritize values from JSON (new source) over columns (legacy/stale)
-          ruc: pRuc || e.ruc || '',
+          // Ensure ruc is always a string to avoid filter issues
+          ruc: String(pRuc || e.ruc || ''),
           ciudad: pCiudad || e.ciudad || '',
           logo_url: e.logo_url || '',
           pdf_url: pPdfUrl || e.pdf_url || ''

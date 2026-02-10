@@ -233,7 +233,7 @@ export default function EntrepreneursList() {
                 }
             }
             if (filterRuc) {
-                const hasRuc = e.ruc && e.ruc.length > 0;
+                const hasRuc = e.ruc && String(e.ruc).trim().length > 0;
                 if (filterRuc === 'con_ruc' && !hasRuc) return false;
                 if (filterRuc === 'sin_ruc' && hasRuc) return false;
             }
