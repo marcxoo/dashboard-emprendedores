@@ -262,7 +262,7 @@ export default function EntrepreneursList() {
         }
 
         return data;
-    }, [entrepreneurs, filterCategory, filterTipo, searchTerm, sortConfig]);
+    }, [entrepreneurs, filterCategory, filterTipo, filterRuc, searchTerm, sortConfig]);
 
     const paginatedData = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
