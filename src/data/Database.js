@@ -51,6 +51,7 @@ export class Database {
             generalNotes = parsed.general_notes || '';
             if (parsed.ruc) pRuc = parsed.ruc;
             if (parsed.ciudad) pCiudad = parsed.ciudad;
+            if (parsed.pdf_url) e.pdf_url = parsed.pdf_url; // Read from JSON if available
           } catch (err) {
             console.warn('Failed to parse notes JSON:', err);
             generalNotes = notes;
@@ -68,7 +69,7 @@ export class Database {
           ruc: e.ruc || pRuc || '',
           ciudad: e.ciudad || pCiudad || '',
           logo_url: e.logo_url || '',
-          pdf_url: e.pdf_url || ''
+          pdf_url: e.pdf_url || '' // Fallback to column if exists (unlikely given error) or empty
         };
       });
 
@@ -581,7 +582,8 @@ export class Database {
     const notesObject = {
       general_notes: data.notas || '',
       history: [],
-      ruc: data.ruc || ''
+      ruc: data.ruc || '',
+      pdf_url: data.pdf_url || '' // Store inside JSON
     };
 
     const supabaseData = {
@@ -596,16 +598,12 @@ export class Database {
       categoria_principal: data.categoria_principal,
       semaforizacion: data.tipo_emprendedor || 'Externo',
       logo_url: data.logo_url || '',
-      pdf_url: data.pdf_url || '',
+      // pdf_url: removed to avoid error
 
       veces_en_stand: 0,
       ultima_semana_participacion: null,
       ruc: data.ruc || '', // Store in local object
-      notas: JSON.stringify({
-        general_notes: data.notas || '',
-        history: [],
-        ruc: data.ruc || '' // Store inside JSON
-      })
+      notas: JSON.stringify(notesObject)
     };
 
     const { data: inserted, error } = await supabase
@@ -660,12 +658,16 @@ export class Database {
       const currentCiudad = current.ciudad || '';
       const newCiudad = updates.ciudad !== undefined ? updates.ciudad : currentCiudad;
 
+      const currentPdfUrl = current.pdf_url || '';
+      const newPdfUrl = updates.pdf_url !== undefined ? updates.pdf_url : currentPdfUrl;
+
       // Construct JSON for DB
       const notesObject = {
         general_notes: newGeneralNotes,
         history: currentHistory,
         ruc: newRuc,
-        ciudad: newCiudad
+        ciudad: newCiudad,
+        pdf_url: newPdfUrl
       };
 
       const supabaseUpdates = {
@@ -680,7 +682,7 @@ export class Database {
         subcategoria_interna: updates.categoria_principal ?? current.subcategoria_interna,
         semaforizacion: updates.tipo_emprendedor ?? current.semaforizacion,
         logo_url: updates.logo_url ?? current.logo_url,
-        pdf_url: updates.pdf_url ?? current.pdf_url,
+        // pdf_url: removed to avoid error
         notas: JSON.stringify(notesObject)
       };
 
