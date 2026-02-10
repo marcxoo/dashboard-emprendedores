@@ -71,8 +71,12 @@ export const uploadFile = async (file) => {
 
         // 3. Upload to Cloudinary
         // For PDFs, use 'raw' to avoid implicit image transformation restrictions (401)
-        const isPdf = file.type === 'application/pdf';
+        console.log('Uploading file:', file.name, 'Type:', file.type); // Debug logging
+
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
         const resourceType = isPdf ? 'raw' : 'auto';
+
+        console.log('Selected resource_type:', resourceType);
 
         const uploadResponse = await fetch(
             `https://api.cloudinary.com/v1_1/${cloud_name}/${resourceType}/upload`,
