@@ -43,22 +43,35 @@ export class Database {
         let noContesto = false;
         let pRuc = '';
         let pCiudad = '';
+        let pPdfUrl = '';
 
-        if (notes.trim().startsWith('{')) {
+        // Handle if notas is already an object (JSONB column) or a string
+        if (typeof notes === 'object' && notes !== null) {
+          try {
+            const parsed = notes;
+            history = parsed.history || [];
+            generalNotes = parsed.general_notes || '';
+            if (parsed.ruc) pRuc = parsed.ruc;
+            if (parsed.ciudad) pCiudad = parsed.ciudad;
+            if (parsed.pdf_url) pPdfUrl = parsed.pdf_url;
+          } catch (err) {
+            console.warn('Failed to process notes object:', err);
+          }
+        } else if (typeof notes === 'string' && notes.trim().startsWith('{')) {
           try {
             const parsed = JSON.parse(notes);
             history = parsed.history || [];
             generalNotes = parsed.general_notes || '';
             if (parsed.ruc) pRuc = parsed.ruc;
             if (parsed.ciudad) pCiudad = parsed.ciudad;
-            if (parsed.pdf_url) e.pdf_url = parsed.pdf_url; // Read from JSON if available
+            if (parsed.pdf_url) pPdfUrl = parsed.pdf_url;
           } catch (err) {
             console.warn('Failed to parse notes JSON:', err);
             generalNotes = notes;
           }
         } else {
-          noContesto = notes.includes('{{NC}}');
-          generalNotes = notes.replace('{{NC}}', '').trim();
+          noContesto = typeof notes === 'string' && notes.includes('{{NC}}');
+          generalNotes = typeof notes === 'string' ? notes.replace('{{NC}}', '').trim() : '';
         }
 
         return {
@@ -66,10 +79,11 @@ export class Database {
           no_contesto: noContesto,
           notas: generalNotes,
           followUpHistory: history,
-          ruc: e.ruc || pRuc || '',
-          ciudad: e.ciudad || pCiudad || '',
+          // Prioritize values from JSON (new source) over columns (legacy/stale)
+          ruc: pRuc || e.ruc || '',
+          ciudad: pCiudad || e.ciudad || '',
           logo_url: e.logo_url || '',
-          pdf_url: e.pdf_url || '' // Fallback to column if exists (unlikely given error) or empty
+          pdf_url: pPdfUrl || e.pdf_url || ''
         };
       });
 
