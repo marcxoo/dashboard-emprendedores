@@ -5,6 +5,8 @@ import X from 'lucide-react/dist/esm/icons/x';
 import AlignLeft from 'lucide-react/dist/esm/icons/align-left';
 import CheckSquare from 'lucide-react/dist/esm/icons/check-square';
 import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
+import ChevronLeft from 'lucide-react/dist/esm/icons/chevron-left';
+import Hash from 'lucide-react/dist/esm/icons/hash';
 import Settings from 'lucide-react/dist/esm/icons/settings';
 import Calendar from 'lucide-react/dist/esm/icons/calendar';
 import Clock from 'lucide-react/dist/esm/icons/clock';
@@ -28,7 +30,12 @@ import Link from 'lucide-react/dist/esm/icons/link';
 import Pencil from 'lucide-react/dist/esm/icons/pencil';
 import FileDown from 'lucide-react/dist/esm/icons/file-down';
 import Table from 'lucide-react/dist/esm/icons/table';
+import Search from 'lucide-react/dist/esm/icons/search';
+import Filter from 'lucide-react/dist/esm/icons/filter';
+import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
+import Mail from 'lucide-react/dist/esm/icons/mail';
 import MoreVertical from 'lucide-react/dist/esm/icons/more-vertical';
+import Send from 'lucide-react/dist/esm/icons/send';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { useData } from '../context/DataContext';
@@ -76,6 +83,17 @@ const SurveyDescription = ({ description }) => {
 };
 
 function SurveyEventDashboard() {
+    // Custom styles for animations
+    const customStyles = `
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.05); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 2s infinite ease-in-out;
+        }
+    `;
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [view, setView] = useState('list'); // 'list' | 'create'
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -124,6 +142,18 @@ function SurveyEventDashboard() {
     const [localFolders, setLocalFolders] = useState([]); // Support for empty folders
     const [isRenamingFolder, setIsRenamingFolder] = useState(false);
     const [tempFolderName, setTempFolderName] = useState('');
+
+    // Reminder State
+    const [selectedResponses, setSelectedResponses] = useState(new Set());
+    const [reminderTemplate, setReminderTemplate] = useState('taller_rentabilidad');
+    const [customSubject, setCustomSubject] = useState('');
+    const [customBody, setCustomBody] = useState('');
+
+    // Results View State
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterBy, setFilterBy] = useState('all'); // 'all', 'with_email', 'without_email'
+    const [currentPage, setCurrentPage] = useState(1);
+    const ROWS_PER_PAGE = 15;
 
     // Derived Folders
     const folders = [...new Set([
@@ -621,8 +651,121 @@ function SurveyEventDashboard() {
         document.body.removeChild(link);
     };
 
+    // Reminder Logic
+    const getMessageContent = (survey, response) => {
+        let subject = "";
+        let body = "";
+
+        // Try to get name regardless of field case
+        const name =
+            response.answers['Nombre Completo'] ||
+            response.answers['Nombres'] ||
+            response.answers['Nombre'] ||
+            'Emprendedor';
+
+        if (reminderTemplate === 'taller_rentabilidad') {
+            subject = "[INVITACION]: Taller Práctico de Costos y Fijación del Precio Ideal";
+            body = `Hola ${name} 👋,\n\nEsperamos que te encuentres excelente.\n\nTe escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller: RENTABILIDAD GARANTIZADA: Taller Práctico de Costos y Fijación del Precio Ideal\n\nDirigido a emprendedores que buscan calcular costos y fijar precios rentables y sostenibles.\n\n📝 Detalles del Taller:\n📅 Fecha: Martes, 20 de Enero 2026\n⏰ Hora: 10:00 - 13:00\n📍 Lugar: UNEMI - Bloque H, Aula 106\n👩‍🏫 Capacitadora: Msc. Dolores Mieles\n🧠 Modalidad: Presencial\n⚠️ Nota: Este es un taller práctico que se realiza en aula con computadoras. Se requiere manejo básico de herramientas digitales.\n\n🚨 Cupos limitados, no te quedes fuera y asegura tu participación.\n\n¡No te pierdas esta oportunidad de llevar tu emprendimiento al siguiente nivel!\n\nSaludos,\nEquipo Emprendimiento UNEMI`;
+        } else if (reminderTemplate === 'recordatorio_taller') {
+            subject = "📢 RECORDATORIO: Manual del Crédito Emprendedor - Mañana";
+            body = `Estimado/a ${name},\n\nReciba un cordial saludo.\n\nLe escribimos desde la Coordinación de Emprendimiento de Universidad Estatal de Milagro (UNEMI) para recordarle que el día de mañana se llevará a cabo el taller al cual usted se registró, por lo que esperamos contar con su puntual asistencia.\n\nDetalles del Taller\n📌 Nombre: Manual del Crédito Emprendedor: Cómo obtener el capital para tu negocio\n📅 Fecha: Jueves, 19 de febrero de 2026\n⏰ Hora: 11:00 - 13:00\n📍 Lugar: UNEMI – Bloque V, Salón Auditorio\n🧠 Modalidad: Presencial\n\n🔔 Importante:\nDurante este taller se abordarán aspectos clave sobre el acceso al crédito, requisitos financieros y alternativas de financiamiento. Se recomienda llegar con puntualidad para aprovechar al máximo la jornada.\n\nSu participación es fundamental para el correcto desarrollo de la actividad.\n\nAtentamente,\nCoordinación de Emprendimiento\nUNEMI`;
+        } else {
+            subject = customSubject || `Información sobre: ${survey.title}`;
+            body = customBody || `Hola ${name},\n\nTe contactamos respecto a tu registro en el evento "${survey.title}"...`;
+        }
+
+        return { subject, body };
+    };
+
+    const handleIndividualReminder = (survey, response) => {
+        const email = response.answers['Correo Electrónico'] || response.answers['Email'] || response.answers['Correo'];
+        if (!email) {
+            showToast("No se encontró correo electrónico para este registro", "error");
+            return;
+        }
+
+        const { subject, body } = getMessageContent(survey, response);
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.open(gmailUrl, '_blank');
+        showToast("Abriendo Gmail...", "success");
+    };
+
+    const handleSmartReminder = async (survey) => {
+        if (selectedResponses.size === 0) {
+            showToast("Selecciona al menos un destinatario", "warning");
+            return;
+        }
+
+        const recipients = survey.responses.filter(r => selectedResponses.has(r.id));
+        const emails = recipients
+            .map(r => r.answers['Correo Electrónico'] || r.answers['Email'] || r.answers['Correo'] || r.answers['Correo electrónico'])
+            .filter(e => e && e.includes('@'));
+
+        if (emails.length === 0) {
+            showToast("Ninguno de los seleccionados tiene correo válido", "error");
+            return;
+        }
+
+        let subject, body;
+        if (reminderTemplate === 'taller_rentabilidad') {
+            subject = "[INVITACION]: Taller Práctico de Costos y Fijación del Precio Ideal";
+            body = `Hola Emprendedor 👋,\n\nEsperamos que te encuentres excelente.\n\nTe escribimos desde la Coordinación de Emprendimiento de UNEMI para invitarte al taller...`;
+        } else if (reminderTemplate === 'recordatorio_taller') {
+            subject = "📢 RECORDATORIO: Manual del Crédito Emprendedor - Mañana";
+            body = `Estimado/a Emprendedor/a,\n\nReciba un cordial saludo.\n\nLe escribimos desde la Coordinación de Emprendimiento de Universidad Estatal de Milagro (UNEMI) para recordarle que el día de mañana se llevará a cabo el taller al cual usted se registró, por lo que esperamos contar con su puntual asistencia.\n\nDetalles del Taller\n📌 Nombre: Manual del Crédito Emprendedor: Cómo obtener el capital para tu negocio\n📅 Fecha: Jueves, 19 de febrero de 2026\n⏰ Hora: 11:00 - 13:00\n📍 Lugar: UNEMI – Bloque V, Salón Auditorio\n🧠 Modalidad: Presencial\n\n🔔 Importante:\nDurante este taller se abordarán aspectos clave sobre el acceso al crédito, requisitos financieros y alternativas de financiamiento. Se recomienda llegar con puntualidad para aprovechar al máximo la jornada.\n\nSu participación es fundamental para el correcto desarrollo de la actividad.\n\nAtentamente,\nCoordinación de Emprendimiento\nUNEMI`;
+        } else {
+            subject = customSubject || `Información sobre: ${survey.title}`;
+            body = customBody || `Hola,\n\nTe contactamos respecto a tu registro en el evento "${survey.title}"...`;
+        }
+
+        const bcc = emails.join(',');
+
+        // Always copy emails to clipboard first
+        try {
+            await navigator.clipboard.writeText(bcc);
+        } catch (err) {
+            console.error('Clipboard error:', err);
+        }
+
+        // If few emails, include in URL directly; otherwise open Gmail without BCC and let user paste
+        if (emails.length <= 15) {
+            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&bcc=${encodeURIComponent(bcc)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.open(gmailUrl, '_blank');
+            showToast(`✅ Abriendo Gmail con ${emails.length} destinatarios`, "success");
+        } else {
+            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.open(gmailUrl, '_blank');
+            showToast(`📋 ${emails.length} correos copiados al portapapeles. Pégalos en el campo CCO de Gmail.`, "info");
+        }
+
+        setSelectedResponses(new Set());
+    };
+
+    const toggleSelection = (id) => {
+        const newSet = new Set(selectedResponses);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+        } else {
+            newSet.add(id);
+        }
+        setSelectedResponses(newSet);
+    };
+
+    const handleSelectAll = (ids) => {
+        const allFilteredSelected = ids.every(id => selectedResponses.has(id));
+        if (allFilteredSelected) {
+            const newSet = new Set(selectedResponses);
+            ids.forEach(id => newSet.delete(id));
+            setSelectedResponses(newSet);
+        } else {
+            const newSet = new Set([...selectedResponses, ...ids]);
+            setSelectedResponses(newSet);
+        }
+    };
+
     return (
         <div className="flex min-h-screen bg-[#0F172A] selection:bg-indigo-500/30 selection:text-indigo-200 font-sans text-slate-100">
+            <style>{customStyles}</style>
             {/* Premium Background */}
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 blur-[120px]"></div>
@@ -678,10 +821,11 @@ function SurveyEventDashboard() {
                             ? 'bg-indigo-500/10 text-white shadow-lg shadow-indigo-900/20 border border-indigo-500/20'
                             : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'}`}
                     >
+                        {view === 'list' && !activeFolder && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full shadow-[2px_0_8px_rgba(99,102,241,0.5)]" />}
                         <LayoutGrid size={18} className={`transition-transform group-hover:scale-110 ${view === 'list' && !activeFolder ? 'text-indigo-400' : 'text-slate-500 group-hover:text-indigo-400'}`} />
                         <span className="font-semibold text-sm tracking-wide">Mis Formularios</span>
                         {customSurveys.length > 0 && (
-                            <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${view === 'list' && !activeFolder ? 'bg-indigo-500 text-white' : 'bg-white/10 text-slate-400'}`}>
+                            <span className={`ml-auto text-[10px] font-bold px-2.5 py-0.5 rounded-full ${view === 'list' && !activeFolder ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'bg-white/10 text-slate-400'}`}>
                                 {customSurveys.length}
                             </span>
                         )}
@@ -693,6 +837,7 @@ function SurveyEventDashboard() {
                             ? 'bg-indigo-500/10 text-white shadow-lg shadow-indigo-900/20 border border-indigo-500/20'
                             : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'}`}
                     >
+                        {view === 'create' && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full shadow-[2px_0_8px_rgba(99,102,241,0.5)]" />}
                         <Plus size={18} className={`transition-transform group-hover:rotate-90 ${view === 'create' ? 'text-indigo-400' : 'text-slate-500 group-hover:text-indigo-400'}`} />
                         <span className="font-semibold text-sm tracking-wide">Crear Nuevo</span>
                     </button>
@@ -763,12 +908,12 @@ function SurveyEventDashboard() {
                 {/* User Profile */}
                 <div className="p-4 bg-black/20 backdrop-blur-md border-t border-white/5">
                     <div className="flex items-center gap-3 mb-4 px-2">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-slate-700 to-slate-600 flex items-center justify-center border border-white/10 shadow-inner">
-                            <Users size={16} className="text-slate-300" />
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center border border-white/20 shadow-lg shadow-indigo-500/20">
+                            <span className="font-black text-xs text-white">{(user?.name || 'A').charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="min-w-0">
                             <p className="font-bold text-sm text-white truncate">{user?.name || 'Admin User'}</p>
-                            <p className="text-[10px] font-medium text-slate-500 truncate">Administrador</p>
+                            <p className="text-[10px] font-medium text-slate-500 truncate">{user?.email || 'Administrador'}</p>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -1166,41 +1311,169 @@ function SurveyEventDashboard() {
                         if (!survey) return null;
                         const responses = survey.responses || [];
 
+                        // Filtering Logic
+                        const filteredResponses = responses.filter(r => {
+                            const searchLower = searchTerm.toLowerCase();
+                            const matchesSearch =
+                                (r.answers['Nombre Completo']?.toLowerCase().includes(searchLower)) ||
+                                (r.answers['Correo Electrónico']?.toLowerCase().includes(searchLower)) ||
+                                (r.answers['Email']?.toLowerCase().includes(searchLower)) ||
+                                (Object.values(r.answers).some(val => String(val).toLowerCase().includes(searchLower)));
+
+                            if (!matchesSearch) return false;
+
+                            if (filterBy === 'with_email') {
+                                return (r.answers['Correo Electrónico'] || r.answers['Email'] || r.answers['Correo'])?.includes('@');
+                            }
+                            if (filterBy === 'without_email') {
+                                return !(r.answers['Correo Electrónico'] || r.answers['Email'] || r.answers['Correo'])?.includes('@');
+                            }
+                            return true;
+                        });
+
+                        // Stats Calculation
+                        const totalResponses = responses.length;
+                        const todayResponses = responses.filter(r => {
+                            const date = new Date(r.created_at || r.createdAt || r.submittedAt);
+                            const today = new Date();
+                            return date.getDate() === today.getDate() &&
+                                date.getMonth() === today.getMonth() &&
+                                date.getFullYear() === today.getFullYear();
+                        }).length;
+                        const withEmailCount = responses.filter(r =>
+                            (r.answers['Correo Electrónico'] || r.answers['Email'] || r.answers['Correo'])?.includes('@')
+                        ).length;
+
                         return (
                             <div className="space-y-8 animate-fade-in pb-12">
-                                <div className="bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/5 shadow-2xl shadow-black/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-transparent opacity-50"></div>
-
-                                    <div className="min-w-0 flex-1 relative z-10">
-                                        <button onClick={() => setViewingResultsId(null)} className="text-slate-400 hover:text-white text-sm font-bold mb-4 flex items-center gap-2 transition-colors group">
-                                            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-indigo-500/20 group-hover:text-indigo-400 transition-all">
-                                                <ArrowLeft size={16} />
+                                {/* Header & Stats */}
+                                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                                    {/* Main Info Card */}
+                                    <div className="lg:col-span-2 bg-slate-800/40 backdrop-blur-xl rounded-[2rem] p-8 border border-white/5 shadow-2xl relative overflow-hidden group">
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-transparent opacity-50"></div>
+                                        <div className="relative z-10">
+                                            <button onClick={() => setViewingResultsId(null)} className="text-slate-400 hover:text-white text-sm font-bold mb-6 flex items-center gap-2 transition-colors group/btn">
+                                                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover/btn:bg-indigo-500/20 group-hover/btn:text-indigo-400 transition-all">
+                                                    <ArrowLeft size={16} />
+                                                </div>
+                                                Volver a Formularios
+                                            </button>
+                                            <div className="flex flex-wrap items-center gap-3 mb-3">
+                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${survey.survey_type === 'raffle' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                                    survey.survey_type === 'invitation' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                        'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                                                    }`}>
+                                                    {survey.survey_type === 'raffle' ? '🎰 Sorteo' : survey.survey_type === 'invitation' ? '📩 Invitación' : '📋 Formulario'}
+                                                </span>
+                                                <button
+                                                    onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/forms/${survey.id}`); showToast('Enlace copiado al portapapeles', 'success'); }}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-indigo-500/10 border border-white/10 hover:border-indigo-500/30 text-slate-400 hover:text-indigo-400 text-[10px] font-bold uppercase tracking-widest transition-all group/link"
+                                                >
+                                                    <Link size={11} className="group-hover/link:rotate-12 transition-transform" />
+                                                    Copiar Enlace
+                                                </button>
                                             </div>
-                                            Volver a Formularios
-                                        </button>
-                                        <h1 className="text-3xl font-black text-white break-words leading-tight tracking-tight mb-2">{survey.title}</h1>
-                                        <div className="flex items-center gap-2 text-slate-400 font-medium">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-                                            {responses.length} respuestas recibidas
+                                            <h1 className="text-2xl md:text-3xl font-black text-white leading-tight mb-2">{survey.title}</h1>
+                                            {survey.description && (
+                                                <p className="text-sm text-slate-400 mb-3 max-w-2xl leading-relaxed line-clamp-2">{survey.description}</p>
+                                            )}
+                                            <div className="flex items-center gap-2 text-slate-400 text-sm font-medium">
+                                                <Calendar size={14} />
+                                                {survey.eventDate ? new Date(survey.eventDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Fecha no definida'}
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-4 md:mt-0 relative z-10">
+                                    {/* Small Stats Cards */}
+                                    <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                        <div className="bg-slate-800/40 backdrop-blur-xl rounded-2xl p-5 border border-white/5 flex flex-col justify-center items-center group/card transition-all hover:bg-slate-800/60 hover:scale-[1.02] hover:border-indigo-500/20">
+                                            <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-2 group-hover/card:bg-indigo-500 group-hover/card:text-white transition-all duration-300">
+                                                <Users size={20} />
+                                            </div>
+                                            <div className="text-3xl font-black text-white group-hover/card:scale-110 transition-transform duration-300">{totalResponses}</div>
+                                            <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Total</div>
+                                        </div>
+                                        <div className="bg-slate-800/40 backdrop-blur-xl rounded-2xl p-5 border border-white/5 flex flex-col justify-center items-center group/card transition-all hover:bg-slate-800/60 hover:scale-[1.02] hover:border-emerald-500/20">
+                                            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2 group-hover/card:bg-emerald-500 group-hover/card:text-white transition-all duration-300">
+                                                <Calendar size={20} />
+                                            </div>
+                                            <div className="text-3xl font-black text-white group-hover/card:scale-110 transition-transform duration-300">{todayResponses}</div>
+                                            <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Hoy</div>
+                                        </div>
+                                        <div className="bg-slate-800/40 backdrop-blur-xl rounded-2xl p-5 border border-white/5 flex flex-col justify-center items-center group/card transition-all hover:bg-slate-800/60 hover:scale-[1.02] hover:border-blue-500/20">
+                                            <div className="w-10 h-10 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-2 group-hover/card:bg-blue-500 group-hover/card:text-white transition-all duration-300">
+                                                <Mail size={20} />
+                                            </div>
+                                            <div className="text-3xl font-black text-white group-hover/card:scale-110 transition-transform duration-300">{withEmailCount}</div>
+                                            <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Con Email</div>
+                                        </div>
+                                        <div className="bg-slate-800/40 backdrop-blur-xl rounded-2xl p-5 border border-white/5 flex flex-col justify-center items-center group/card transition-all hover:bg-slate-800/60 hover:scale-[1.02] hover:border-purple-500/20 relative overflow-hidden">
+                                            <div className="w-10 h-10 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-2 group-hover/card:bg-purple-500 group-hover/card:text-white transition-all duration-300">
+                                                <RefreshCw size={20} />
+                                            </div>
+                                            <div className="text-3xl font-black text-white group-hover/card:scale-110 transition-transform duration-300">
+                                                {totalResponses > 0 ? Math.round((todayResponses / totalResponses) * 100) : 0}%
+                                            </div>
+                                            <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Tasa Hoy</div>
+                                            {/* Mini progress ring */}
+                                            <svg className="absolute top-3 right-3 w-6 h-6 opacity-30 group-hover/card:opacity-60 transition-opacity" viewBox="0 0 24 24">
+                                                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-700" />
+                                                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-500"
+                                                    strokeDasharray={`${totalResponses > 0 ? (todayResponses / totalResponses) * 62.8 : 0} 62.8`}
+                                                    strokeLinecap="round" transform="rotate(-90 12 12)" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Toolbar & Actions */}
+                                <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-900/50 p-4 rounded-3xl border border-white/5">
+                                    <div className="flex items-center gap-3 w-full md:w-auto flex-1">
+                                        <div className="relative w-full md:w-96 group">
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                                                <Search size={18} />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={searchTerm}
+                                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                                placeholder="Buscar por nombre, correo..."
+                                                className="w-full bg-black/20 border border-white/10 hover:border-white/20 focus:border-indigo-500/50 rounded-2xl pl-12 pr-4 py-3 text-sm text-white outline-none transition-all placeholder-slate-600"
+                                            />
+                                        </div>
+
+                                        <div className="relative group/filter">
+                                            <select
+                                                value={filterBy}
+                                                onChange={(e) => { setFilterBy(e.target.value); setCurrentPage(1); }}
+                                                className="appearance-none bg-black/20 border border-white/10 hover:border-indigo-500/50 rounded-2xl pl-10 pr-10 py-3 text-sm text-slate-300 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 cursor-pointer transition-all font-bold"
+                                            >
+                                                <option value="all">Filtro: Todos</option>
+                                                <option value="with_email">Filtro: Con Email</option>
+                                                <option value="without_email">Filtro: Sin Email</option>
+                                            </select>
+                                            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none group-hover/filter:text-indigo-400 transition-colors">
+                                                <Filter size={16} />
+                                            </div>
+                                            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none group-hover/filter:text-indigo-400 transition-colors">
+                                                <ChevronRight className="rotate-90" size={14} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2 w-full md:w-auto">
                                         <button
                                             onClick={() => handleDownloadCSV(survey)}
-                                            className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-900/20 hover:shadow-emerald-900/40 hover:-translate-y-0.5"
+                                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 hover:text-emerald-300 border border-emerald-600/20 rounded-xl font-bold transition-all text-xs uppercase tracking-wide"
                                         >
-                                            <FileDown size={20} className="flex-shrink-0" />
-                                            <span>Descargar Excel</span>
+                                            <FileDown size={16} />
+                                            Excel
                                         </button>
                                         <button
                                             onClick={async () => {
                                                 try {
-                                                    // Headers
                                                     const questions = survey.questions.map(q => q.label);
                                                     const headers = ['Fecha', ...questions];
-
-                                                    // Rows
                                                     const rows = survey.responses.map(response => {
                                                         const date = new Date(response.created_at || response.createdAt || response.submittedAt).toLocaleString();
                                                         const answers = survey.questions.map(q => {
@@ -1210,13 +1483,10 @@ function SurveyEventDashboard() {
                                                         });
                                                         return [date, ...answers];
                                                     });
-
-                                                    // TSV String (Tab Separated for easy pasting)
                                                     const tsvContent = [
                                                         headers.join('\t'),
                                                         ...rows.map(row => row.map(cell => String(cell).replace(/\t/g, ' ')).join('\t'))
                                                     ].join('\n');
-
                                                     await navigator.clipboard.writeText(tsvContent);
                                                     window.open('https://sheets.new', '_blank');
                                                     showToast('¡Datos copiados! Pega (Ctrl+V) en la hoja de cálculo.', 'success');
@@ -1225,19 +1495,105 @@ function SurveyEventDashboard() {
                                                     showToast('Error al copiar datos', 'error');
                                                 }
                                             }}
-                                            className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-4 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl font-bold transition-all shadow-lg shadow-black/20 hover:-translate-y-0.5"
+                                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 rounded-xl font-bold transition-all text-xs uppercase tracking-wide"
                                         >
-                                            <Table size={20} className="flex-shrink-0" />
-                                            <span>Abrir en Sheets</span>
+                                            <Table size={16} />
+                                            Sheets
                                         </button>
                                     </div>
                                 </div>
+
+                                {selectedResponses.size > 0 && (
+                                    <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 shadow-lg shadow-indigo-500/5 space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                                        {/* Top Row: Selection Info + Actions */}
+                                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center text-sm font-bold shadow-lg shadow-indigo-500/40">
+                                                    {selectedResponses.size}
+                                                </div>
+                                                <div>
+                                                    <span className="text-sm font-bold text-white">
+                                                        {selectedResponses.size === filteredResponses.length ? 'Todos seleccionados' : `${selectedResponses.size} seleccionados`}
+                                                    </span>
+                                                    <span className="text-xs text-slate-400 ml-2">de {filteredResponses.length} registros</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                {selectedResponses.size < filteredResponses.length && (
+                                                    <button
+                                                        onClick={() => setSelectedResponses(new Set(filteredResponses.map(r => r.id)))}
+                                                        className="px-3 py-1.5 rounded-lg text-[10px] font-black text-indigo-400 hover:text-white hover:bg-indigo-500/20 transition-all uppercase tracking-widest border border-indigo-500/20"
+                                                    >
+                                                        Seleccionar todos ({filteredResponses.length})
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => setSelectedResponses(new Set())}
+                                                    className="px-3 py-1.5 rounded-lg text-[10px] font-black text-slate-400 hover:text-white hover:bg-white/10 transition-all uppercase tracking-widest border border-white/10"
+                                                >
+                                                    Limpiar
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Bottom Row: Reminder Controls */}
+                                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3 border-t border-indigo-500/10">
+                                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                                                <Send size={14} className="text-indigo-400" />
+                                                <span className="font-bold uppercase tracking-wider">Recordatorio Masivo</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-1 flex-wrap">
+                                                <div className="relative group/select flex-1 min-w-[180px]">
+                                                    <select
+                                                        value={reminderTemplate}
+                                                        onChange={(e) => setReminderTemplate(e.target.value)}
+                                                        className="w-full bg-black/40 border border-white/10 hover:border-indigo-500/50 text-white text-xs rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none pr-8 font-bold"
+                                                    >
+                                                        <option value="taller_rentabilidad">Plantilla: Taller Rentabilidad</option>
+                                                        <option value="recordatorio_taller">Plantilla: Recordatorio Mañana</option>
+                                                        <option value="custom">Mensaje Personalizado</option>
+                                                    </select>
+                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+                                                        <ChevronRight className="rotate-90" size={12} />
+                                                    </div>
+                                                </div>
+                                                {reminderTemplate === 'custom' && (
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Asunto personalizado..."
+                                                        value={customSubject}
+                                                        onChange={(e) => setCustomSubject(e.target.value)}
+                                                        className="bg-black/40 border border-white/10 hover:border-indigo-500/50 text-white text-xs rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 w-48 transition-all font-medium"
+                                                    />
+                                                )}
+                                                <button
+                                                    onClick={() => handleSmartReminder(survey)}
+                                                    className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95 whitespace-nowrap"
+                                                >
+                                                    <Send size={14} />
+                                                    Enviar a {selectedResponses.size}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] border border-white/5 shadow-2xl shadow-black/20 overflow-hidden">
                                     <div className="overflow-x-auto custom-scrollbar">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
                                                 <tr className="bg-black/20 border-b border-white/5 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    <th className="p-6 w-10">
+                                                        <div className="flex items-center justify-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                className="rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-500 cursor-pointer transition-all hover:scale-110"
+                                                                checked={filteredResponses.length > 0 && filteredResponses.every(r => selectedResponses.has(r.id))}
+                                                                onChange={() => handleSelectAll(filteredResponses.map(r => r.id))}
+                                                            />
+                                                        </div>
+                                                    </th>
+                                                    <th className="p-6 w-12 text-center"><Hash size={12} /></th>
                                                     <th className="p-6 whitespace-nowrap">Fecha</th>
                                                     {survey.questions.map(q => (
                                                         <th key={q.id} className="p-6 whitespace-nowrap min-w-[200px]">{q.label}</th>
@@ -1248,62 +1604,152 @@ function SurveyEventDashboard() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-white/5">
-                                                {responses.length === 0 ? (
-                                                    <tr>
-                                                        <td colSpan={survey.questions.length + 2} className="p-16 text-center text-slate-500 font-medium">
-                                                            <div className="flex flex-col items-center gap-4">
-                                                                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-slate-600">
-                                                                    <Inbox size={32} />
-                                                                </div>
-                                                                <p>Aún no hay respuestas para mostrar.</p>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ) : (
-                                                    responses.map((r, idx) => {
-                                                        const dateVal = r.created_at || r.createdAt || r.submittedAt;
-                                                        return (
-                                                            <tr key={idx} className="group hover:bg-white/5 transition-colors duration-300">
-                                                                <td className="p-6 whitespace-nowrap text-slate-400 font-bold text-xs">
-                                                                    {dateVal ? (
-                                                                        <div className="flex flex-col gap-0.5">
-                                                                            <span className="text-slate-200">{new Date(dateVal).toLocaleDateString()}</span>
-                                                                            <span className="text-slate-500 text-[10px] font-mono">{new Date(dateVal).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                                        </div>
-                                                                    ) : 'Fecha inválida'}
-                                                                </td>
-                                                                {survey.questions.map(q => (
-                                                                    <td key={q.id} className="p-6 max-w-[300px] truncate text-sm font-medium text-slate-300 group-hover:text-white transition-colors" title={Array.isArray(r.answers[q.label]) ? r.answers[q.label].join(', ') : r.answers[q.label]}>
-                                                                        {Array.isArray(r.answers[q.label])
-                                                                            ? r.answers[q.label].join(', ')
-                                                                            : r.answers[q.label]}
-                                                                    </td>
-                                                                ))}
-                                                                <td className="p-4 text-right whitespace-nowrap sticky right-0 z-10 bg-[#0f1523] group-hover:bg-[#131b2e] border-l border-white/5 transition-colors">
-                                                                    <div className="flex items-center justify-end gap-2">
-                                                                        <button
-                                                                            onClick={() => handleEditResponse(r)}
-                                                                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all hover:scale-110 active:scale-95"
-                                                                            title="Editar"
-                                                                        >
-                                                                            <Pencil size={16} strokeWidth={2} />
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => handleDeleteResponse(r.id)}
-                                                                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all hover:scale-110 active:scale-95"
-                                                                            title="Eliminar"
-                                                                        >
-                                                                            <Trash2 size={16} strokeWidth={2} />
-                                                                        </button>
+                                                {(() => {
+                                                    const totalPages = Math.ceil(filteredResponses.length / ROWS_PER_PAGE);
+                                                    const safePage = Math.min(currentPage, totalPages || 1);
+                                                    const startIdx = (safePage - 1) * ROWS_PER_PAGE;
+                                                    const paginatedResponses = filteredResponses.slice(startIdx, startIdx + ROWS_PER_PAGE);
+                                                    return filteredResponses.length === 0 ? (
+                                                        <tr>
+                                                            <td colSpan={survey.questions.length + 3} className="p-16 text-center text-slate-500 font-medium">
+                                                                <div className="flex flex-col items-center gap-4">
+                                                                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-slate-600">
+                                                                        <Inbox size={32} />
                                                                     </div>
-                                                                </td>
-                                                            </tr>
-                                                        )
-                                                    })
-                                                )}
+                                                                    <p className="text-xl">No se encontraron resultados</p>
+                                                                    {searchTerm && <p className="text-sm text-slate-500">Intenta con otros términos de búsqueda</p>}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ) : (
+                                                        paginatedResponses.map((r, idx) => {
+                                                            const dateVal = r.created_at || r.createdAt || r.submittedAt;
+                                                            const isSelected = selectedResponses.has(r.id);
+                                                            const globalIndex = startIdx + idx + 1;
+                                                            return (
+                                                                <tr key={r.id || idx} className={`group transition-all duration-300 relative ${isSelected ? 'bg-indigo-500/10 hover:bg-indigo-500/15' : 'hover:bg-white/[0.03]'}`}>
+                                                                    <td className="p-6 relative">
+                                                                        {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 animate-in fade-in duration-500 shadow-[2px_0_10px_rgba(99,102,241,0.5)]"></div>}
+                                                                        <div className="flex items-center justify-center">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                className="rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-500 cursor-pointer transition-all"
+                                                                                checked={isSelected}
+                                                                                onChange={() => toggleSelection(r.id)}
+                                                                            />
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-6 text-center">
+                                                                        <span className="text-xs font-mono font-bold text-slate-500">{globalIndex}</span>
+                                                                    </td>
+                                                                    <td className="p-6 whitespace-nowrap text-slate-400 font-bold text-xs">
+                                                                        {dateVal ? (
+                                                                            <div className="flex flex-col gap-0.5">
+                                                                                <span className="text-slate-200">{new Date(dateVal).toLocaleDateString()}</span>
+                                                                                <span className="text-slate-500 text-[10px] font-mono">{new Date(dateVal).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                                            </div>
+                                                                        ) : 'Fecha inválida'}
+                                                                    </td>
+                                                                    {survey.questions.map(q => (
+                                                                        <td key={q.id} className="p-6 max-w-[300px] truncate text-sm font-medium text-slate-300 group-hover:text-white transition-colors" title={Array.isArray(r.answers[q.label]) ? r.answers[q.label].join(', ') : r.answers[q.label]}>
+                                                                            {Array.isArray(r.answers[q.label])
+                                                                                ? r.answers[q.label].join(', ')
+                                                                                : r.answers[q.label]}
+                                                                        </td>
+                                                                    ))}
+                                                                    <td className="p-4 text-right whitespace-nowrap sticky right-0 z-10 bg-[#0f1523] group-hover:bg-[#131b2e] border-l border-white/5 transition-colors">
+                                                                        <div className="flex items-center justify-end gap-2">
+                                                                            <button
+                                                                                onClick={() => handleIndividualReminder(survey, r)}
+                                                                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:scale-110 transition-all"
+                                                                                title="Enviar Recordatorio Individual"
+                                                                            >
+                                                                                <Send size={16} strokeWidth={2} />
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleEditResponse(r)}
+                                                                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all hover:scale-110 active:scale-95"
+                                                                                title="Editar"
+                                                                            >
+                                                                                <Pencil size={16} strokeWidth={2} />
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleDeleteResponse(r.id)}
+                                                                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all hover:scale-110 active:scale-95"
+                                                                                title="Eliminar"
+                                                                            >
+                                                                                <Trash2 size={16} strokeWidth={2} />
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            )
+                                                        })
+                                                    );
+                                                })()}
                                             </tbody>
                                         </table>
                                     </div>
+
+                                    {/* Pagination Bar */}
+                                    {filteredResponses.length > ROWS_PER_PAGE && (() => {
+                                        const totalPages = Math.ceil(filteredResponses.length / ROWS_PER_PAGE);
+                                        const safePage = Math.min(currentPage, totalPages);
+                                        const startIdx = (safePage - 1) * ROWS_PER_PAGE;
+                                        const endIdx = Math.min(startIdx + ROWS_PER_PAGE, filteredResponses.length);
+                                        const getPageNumbers = () => {
+                                            const pages = [];
+                                            if (totalPages <= 7) {
+                                                for (let i = 1; i <= totalPages; i++) pages.push(i);
+                                            } else {
+                                                pages.push(1);
+                                                if (safePage > 3) pages.push('...');
+                                                for (let i = Math.max(2, safePage - 1); i <= Math.min(totalPages - 1, safePage + 1); i++) pages.push(i);
+                                                if (safePage < totalPages - 2) pages.push('...');
+                                                pages.push(totalPages);
+                                            }
+                                            return pages;
+                                        };
+                                        return (
+                                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-8 py-5 border-t border-white/5 bg-black/10">
+                                                <div className="text-xs font-bold text-slate-500">
+                                                    Mostrando <span className="text-slate-300">{startIdx + 1}–{endIdx}</span> de <span className="text-slate-300">{filteredResponses.length}</span> registros
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                        disabled={safePage === 1}
+                                                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                                    >
+                                                        <ChevronLeft size={16} />
+                                                    </button>
+                                                    {getPageNumbers().map((page, i) => (
+                                                        page === '...' ? (
+                                                            <span key={`dot-${i}`} className="w-9 h-9 flex items-center justify-center text-slate-600 text-xs">···</span>
+                                                        ) : (
+                                                            <button
+                                                                key={page}
+                                                                onClick={() => setCurrentPage(page)}
+                                                                className={`w-9 h-9 flex items-center justify-center rounded-xl text-xs font-bold transition-all ${safePage === page
+                                                                    ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                                                                    : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
+                                                                    }`}
+                                                            >
+                                                                {page}
+                                                            </button>
+                                                        )
+                                                    ))}
+                                                    <button
+                                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                        disabled={safePage === totalPages}
+                                                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                                    >
+                                                        <ChevronRight size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         );
@@ -1483,6 +1929,22 @@ function SurveyEventDashboard() {
 
                                                                         <h3 className="text-xl font-bold text-white mb-2 leading-tight group-hover:text-indigo-400 transition-colors">{survey.title}</h3>
                                                                         <SurveyDescription description={survey.description} />
+
+                                                                        {/* Event Countdown Pill */}
+                                                                        {survey.eventDate && (() => {
+                                                                            const now = new Date(); now.setHours(0, 0, 0, 0);
+                                                                            const eventDate = new Date(survey.eventDate + 'T00:00:00');
+                                                                            const diffDays = Math.round((eventDate - now) / (1000 * 60 * 60 * 24));
+                                                                            return (
+                                                                                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider mt-3 w-fit border ${diffDays > 0 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                                                    diffDays === 0 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse' :
+                                                                                        'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                                                                                    }`}>
+                                                                                    <Clock size={10} />
+                                                                                    {diffDays > 0 ? `Faltan ${diffDays} días` : diffDays === 0 ? '¡Hoy!' : `Hace ${Math.abs(diffDays)} días`}
+                                                                                </div>
+                                                                            );
+                                                                        })()}
 
                                                                         {/* Stats - Improved Contrast */}
                                                                         <div className="grid grid-cols-2 gap-3 mt-auto">
@@ -1735,6 +2197,22 @@ function SurveyEventDashboard() {
 
                                                         <h3 className="text-xl font-bold text-white mb-2 leading-tight group-hover:text-indigo-400 transition-colors">{survey.title}</h3>
                                                         <SurveyDescription description={survey.description} />
+
+                                                        {/* Event Countdown Pill */}
+                                                        {survey.eventDate && (() => {
+                                                            const now = new Date(); now.setHours(0, 0, 0, 0);
+                                                            const eventDate = new Date(survey.eventDate + 'T00:00:00');
+                                                            const diffDays = Math.round((eventDate - now) / (1000 * 60 * 60 * 24));
+                                                            return (
+                                                                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider mt-3 w-fit border ${diffDays > 0 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                                    diffDays === 0 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse' :
+                                                                        'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                                                                    }`}>
+                                                                    <Clock size={10} />
+                                                                    {diffDays > 0 ? `Faltan ${diffDays} días` : diffDays === 0 ? '¡Hoy!' : `Hace ${Math.abs(diffDays)} días`}
+                                                                </div>
+                                                            );
+                                                        })()}
 
                                                         {/* Progress Section - Improved Contrast */}
                                                         <div className="bg-slate-900/50 rounded-2xl p-5 border border-white/10 group-hover:border-white/20 transition-colors mt-auto">

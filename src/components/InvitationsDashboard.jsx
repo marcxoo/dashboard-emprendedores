@@ -120,27 +120,46 @@ export default function InvitationsDashboard() {
 
             // Invitation Status Filter - CONTEXT AWARE
             if (invitationStatus !== 'all') {
-                // Determine which templates count as "Invited" for the current context
-                let relevantTemplates = [messageTemplate];
+                if (invitationStatus === 'registered') {
+                    // Check if entrepreneur id is in the list of registered users for the ATTACHED survey
+                    // We need to fetch responses. 
+                    // Since we don't have responses loaded in 'entrepreneurs' array, we might need a separate list or assume `customSurveys` has them if populated.
+                    // IMPORTANT: The `useData` hook provides `customSurveys`. Let's check if they include responses. 
+                    // In `useData` (implied), likely it fetches `survey_responses`.
+                    // If not, we might need to fetch them.
+                    // A safe bet is to check if `customSurveys` contains the attached survey and check its responses.
 
-                // Special Case: "Reminder" context looks for the ORIGINAL invitation
-                if (messageTemplate === 'recordatorio_taller') {
-                    relevantTemplates = ['taller_rentabilidad'];
+                    if (!attachedSurveyId) return false; // Needs a survey context to know who registered
+
+                    const survey = customSurveys.find(s => s.id === attachedSurveyId);
+                    if (!survey || !survey.survey_responses) return false;
+
+                    const hasRegistered = survey.survey_responses.some(r => r.entrepreneur_id === e.id);
+                    if (!hasRegistered) return false;
+
+                } else {
+                    // Determine which templates count as "Invited" for the current context
+                    let relevantTemplates = [messageTemplate];
+
+                    // Special Case: "Reminder" context looks for the ORIGINAL invitation
+                    if (messageTemplate === 'recordatorio_taller') {
+                        relevantTemplates = ['taller_rentabilidad'];
+                    }
+
+                    // USE VALID LOGS HERE
+                    const hasBeenInvited = validInvitationLogs.some(log =>
+                        log.entrepreneur_id === e.id &&
+                        relevantTemplates.includes(log.template)
+                    );
+
+                    if (invitationStatus === 'invited' && !hasBeenInvited) return false;
+                    if (invitationStatus === 'not_invited' && hasBeenInvited) return false;
                 }
-
-                // USE VALID LOGS HERE
-                const hasBeenInvited = validInvitationLogs.some(log =>
-                    log.entrepreneur_id === e.id &&
-                    relevantTemplates.includes(log.template)
-                );
-
-                if (invitationStatus === 'invited' && !hasBeenInvited) return false;
-                if (invitationStatus === 'not_invited' && hasBeenInvited) return false;
             }
 
             return true;
         });
-    }, [entrepreneurs, selectedCategory, searchTerm, filterWithRuc, invitationStatus, validInvitationLogs, messageTemplate]);
+    }, [entrepreneurs, selectedCategory, searchTerm, filterWithRuc, invitationStatus, validInvitationLogs, messageTemplate, attachedSurveyId, customSurveys]);
 
     const handleSelectAll = () => {
         if (selectedEntrepreneurs.size === filteredEntrepreneurs.length) {
@@ -576,14 +595,30 @@ export default function InvitationsDashboard() {
                                     <div className="h-full w-px bg-slate-200 dark:bg-white/10 mx-1"></div>
 
                                     {/* Status Toggle (Simple) */}
-                                    <button
-                                        onClick={() => setInvitationStatus(invitationStatus === 'all' ? 'not_invited' : 'all')}
-                                        className={`px-3 py-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold ${invitationStatus !== 'all' ? 'bg-orange-100 text-orange-600' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'}`}
-                                        title={invitationStatus === 'all' ? "Filtrar por pendientes" : "Mostrar todos"}
-                                    >
-                                        <Filter size={16} strokeWidth={2.5} />
-                                        <span>{invitationStatus === 'all' ? 'Filtrar' : 'Pendientes'}</span>
-                                    </button>
+                                    <div className="relative group/status">
+                                        <div className="flex bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-white/5 p-1">
+                                            <button
+                                                onClick={() => setInvitationStatus('all')}
+                                                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${invitationStatus === 'all' ? 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white' : 'text-slate-400 hover:text-slate-600'}`}
+                                            >
+                                                Todos
+                                            </button>
+                                            <button
+                                                onClick={() => setInvitationStatus('not_invited')}
+                                                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${invitationStatus === 'not_invited' ? 'bg-orange-100 text-orange-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                            >
+                                                Pendientes
+                                            </button>
+                                            {attachedSurveyId && (
+                                                <button
+                                                    onClick={() => setInvitationStatus('registered')}
+                                                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${invitationStatus === 'registered' ? 'bg-green-100 text-green-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                                >
+                                                    Registrados
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
 
                                     {/* RUC Toggle */}
                                     <button

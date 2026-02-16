@@ -228,6 +228,48 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// === EMAIL SENDING ENDPOINT (Local Dev) ===
+app.post('/api/send-email', async (req, res) => {
+    try {
+        const { to, subject, html, text, bcc } = req.body;
+        const RESEND_API_KEY = process.env.RESEND_API_KEY;
+
+        if (!RESEND_API_KEY) {
+            return res.status(500).json({ error: 'RESEND_API_KEY not configured in .env' });
+        }
+
+        // Import Resend dynamically
+        const { Resend } = await import('resend');
+        const resend = new Resend(RESEND_API_KEY);
+
+        const emailData = {
+            from: 'Emprendimiento UNEMI <onboarding@resend.dev>', // Use verified domain in prod
+            to: to, // Can be string or array
+            subject: subject,
+            html: html,
+            text: text || ''
+        };
+
+        if (bcc) {
+            emailData.bcc = bcc;
+        }
+
+        const { data, error } = await resend.emails.send(emailData);
+
+        if (error) {
+            console.error('❌ Resend Error:', error);
+            return res.status(400).json({ error: error.message });
+        }
+
+        console.log(`📧 Email sent to: ${Array.isArray(to) ? to.join(', ') : to} ${bcc ? `(BCC: ${bcc.length})` : ''}`);
+        return res.status(200).json({ message: 'Email sent successfully', data });
+
+    } catch (error) {
+        console.error('❌ Server Error sending email:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Iniciar servidor
 const PORT = 3001;
 app.listen(PORT, () => {

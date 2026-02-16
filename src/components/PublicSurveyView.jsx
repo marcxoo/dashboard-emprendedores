@@ -94,9 +94,14 @@ function PublicSurveyView() {
         }
 
         try {
+            // Get empId from query params
+            const params = new URLSearchParams(location.search);
+            const empId = params.get('empId');
+
             const responseData = {
                 survey_id: id,
-                answers: formValues
+                answers: formValues,
+                entrepreneur_id: empId ? parseInt(empId) : null
             };
 
             const { error } = await supabase
@@ -104,6 +109,63 @@ function PublicSurveyView() {
                 .insert([responseData]);
 
             if (error) throw error;
+
+            // --- EMAIL CONFIRMATION LOGIC ---
+            // 1. Try to find an email in the form answers
+            let recipientEmail = null;
+            let recipientName = "Participante";
+
+            // Heuristic to find email and name in form values
+            Object.keys(formValues).forEach(key => {
+                const keyLower = key.toLowerCase();
+                if (keyLower.includes('correo') || keyLower.includes('email')) {
+                    recipientEmail = formValues[key];
+                }
+                if (keyLower.includes('nombre')) {
+                    recipientName = formValues[key];
+                }
+            });
+
+            // 2. If no email in form, rely on entrepreneur email if matched (fallback, maybe not ideal for public open links but good if we assume invited entrepreneurs)
+            // Actually, for public survey, we usually want to email the person who filled it out.
+            // If they didn't provide an email in the form, we can't confirm to them. 
+            // BUT if `empId` is present, maybe we want to notify the entrepreneur? 
+            // Requirement says: "Confirmation email to users upon registration". 
+            // So we MUST find an email in the answers.
+
+            if (recipientEmail && recipientEmail.includes('@')) {
+                const emailHtml = `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h1 style="color: #1d2b4f;">¡Registro Confirmado!</h1>
+                        <p>Hola <strong>${recipientName}</strong>,</p>
+                        <p>Te confirmamos que tu registro para el evento <strong>${survey.title}</strong> ha sido exitoso.</p>
+                        
+                        <div style="background-color: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                            <h3 style="margin-top: 0; color: #f97316;">Detalles del Evento:</h3>
+                            ${survey.eventDate ? `<p><strong>📅 Fecha:</strong> ${new Date(survey.eventDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p>` : ''}
+                            ${survey.eventTime ? `<p><strong>⏰ Hora:</strong> ${survey.eventTime}</p>` : ''}
+                            ${survey.eventLocation ? `<p><strong>📍 Lugar:</strong> ${survey.eventLocation}</p>` : ''}
+                        </div>
+
+                        ${parsedNote ? `<p><strong>Nota:</strong> ${parsedNote}</p>` : ''}
+
+                        <p>¡Te esperamos!</p>
+                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+                        <p style="font-size: 12px; color: #64748b;">Emprendimiento UNEMI</p>
+                    </div>
+                 `;
+
+                // Call our API
+                fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        to: recipientEmail,
+                        subject: `✅ Registro Confirmado: ${survey.title}`,
+                        html: emailHtml
+                    })
+                }).catch(err => console.error("Error sending confirmation email:", err));
+            }
 
             setSubmitted(true);
         } catch (error) {
