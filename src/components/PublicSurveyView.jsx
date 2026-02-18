@@ -404,20 +404,37 @@ function PublicSurveyView() {
                             <img
                                 src="https://i.imgur.com/9VlCMnD.png"
                                 alt="Escuela de Emprendimiento UNEMI"
-                                className="h-16 md:h-20 w-auto object-contain"
+                                className="h-10 md:h-12 w-auto object-contain"
                             />
                             <div className="w-full h-px bg-slate-200"></div>
-                            <div className="flex items-center justify-center gap-8 md:gap-16">
-                                <img
-                                    src="https://i.imgur.com/mltK17L.png"
-                                    alt="Cooperativa Jardín Azuayo"
-                                    className="h-14 md:h-16 w-auto object-contain max-w-[160px] md:max-w-[200px]"
-                                />
-                                <img
-                                    src="https://i.imgur.com/PWgoHmu.png"
-                                    alt="Cooperativa Santa Rosa"
-                                    className="h-14 md:h-16 w-auto object-contain max-w-[160px] md:max-w-[200px]"
-                                />
+                            <div className="flex flex-col gap-6 w-full">
+                                {id === '0315c665-d533-4cd9-9538-8c8642ed8dc5' ? (
+                                    <div className="flex items-center justify-center gap-8 md:gap-16">
+                                        <img
+                                            src="https://i.imgur.com/dJzchv3.png"
+                                            alt="NAF UNEMI"
+                                            className="h-12 md:h-14 w-auto object-contain"
+                                        />
+                                        <img
+                                            src="https://i.imgur.com/RPZ6tfO.png"
+                                            alt="ARCSA"
+                                            className="h-12 md:h-14 w-auto object-contain"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-center gap-8 md:gap-16">
+                                        <img
+                                            src="https://i.imgur.com/mltK17L.png"
+                                            alt="Cooperativa Jardín Azuayo"
+                                            className="h-14 md:h-16 w-auto object-contain max-w-[160px] md:max-w-[200px]"
+                                        />
+                                        <img
+                                            src="https://i.imgur.com/PWgoHmu.png"
+                                            alt="Cooperativa Santa Rosa"
+                                            className="h-14 md:h-16 w-auto object-contain max-w-[160px] md:max-w-[200px]"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
                         {/* Status Badge - Moved above title */}
