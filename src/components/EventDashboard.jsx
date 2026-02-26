@@ -116,7 +116,7 @@ function EventDashboard() {
         const { data, error } = await supabase
             .from('events_2026')
             .select('*')
-            .eq('status', 'active') // Only fetch active events
+            .in('status', ['active', 'not_executed']) // Fetch both active and not executed events
             .order('date', { ascending: true });
 
         if (error) {
@@ -218,6 +218,23 @@ function EventDashboard() {
         }
     };
 
+    const getStatusBadge = (status) => {
+        if (status === 'not_executed') {
+            return (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 z-40">
+                    <div className="bg-red-600/95 backdrop-blur-md text-white text-[7px] font-black uppercase tracking-[0.3em] px-5 py-2.5 rounded-b-2xl shadow-xl shadow-red-900/40 border-x border-b border-white/20 flex items-center gap-2">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-100 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                        </span>
+                        No Ejecutado
+                    </div>
+                </div>
+            );
+        }
+        return null;
+    };
+
     const resetForm = () => {
         setFormData({
             month: 'ENERO',
@@ -230,6 +247,7 @@ function EventDashboard() {
             startTime: '',
             endTime: '',
             location: '',
+            status: 'active',
             indicator: 'Eventos de capacitación',
             tracking: [
                 { id: '1', label: 'Correos Enviados', completed: false },
@@ -251,6 +269,7 @@ function EventDashboard() {
         setCurrentEvent(event);
         setFormData({
             ...event,
+            status: event.status || 'active',
             startTime: event.startTime ? event.startTime.slice(0, 5) : '',
             endTime: event.endTime ? event.endTime.slice(0, 5) : ''
         });
@@ -502,7 +521,7 @@ function EventDashboard() {
                                 </div>
                                 <span className="text-xs font-bold uppercase tracking-wider">Total Eventos</span>
                             </div>
-                            <span className="text-3xl font-black text-slate-900 dark:text-white">{events.length}</span>
+                            <span className="text-3xl font-black text-slate-900 dark:text-white">{events.filter(e => e.status === 'active').length}</span>
                         </div>
                         <div className="p-5 rounded-3xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 shadow-sm">
                             <div className="flex items-center gap-3 mb-2 text-slate-500 dark:text-slate-400">
@@ -512,7 +531,7 @@ function EventDashboard() {
                                 <span className="text-xs font-bold uppercase tracking-wider">Completados</span>
                             </div>
                             <span className="text-3xl font-black text-slate-900 dark:text-white">
-                                {events.filter(e => Array.isArray(e.tracking) ? e.tracking.some(t => t.completed) : Object.values(e.tracking).some(t => t)).length}
+                                {events.filter(e => e.status === 'active' && (Array.isArray(e.tracking) ? e.tracking.some(t => t.completed) : Object.values(e.tracking).some(t => t))).length}
                             </span>
                         </div>
                         <div className="p-5 rounded-3xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 shadow-sm">
@@ -523,7 +542,7 @@ function EventDashboard() {
                                 <span className="text-xs font-bold uppercase tracking-wider">Próximo Mes</span>
                             </div>
                             <span className="text-3xl font-black text-slate-900 dark:text-white">
-                                {events.filter(e => e.month === 'ENERO').length}
+                                {events.filter(e => e.status === 'active' && e.month === 'ENERO').length}
                             </span>
                         </div>
                         <div className="p-5 rounded-3xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 shadow-sm">
@@ -625,7 +644,7 @@ function EventDashboard() {
                             return (
                                 <div
                                     key={ev.id}
-                                    className={`group relative bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 dark:border-white/5 flex flex-col ${new Date(ev.date) < new Date().setHours(0, 0, 0, 0) ? 'grayscale opacity-75 hover:grayscale-0 hover:opacity-100' : ''}`}
+                                    className={`group relative bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 dark:border-white/5 flex flex-col ${(ev.status === 'not_executed' || new Date(ev.date) < new Date().setHours(0, 0, 0, 0)) ? 'grayscale opacity-75 hover:grayscale-0 hover:opacity-100' : ''}`}
                                 >
                                     {/* Header Gradient / Image Area */}
                                     <div className={`h-56 relative overflow-hidden rounded-t-[2rem] ${getEventImage(ev) ? 'bg-slate-900' :
@@ -656,6 +675,7 @@ function EventDashboard() {
 
                                         {/* Content Overlay */}
                                         <div className="absolute inset-0 p-6 flex flex-col justify-between relative z-10">
+                                            {getStatusBadge(ev.status)}
                                             <div className="flex justify-between items-start">
                                                 <div className={`${ev.type === '@Emprender' ? 'bg-slate-950/80 border-slate-800' : 'bg-white/20 border-white/20'} backdrop-blur-md border rounded-2xl p-2.5 text-center min-w-[3.5rem] shadow-lg group-hover:scale-105 transition-transform`}>
                                                     <span className={`text-[10px] font-black uppercase tracking-wider block mb-0.5 ${ev.type === '@Emprender' ? 'text-white' : 'text-white/90'}`}>
@@ -823,7 +843,7 @@ function EventDashboard() {
                             const trackingTotal = Array.isArray(ev.tracking) ? ev.tracking.length : 0;
 
                             return (
-                                <div key={ev.id} className={`bg-white dark:bg-slate-800 rounded-[2rem] shadow-lg border border-slate-100 dark:border-white/5 overflow-visible relative flex flex-col ${new Date(ev.date) < new Date().setHours(0, 0, 0, 0) ? 'grayscale opacity-75' : ''}`}>
+                                <div key={ev.id} className={`bg-white dark:bg-slate-800 rounded-[2rem] shadow-lg border border-slate-100 dark:border-white/5 overflow-visible relative flex flex-col ${(ev.status === 'not_executed' || new Date(ev.date) < new Date().setHours(0, 0, 0, 0)) ? 'grayscale opacity-75' : ''}`}>
                                     {/* Header Gradient */}
                                     <div className={`h-52 relative rounded-t-[2rem] overflow-hidden ${getEventImage(ev) ? 'bg-slate-900' :
                                         index % 4 === 0 ? 'bg-gradient-to-br from-blue-600 to-indigo-600' :
@@ -831,6 +851,7 @@ function EventDashboard() {
                                                 index % 4 === 2 ? 'bg-gradient-to-br from-orange-500 to-red-600' :
                                                     'bg-gradient-to-br from-purple-600 to-pink-600'
                                         }`}>
+                                        {getStatusBadge(ev.status)}
 
                                         {/* Background Image if available */}
                                         {getEventImage(ev) ? (
@@ -1133,6 +1154,33 @@ function EventDashboard() {
                                 </div>
 
                                 <div className="p-8 space-y-8">
+                                    {/* Status Toggle */}
+                                    <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/5">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.status === 'not_executed' ? 'bg-red-100 text-red-600 dark:bg-red-900/10 dark:text-red-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/10 dark:text-emerald-400'}`}>
+                                                {formData.status === 'not_executed' ? <X size={20} /> : <CheckCircle size={20} />}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm text-slate-900 dark:text-white">Estado del Evento</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">Marcar si el taller se realizó o no</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-white/10">
+                                            <button
+                                                onClick={() => setFormData(prev => ({ ...prev, status: 'active' }))}
+                                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${formData.status === 'active' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                                            >
+                                                Ejecutado
+                                            </button>
+                                            <button
+                                                onClick={() => setFormData(prev => ({ ...prev, status: 'not_executed' }))}
+                                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${formData.status === 'not_executed' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                                            >
+                                                No Ejecutado
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     {/* Type & Scope Row */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-3">

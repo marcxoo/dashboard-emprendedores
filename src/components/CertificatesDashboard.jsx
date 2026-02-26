@@ -25,7 +25,7 @@ export default function CertificatesDashboard() {
     const { customSurveys } = useData();
     const { addToast } = useToast();
 
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(true); // Password removed as requested
     const [passwordInput, setPasswordInput] = useState('');
     const [authError, setAuthError] = useState(false);
 
@@ -408,49 +408,12 @@ export default function CertificatesDashboard() {
         setGenerating(false);
     };
 
+    // Password UI removed as requested
+    /*
     if (!isAuthenticated) {
-        return (
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 max-w-md w-full border border-slate-200 dark:border-slate-700">
-                    <div className="text-center mb-6">
-                        <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Lock size={32} className="text-amber-500" />
-                        </div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Acceso Restringido</h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-2">Introduce la contraseña para acceder al generador de certificados.</p>
-                    </div>
-
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        <div>
-                            <input
-                                type="password"
-                                value={passwordInput}
-                                onChange={(e) => setPasswordInput(e.target.value)}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
-                                placeholder="Contraseña de acceso"
-                                autoFocus
-                            />
-                            {authError && (
-                                <p className="text-red-500 text-sm mt-2">Contraseña incorrecta</p>
-                            )}
-                        </div>
-                        <button
-                            type="submit"
-                            className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold hover:from-amber-600 hover:to-orange-700 transition-all shadow-lg shadow-amber-500/20"
-                        >
-                            Ingresar
-                        </button>
-                    </form>
-                    <button
-                        onClick={() => navigate('/portal')}
-                        className="w-full mt-4 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium transition-colors"
-                    >
-                        Volver al Portal
-                    </button>
-                </div>
-            </div>
-        );
+        ...
     }
+    */
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900">

@@ -164,8 +164,8 @@ function Portal() {
                         onClick={() => navigate('/eventos')}
                     />
 
-                    {/* Quick Access: Invitations */}
-                    <BentoCard
+                    {/* Quick Access: Invitations - HIDDEN AS REQUESTED */}
+                    {/* <BentoCard
                         span="md:col-span-1 md:row-span-1"
                         title="Invitaciones"
                         description="Campañas por Email y WhatsApp."
@@ -174,7 +174,7 @@ function Portal() {
                         gradient="from-green-500/10 to-emerald-500/10"
                         delay={3}
                         onClick={() => navigate('/invitaciones')}
-                    />
+                    /> */}
 
                     {/* Quick Access: Forms */}
                     <BentoCard

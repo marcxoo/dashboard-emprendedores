@@ -98,7 +98,7 @@ function FairDetailsPage() {
 // --- High Level View: List of Fairs ---
 
 function FairsOverview({ onSelect }) {
-    const { fairs, addFair, fairAssignments, updateFair } = useData();
+    const { fairs, addFair, fairAssignments, updateFair, deleteFair } = useData();
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
     const [currentFair, setCurrentFair] = useState(null);
@@ -107,6 +107,13 @@ function FairsOverview({ onSelect }) {
     const getFairStats = (fairId) => {
         const assignments = (fairAssignments || []).filter(a => a.fair_id === fairId);
         return { count: assignments.length };
+    };
+
+    const handleDelete = async (e, fair) => {
+        e.stopPropagation();
+        if (window.confirm(`¿Estás seguro de que deseas eliminar la feria "${fair.name}"? Esta acción no se puede deshacer.`)) {
+            await deleteFair(fair.id);
+        }
     };
 
     return (
@@ -183,12 +190,20 @@ function FairsOverview({ onSelect }) {
                                         {isFinished ? 'Finalizada' : 'Activa'}
                                     </div>
 
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); setCurrentFair(fair); setIsEditing(true); }}
-                                        className="p-2.5 sm:p-2 -mr-1 sm:-mr-2 -mt-1 sm:-mt-2 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all"
-                                    >
-                                        <Edit size={18} />
-                                    </button>
+                                    <div className="flex gap-1 sm:gap-1.5">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setCurrentFair(fair); setIsEditing(true); }}
+                                            className="p-2 sm:p-2 text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all"
+                                        >
+                                            <Edit size={18} />
+                                        </button>
+                                        <button
+                                            onClick={(e) => handleDelete(e, fair)}
+                                            className="p-2 sm:p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Icon & Title */}
@@ -239,9 +254,9 @@ function FairsOverview({ onSelect }) {
                 <FairModal
                     fair={currentFair}
                     onClose={() => { setIsEditing(false); setCurrentFair(null); }}
-                    onSave={(data) => {
-                        if (currentFair) updateFair(currentFair.id, data);
-                        else addFair(data);
+                    onSave={async (data) => {
+                        if (currentFair) await updateFair(currentFair.id, data);
+                        else await addFair(data);
                         setIsEditing(false);
                         setCurrentFair(null);
                     }}

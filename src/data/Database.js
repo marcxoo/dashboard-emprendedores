@@ -838,9 +838,19 @@ export class Database {
   }
 
   async addFair(fairData) {
+    if (!fairData.name) {
+      console.error('Error: Fair name is required');
+      return null;
+    }
+
+    // Sanitize dates: empty strings should be null for PostgreSQL
+    const sanitizedData = { ...fairData };
+    if (sanitizedData.date === '') sanitizedData.date = null;
+    if (sanitizedData.end_date === '') sanitizedData.end_date = null;
+
     const { data, error } = await supabase
       .from('fairs')
-      .insert([fairData])
+      .insert([sanitizedData])
       .select()
       .single();
 
@@ -853,9 +863,14 @@ export class Database {
   }
 
   async updateFair(id, updates) {
+    // Sanitize dates: empty strings should be null for PostgreSQL
+    const sanitizedUpdates = { ...updates };
+    if (sanitizedUpdates.date === '') sanitizedUpdates.date = null;
+    if (sanitizedUpdates.end_date === '') sanitizedUpdates.end_date = null;
+
     const { data, error } = await supabase
       .from('fairs')
-      .update(updates)
+      .update(sanitizedUpdates)
       .eq('id', id)
       .select()
       .single();
@@ -881,6 +896,14 @@ export class Database {
   // Fair Entrepreneurs
   getFairEntrepreneurs() {
     return this.fairEntrepreneurs;
+  }
+
+  getFairAssignments() {
+    return this.fairAssignments;
+  }
+
+  getFairSales() {
+    return this.fairSales;
   }
 
   async addFairEntrepreneur(entrepreneurData) {

@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
 import { Database } from '../data/Database';
-import { csvContent } from '../data/csvData';
 import { generarAsignacionParaSemana } from '../data/AssignmentLogic';
 
 
@@ -48,7 +47,6 @@ export function DataProvider({ children }) {
             if (initialLoadStarted.current) return;
             initialLoadStarted.current = true;
 
-            await db.loadInitialData(csvContent);
             await refreshData();
             setIsLoaded(true);
         };

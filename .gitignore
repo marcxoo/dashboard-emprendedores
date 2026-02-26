@@ -26,3 +26,12 @@ dist-ssr
 # Environment variables
 .env
 .env.local
+
+# Data & Exports
+*.csv
+*.sql
+!local_schema.sql
+!data_schema.sql
+backup/
+exports/
+temp_data/
