@@ -30,8 +30,7 @@ dist-ssr
 # Data & Exports
 *.csv
 *.sql
-!local_schema.sql
-!data_schema.sql
+!database/**/*.sql
 backup/
 exports/
 temp_data/
