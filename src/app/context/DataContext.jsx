@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { Database } from '../data/Database';
 import { generarAsignacionParaSemana } from '../data/AssignmentLogic';
 
@@ -29,7 +29,7 @@ export function DataProvider({ children }) {
 
     const initialLoadStarted = useRef(false);
 
-    const refreshData = async () => {
+    const refreshData = useCallback(async () => {
         await db.loadData();
         setEntrepreneurs([...db.getEmprendedores()]);
         setAssignments([...db.asignaciones]);
@@ -40,7 +40,7 @@ export function DataProvider({ children }) {
         setFairEntrepreneurs(db.getFairEntrepreneurs ? [...db.getFairEntrepreneurs()] : []);
         setFairAssignments(db.getFairAssignments ? [...db.fairAssignments] : []); // access directly or via method if exists, db.fairAssignments is array
         setFairSales(db.fairSales ? [...db.fairSales] : []);
-    };
+    }, [db]);
 
     useEffect(() => {
         const initData = async () => {
@@ -51,7 +51,7 @@ export function DataProvider({ children }) {
             setIsLoaded(true);
         };
         initData();
-    }, []);
+    }, [refreshData]);
 
     // Update Week and Block when Date changes
     useEffect(() => {
@@ -206,7 +206,7 @@ export function DataProvider({ children }) {
         return customSurveys.find(s => s.id === id);
     };
 
-    const value = useMemo(() => ({
+    const value = {
         db,
         isLoaded,
         entrepreneurs,
@@ -353,10 +353,7 @@ export function DataProvider({ children }) {
             if (res) await refreshData();
             return res;
         }
-    }), [
-        db, isLoaded, entrepreneurs, assignments, earnings, currentWeek, selectedDate, currentBlock,
-        customSurveys, invitationLogs, fairs, fairEntrepreneurs, fairAssignments, fairSales
-    ]);
+    };
 
     return (
         <DataContext.Provider value={value}>
@@ -387,5 +384,4 @@ function getWeekNumber(d) {
     const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     return weekNo;
 }
-
 

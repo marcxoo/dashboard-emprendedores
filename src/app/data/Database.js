@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { syncEntrepreneurToLocal, syncAssignmentToLocal } from '../lib/localSync';
+import { syncEntrepreneurToLocal } from '../lib/localSync';
 import { compareWeeks } from '../utils/dateUtils';
 
 export const STANDS = [
@@ -84,7 +84,8 @@ export class Database {
           ruc: String(pRuc || e.ruc || ''),
           ciudad: pCiudad || e.ciudad || '',
           logo_url: e.logo_url || '',
-          pdf_url: pPdfUrl || e.pdf_url || ''
+          pdf_url: pPdfUrl || e.pdf_url || '',
+          genero: e.genero || null
         };
       });
 
@@ -174,7 +175,6 @@ export class Database {
         response_limit: data.limit,
         event_date: data.eventDate,
         event_time: data.eventTime,
-        event_location: data.eventLocation,
         event_location: data.eventLocation,
         show_urgency_banner: data.showUrgencyBanner, // Add urgency banner flag
         questions: data.questions,
@@ -350,20 +350,105 @@ export class Database {
       .toUpperCase();
   }
 
+  mapCategory(category) {
+    const defaultCat = "Otro";
+    if (!category) return defaultCat;
+
+    const normalized = typeof category === 'string' ? category.toUpperCase().trim() : '';
+
+    const mappings = {
+      "PASTELERIA Y REPOSTERIA": "Gastronomía y Alimentos",
+      "COMIDA": "Gastronomía y Alimentos",
+      "COMIDA RAPIDA": "Gastronomía y Alimentos",
+      "DULCES Y HELADOS": "Gastronomía y Alimentos",
+      "BEBIDAS ARTESANALES": "Gastronomía y Alimentos",
+      "BEBIDAS": "Gastronomía y Alimentos",
+      "ALIMENTOS": "Gastronomía y Alimentos",
+      "CHOCOLATE": "Gastronomía y Alimentos",
+      "GRANIZADOS": "Gastronomía y Alimentos",
+      "CAFE": "Gastronomía y Alimentos",
+      "ENCOCADOS": "Gastronomía y Alimentos",
+      "POSTRES": "Gastronomía y Alimentos",
+      "GASTRONOMIA": "Gastronomía y Alimentos",
+
+      "ANIME": "Comercio / Retail",
+      "BISUTERIA": "Comercio / Retail",
+      "ZAPATOS": "Comercio / Retail",
+      "ACCESORIOS": "Comercio / Retail",
+      "COMERCIO": "Comercio / Retail",
+      "PRODUCTOS VARIADOS": "Comercio / Retail",
+      "ROPA": "Comercio / Retail",
+      "BAZAR": "Comercio / Retail",
+      "COSMETICOS - DERIVADOS": "Comercio / Retail",
+      "COSMETICOS": "Comercio / Retail",
+      "CUIDADO PERSONAL": "Comercio / Retail",
+      "DETALLES": "Comercio / Retail",
+      "PRODUCTOS DE SALUD": "Comercio / Retail",
+      "LOCALES MERCADOS CENTRAL": "Comercio / Retail",
+      "ACCESORIOS DE MASCOTAS": "Comercio / Retail",
+      "PRODUCTOS DE LIMPIEZA": "Comercio / Retail",
+      "SALUD": "Comercio / Retail",
+
+      "FOTOGRAFIA": "Servicios Profesionales y Técnicos",
+      "ESTAMPADOS": "Servicios Profesionales y Técnicos",
+      "FIESTA": "Servicios Profesionales y Técnicos",
+      "SERVICIOS": "Servicios Profesionales y Técnicos",
+
+      "ARTESANIAS": "Producción y Manufactura",
+      "ARTE": "Producción y Manufactura",
+      "MANUALIDADES": "Producción y Manufactura",
+
+      "TECNOLOGIA": "Tecnología y Digital",
+
+      "ATRACCIONES INFANTILES": "Turismo y Hotelería",
+
+      "MIEL DE ABEJA": "Agroindustria",
+      "VIVEROS": "Agroindustria",
+      "AGROPECUARIO": "Agroindustria",
+      "MASCOTAS": "Agroindustria",
+      "CONDIMENTOS NATURALES": "Agroindustria",
+
+      "OTROS": "Otro",
+      "SIN CATEGORÍA": "Otro"
+    };
+
+    const officialCategories = [
+        "Gastronomía y Alimentos",
+        "Comercio / Retail",
+        "Servicios Profesionales y Técnicos",
+        "Producción y Manufactura",
+        "Tecnología y Digital",
+        "Turismo y Hotelería",
+        "Agroindustria",
+        "Otro"
+    ];
+
+    const exactMatch = officialCategories.find(c => c.toUpperCase() === normalized);
+    if (exactMatch) return exactMatch;
+
+    return mappings[normalized] || defaultCat;
+  }
+
   async normalizeCategories() {
     let changed = false;
     const updates = [];
 
     this.emprendedores = this.emprendedores.map(e => {
-      const normalizedCat = this.normalizeString(e.categoria_principal);
-      if (e.categoria_principal !== normalizedCat) {
+      const sourceSubcategory = e.subcategoria_interna || e.categoria_principal;
+      const normalizedSubcat = this.normalizeString(sourceSubcategory);
+      const mappedCategory = this.mapCategory(sourceSubcategory);
+
+      if (e.categoria_principal !== mappedCategory || e.subcategoria_interna !== normalizedSubcat) {
         changed = true;
         const updatedEmp = {
           ...e,
-          categoria_principal: normalizedCat,
-          subcategoria_interna: normalizedCat
+          categoria_principal: mappedCategory,
+          subcategoria_interna: normalizedSubcat
         };
-        updates.push(this.updateEntrepreneur(e.id, updatedEmp));
+        updates.push(this.updateEntrepreneur(e.id, {
+           categoria_principal: mappedCategory,
+           subcategoria_interna: normalizedSubcat
+        }));
         return updatedEmp;
       }
       return e;
@@ -633,6 +718,7 @@ export class Database {
       categoria_principal: data.categoria_principal,
       semaforizacion: data.tipo_emprendedor || 'Externo',
       logo_url: data.logo_url || '',
+      genero: data.genero || null,
       // pdf_url: removed to avoid error
 
       veces_en_stand: 0,
@@ -717,6 +803,7 @@ export class Database {
         subcategoria_interna: updates.categoria_principal ?? current.subcategoria_interna,
         semaforizacion: updates.tipo_emprendedor ?? current.semaforizacion,
         logo_url: updates.logo_url ?? current.logo_url,
+        genero: updates.genero ?? current.genero,
         // pdf_url: removed to avoid error
         notas: JSON.stringify(notesObject)
       };
@@ -973,7 +1060,7 @@ export class Database {
   }
 
   // Fair Assignments
-  getFairAssignments(fairId) {
+  getFairAssignmentsByFair(fairId) {
     return this.fairAssignments.filter(a => a.fair_id === fairId);
   }
 
@@ -1161,7 +1248,7 @@ export class Database {
   }
 
   // Fair Sales
-  getFairSales(fairId) {
+  getFairSalesByFair(fairId) {
     return this.fairSales.filter(s => s.fair_id === fairId);
   }
 

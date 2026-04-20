@@ -60,7 +60,6 @@ export default {
             },
             spacing: {
                 'sidebar': '280px',
-                'sidebar': '280px',
                 'header': '64px',
             },
             animation: {

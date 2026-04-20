@@ -1,7 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
 // Load env vars
 dotenv.config();
@@ -20,7 +18,7 @@ async function checkDatabase() {
     console.log('Checking database connection...');
 
     // 1. Try to read from entrepreneurs
-    const { data, error } = await supabase
+    const { error } = await supabase
         .from('entrepreneurs')
         .select('count', { count: 'exact', head: true });
 

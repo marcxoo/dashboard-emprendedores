@@ -15,7 +15,6 @@ export default function SurveyRaffle() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [participants, setParticipants] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [winner, setWinner] = useState(null);
     const [surveyTitle, setSurveyTitle] = useState('');
 
@@ -55,8 +54,6 @@ export default function SurveyRaffle() {
 
             } catch (err) {
                 console.error("Error loading participants:", err);
-            } finally {
-                setLoading(false);
             }
         };
 

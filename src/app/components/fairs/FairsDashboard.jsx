@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { createElement, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
 import Share2 from 'lucide-react/dist/esm/icons/share-2';
@@ -41,6 +41,17 @@ import { ShineBorder } from '@/components/ui/ShineBorder';
 import { CategoryDetailsModal } from '@/components/admin/CategoryDetailsModal';
 // XLSX is lazy-loaded when needed for exports
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, AreaChart, Area } from 'recharts';
+
+const CATEGORY_ORDER = [
+    "Gastronomía y Alimentos",
+    "Comercio / Retail",
+    "Servicios Profesionales y Técnicos",
+    "Producción y Manufactura",
+    "Tecnología y Digital",
+    "Turismo y Hotelería",
+    "Agroindustria",
+    "Otro"
+];
 
 // Helper to convert fair name to URL slug
 function toSlug(name) {
@@ -395,7 +406,14 @@ function FairAnalytics({ fair }) {
         // Premium Palette: Blue, Purple, Emerald, Amber, Red, Pink, Cyan, Lime, Indigo, Orange
         const palette = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#84cc16', '#6366f1', '#f97316'];
 
-        Array.from(uniqueCategories).sort().forEach((cat, index) => {
+        Array.from(uniqueCategories).sort((a, b) => {
+            const indexA = CATEGORY_ORDER.findIndex(o => o.toUpperCase() === a.toUpperCase());
+            const indexB = CATEGORY_ORDER.findIndex(o => o.toUpperCase() === b.toUpperCase());
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            return a.localeCompare(b);
+        }).forEach((cat, index) => {
             map.set(cat, palette[index % palette.length]);
         });
 
@@ -406,7 +424,7 @@ function FairAnalytics({ fair }) {
         return map;
     }, [fairEntrepreneurs]);
 
-    const getColor = (cat) => categoryColorMap.get((cat || '').trim()) || '#94a3b8';
+    const getColor = useCallback((cat) => categoryColorMap.get((cat || '').trim()) || '#94a3b8', [categoryColorMap]);
 
     // 3. Top Entrepreneurs Logic (Updated with Colors)
     const salesByEntrepreneur = useMemo(() => {
@@ -433,7 +451,7 @@ function FairAnalytics({ fair }) {
         });
 
         return result.sort((a, b) => b.amount - a.amount).slice(0, 5); // Top 5
-    }, [currentSales, fairEntrepreneurs, categoryColorMap]);
+    }, [currentSales, fairEntrepreneurs, getColor]);
 
     // 4. Sales by Category Logic (Updated with Colors)
     const salesByCategory = useMemo(() => {
@@ -467,7 +485,7 @@ function FairAnalytics({ fair }) {
         }
 
         return sorted;
-    }, [currentSales, fairEntrepreneurs, categoryColorMap]);
+    }, [currentSales, fairEntrepreneurs, getColor]);
 
     // 5. Daily Sales Trend
     // Aggregate by date
@@ -518,7 +536,7 @@ function FairAnalytics({ fair }) {
                 fill: getColor(stat.name)
             }))
             .sort((a, b) => b.revenue - a.revenue);
-    }, [currentSales, fairEntrepreneurs, totalRevenue, categoryColorMap]);
+    }, [currentSales, fairEntrepreneurs, totalRevenue, getColor]);
 
     // 7. Entrepreneur Performance (Full List for Table)
     const entrepreneurPerformance = useMemo(() => {
@@ -547,7 +565,7 @@ function FairAnalytics({ fair }) {
         return Array.from(stats.values())
             .sort((a, b) => b.revenue - a.revenue)
             .slice(0, 10); // Show top 10 in the detailed list
-    }, [currentSales, fairEntrepreneurs, categoryColorMap]);
+    }, [currentSales, fairEntrepreneurs, getColor]);
 
     // 8. City Performance Logic
     // 8. City Performance Logic
@@ -1196,7 +1214,7 @@ function KPICard({ title, value, icon: Icon, trend, trendUp, color }) {
         <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-2 sm:mb-4">
                 <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${colors[color] || colors.primary} flex items-center justify-center`}>
-                    <Icon size={18} className="sm:w-6 sm:h-6" />
+                    {Icon ? createElement(Icon, { size: 18, className: 'sm:w-6 sm:h-6' }) : null}
                 </div>
                 {trend && (
                     <span className={`text-[8px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full ${trendUp ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -1218,7 +1236,6 @@ function FairParticipants({ fairId }) {
         fairEntrepreneurs,
         entrepreneurs, // Import main list for cross-referencing details
         assignEntrepreneurToFair,
-        addFairEntrepreneur,
         addEntrepreneur, // Main DB add
         updateFairAssignmentStatus, // Import logic
         bulkImportFairEntrepreneurs, // Bulk Import
@@ -1232,9 +1249,19 @@ function FairParticipants({ fairId }) {
 
     // Dynamic categories derived from existing entrepreneurs + defaults
     const categories = useMemo(() => {
-        const defaults = ['ALIMENTOS', 'ARTESANIAS', 'BEBIDAS', 'COMIDA RAPIDA', 'COSMETICOS', 'POSTRES', 'ROPA', 'SERVICIOS', 'OTRO'];
         const existing = entrepreneurs?.map(e => e.categoria_principal).filter(Boolean) || [];
-        return [...new Set([...defaults, ...existing])].sort();
+        const allUniqueCategories = [...new Set([...CATEGORY_ORDER, ...existing])];
+        
+        return allUniqueCategories.sort((a, b) => {
+            const indexA = CATEGORY_ORDER.findIndex(o => o.toUpperCase() === a.toUpperCase());
+            const indexB = CATEGORY_ORDER.findIndex(o => o.toUpperCase() === b.toUpperCase());
+            
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            
+            return a.localeCompare(b);
+        });
     }, [entrepreneurs]);
 
     const handleQuickRegister = async (data) => {
@@ -1539,7 +1566,7 @@ function FairParticipants({ fairId }) {
 }
 
 function FairSalesTracker({ fairId }) {
-    const { fairs, fairAssignments, fairEntrepreneurs, fairSales, addFairSale, deleteFairSale, updateFairAssignmentStatus } = useData();
+    const { fairs, fairAssignments, fairEntrepreneurs, fairSales, addFairSale, removeEntrepreneurFromFair } = useData();
 
     // Get current fair first to use its date
     const fair = fairs?.find(f => f.id === fairId);
@@ -1933,7 +1960,7 @@ function FairSalesTracker({ fairId }) {
                                 const isConfirmed = assignment?.status === 'confirmed';
 
                                 return (
-                                    <div key={participant.id} className="relative bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer" onClick={() => setSelectedParticipant(participant)}>
+                                    <div key={participant.id} className="relative bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
 
                                         {/* Status Line - Left Accent */}
                                         <div className={`absolute left-0 top-6 bottom-6 w-1 rounded-r-full transition-colors ${isConfirmed ? 'bg-emerald-500' : 'bg-transparent'}`}></div>
@@ -2267,8 +2294,19 @@ function ImportModal({ onClose, onImport, existingParticipants }) {
 
     // Get unique categories for filter
     const categories = useMemo(() => {
-        const cats = new Set((entrepreneurs || []).map(e => e.categoria_principal).filter(Boolean));
-        return Array.from(cats).sort();
+        const existing = (entrepreneurs || []).map(e => e.categoria_principal).filter(Boolean);
+        const allUniqueCategories = [...new Set([...CATEGORY_ORDER, ...existing])];
+        
+        return allUniqueCategories.sort((a, b) => {
+            const indexA = CATEGORY_ORDER.findIndex(o => o.toUpperCase() === a.toUpperCase());
+            const indexB = CATEGORY_ORDER.findIndex(o => o.toUpperCase() === b.toUpperCase());
+            
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            
+            return a.localeCompare(b);
+        });
     }, [entrepreneurs]);
 
     // Create a Set of existing identifiers (names) for fast lookup
@@ -2574,7 +2612,7 @@ function ParticipantDetailsModal({ participant: initialParticipant, onClose, fai
         if (effectiveCity && effectiveCity !== displayCity) {
             setDisplayCity(effectiveCity);
         }
-    }, [participant.ciudad, mainEntrepreneur?.ciudad]);
+    }, [participant.ciudad, mainEntrepreneur?.ciudad, displayCity]);
 
     const handleSaveCity = async () => {
         if (!newCityValue.trim()) return;
@@ -2787,13 +2825,6 @@ function ParticipantDetailsModal({ participant: initialParticipant, onClose, fai
     );
 }
 
-
-// Utils
-const formatDate = (dateStr) => {
-    if (!dateStr) return 'Fecha pendiente';
-    const date = new Date(dateStr + 'T12:00:00');
-    return date.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-};
 
 const formatDateRange = (startDate, endDate) => {
     if (!startDate) return 'Fecha pendiente';

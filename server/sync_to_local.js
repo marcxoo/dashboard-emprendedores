@@ -220,7 +220,7 @@ async function syncInvitationLogs() {
                 VALUES ($1, $2, $3, $4, $5, $6)
             `, [l.id, l.created_at, l.entrepreneur_id, l.channel, l.message, l.status]);
             inserted++;
-        } catch (err) {
+        } catch {
             // Silently skip duplicates
         }
     }

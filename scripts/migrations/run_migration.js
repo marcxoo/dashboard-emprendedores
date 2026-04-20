@@ -1,17 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 dotenv.config();
 
-const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
 
 async function runMigration() {
-    const sql = fs.readFileSync(path.join(__dirname, 'add_survey_type.sql'), 'utf8');
-
     // Supabase JS client doesn't support running raw SQL directly via rpc unless a function exists, 
     // but we can try using the 'postgres' wrapper if available or just assume we have to do it via dashboard if this fails.
     // HOWEVER, I can try to use a previously established pattern if there is one. 

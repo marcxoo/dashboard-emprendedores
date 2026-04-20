@@ -23,7 +23,7 @@ async function listSurveys() {
     console.log(`Found ${surveys.length} surveys.`);
 
     for (const survey of surveys) {
-        const { count, error: countError } = await supabase
+        const { count } = await supabase
             .from('survey_responses')
             .select('*', { count: 'exact', head: true })
             .eq('survey_id', survey.id);

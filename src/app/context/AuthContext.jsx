@@ -47,7 +47,9 @@ export function AuthProvider({ children }) {
         setUser(null);
         try {
             localStorage.removeItem('user_session');
-        } catch (e) { }
+        } catch {
+            // ignore storage cleanup errors
+        }
     };
 
     const value = {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import X from 'lucide-react/dist/esm/icons/x';
 import User from 'lucide-react/dist/esm/icons/user';
@@ -15,6 +15,10 @@ import Calendar from 'lucide-react/dist/esm/icons/calendar';
 import MapPin from 'lucide-react/dist/esm/icons/map-pin';
 import MessageCircle from 'lucide-react/dist/esm/icons/message-circle';
 import FileText from 'lucide-react/dist/esm/icons/file-text';
+import Mars from 'lucide-react/dist/esm/icons/mars';
+import Venus from 'lucide-react/dist/esm/icons/venus';
+import HelpCircle from 'lucide-react/dist/esm/icons/help-circle';
+import { detectGender } from '@/utils/genderUtils';
 
 // Helper to parse social media
 const getSocialMediaInfo = (input) => {
@@ -80,12 +84,12 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
         }
     }, [entrepreneur]);
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         setIsVisible(false);
         setTimeout(() => {
             if (onClose) onClose();
         }, 300);
-    };
+    }, [onClose]);
 
     const handleEdit = () => {
         setIsVisible(false);
@@ -164,12 +168,24 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/20 dark:bg-primary-500/10 text-white dark:text-primary-300 border border-white/20 dark:border-primary-500/20 backdrop-blur-sm">
                                         {entrepreneur.categoria_principal}
                                     </span>
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${entrepreneur.semaforizacion === 'Estudiante / Graduado UNEMI'
-                                        ? 'bg-blue-500/30 text-blue-50 border-blue-400/50'
-                                        : 'bg-slate-800/30 text-slate-200 border-slate-600/50'
-                                        }`}>
-                                        {entrepreneur.semaforizacion || 'Externo'}
-                                    </span>
+                                    {(() => {
+                                        const unemiTypes = [
+                                            'Estudiante de pregrado',
+                                            'Graduado de pregrado',
+                                            'Graduado de posgrado',
+                                            'Egresado',
+                                            'Retirado / exestudiante'
+                                        ];
+                                        const isUNEMI = unemiTypes.includes(entrepreneur.semaforizacion);
+                                        return (
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${isUNEMI
+                                                ? 'bg-blue-500/30 text-blue-50 border-blue-400/50'
+                                                : 'bg-slate-800/30 text-slate-200 border-slate-600/50'
+                                                }`}>
+                                                {entrepreneur.semaforizacion || 'Externo'}
+                                            </span>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         </div>
@@ -216,8 +232,23 @@ export default function EntrepreneurDetail({ entrepreneur, onClose, onEdit, onDe
                                         <User size={18} strokeWidth={1.5} />
                                     </div>
                                     <div className="overflow-hidden">
-                                        <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Persona de Contacto</p>
-                                        <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{entrepreneur.persona_contacto}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{entrepreneur.persona_contacto}</p>
+                                            {(() => {
+                                                const gender = entrepreneur.genero || detectGender(entrepreneur.persona_contacto);
+                                                if (gender === 'Masculino') return (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800 shrink-0">
+                                                        <Mars size={10} /> {entrepreneur.genero ? 'Masculino' : 'Masculino (Auto)'}
+                                                    </span>
+                                                );
+                                                if (gender === 'Femenino') return (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 border border-pink-100 dark:border-pink-800 shrink-0">
+                                                        <Venus size={10} /> {entrepreneur.genero ? 'Femenino' : 'Femenino (Auto)'}
+                                                    </span>
+                                                );
+                                                return null;
+                                            })()}
+                                        </div>
                                     </div>
                                 </div>
 

@@ -7,12 +7,17 @@ import BarChart3 from 'lucide-react/dist/esm/icons/bar-chart-3';
 import ArrowUpDown from 'lucide-react/dist/esm/icons/arrow-up-down';
 import ArrowUp from 'lucide-react/dist/esm/icons/arrow-up';
 import ArrowDown from 'lucide-react/dist/esm/icons/arrow-down';
+import { uploadImage, uploadFile } from '@/lib/cloudinary';
+import { detectGender } from '@/utils/genderUtils';
 import Search from 'lucide-react/dist/esm/icons/search';
 import Phone from 'lucide-react/dist/esm/icons/phone';
 import Mail from 'lucide-react/dist/esm/icons/mail';
 import User from 'lucide-react/dist/esm/icons/user';
 import Users from 'lucide-react/dist/esm/icons/users';
 import Edit from 'lucide-react/dist/esm/icons/pencil';
+import Mars from 'lucide-react/dist/esm/icons/mars'; 
+import Venus from 'lucide-react/dist/esm/icons/venus';
+import HelpCircle from 'lucide-react/dist/esm/icons/help-circle';
 import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
 import X from 'lucide-react/dist/esm/icons/x';
 import Building2 from 'lucide-react/dist/esm/icons/building-2';
@@ -41,8 +46,27 @@ import Video from 'lucide-react/dist/esm/icons/video';
 import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
 import Upload from 'lucide-react/dist/esm/icons/upload';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
+import Download from 'lucide-react/dist/esm/icons/download';
 import { createPortal } from 'react-dom';
-import { uploadImage, uploadFile } from '@/lib/cloudinary';
+
+const UNEMI_TYPES = [
+    'Estudiante de pregrado',
+    'Graduado de pregrado',
+    'Graduado de posgrado',
+    'Egresado',
+    'Retirado / exestudiante'
+];
+
+const CATEGORY_ORDER = [
+    "Gastronomía y Alimentos",
+    "Comercio / Retail",
+    "Servicios Profesionales y Técnicos",
+    "Producción y Manufactura",
+    "Tecnología y Digital",
+    "Turismo y Hotelería",
+    "Agroindustria",
+    "Otro"
+];
 
 const MobileEntrepreneurCard = ({
     e,
@@ -71,7 +95,15 @@ const MobileEntrepreneurCard = ({
                     </div>
                     <div className="min-w-0 flex flex-col">
                         <h3 className="font-bold text-slate-800 dark:text-white text-lg leading-snug break-words">{e.nombre_emprendimiento}</h3>
-                        <p className="text-slate-500 dark:text-slate-300 text-sm mt-0.5 truncate">{e.persona_contacto}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                            <p className="text-slate-500 dark:text-slate-300 text-sm truncate">{e.persona_contacto}</p>
+                            {(() => {
+                                const gender = e.genero || detectGender(e.persona_contacto);
+                                if (gender === 'Masculino') return <Mars size={12} className="text-blue-500 shrink-0" />;
+                                if (gender === 'Femenino') return <Venus size={12} className="text-pink-500 shrink-0" />;
+                                return <HelpCircle size={12} className="text-slate-300 shrink-0" />;
+                            })()}
+                        </div>
                         <div>
                             <span className="inline-flex mt-3 px-3 py-1 rounded-lg text-xs font-bold bg-slate-50 dark:bg-orange-900/20 text-slate-600 dark:text-orange-200 border border-slate-200 dark:border-orange-900/30 tracking-wide">
                                 {e.categoria_principal}
@@ -167,6 +199,7 @@ const MobileEntrepreneurCard = ({
 export default function EntrepreneursList() {
     const { entrepreneurs, assignments, currentWeek, currentBlock, addEntrepreneur, updateEntrepreneur, deleteEntrepreneur } = useData();
     const [searchParams, setSearchParams] = useSearchParams();
+    const [isExporting, setIsExporting] = useState(false);
 
     // URL-driven helper
     const updateParams = (updates) => {
@@ -202,21 +235,36 @@ export default function EntrepreneursList() {
     const currentPage = parseInt(searchParams.get('pagina') || '1', 10);
     const [sortConfig, setSortConfig] = useState({ key: 'nombre_emprendimiento', direction: 'asc' });
     const [expandedDescriptions, setExpandedDescriptions] = useState(new Set());
+    const filterGenero = searchParams.get('genero') || '';
     const itemsPerPageParam = parseInt(searchParams.get('porPagina') || '15', 10);
     const itemsPerPage = [10, 15, 25, 50].includes(itemsPerPageParam) ? itemsPerPageParam : 15;
 
     // Stats
     const stats = useMemo(() => {
         const total = entrepreneurs.length;
-        const unemi = entrepreneurs.filter(e => (e.semaforizacion || 'Externo') === 'Estudiante / Graduado UNEMI' || (e.semaforizacion || 'Externo') === 'Graduado').length;
+        const unemi = entrepreneurs.filter(e => UNEMI_TYPES.includes(e.semaforizacion)).length;
         const externos = total - unemi;
         const conParticipacion = entrepreneurs.filter(e => e.veces_en_stand > 0).length;
         return { total, unemi, externos, conParticipacion };
     }, [entrepreneurs]);
 
-    const hasActiveFilters = filterCategory || filterTipo || filterRuc || searchTerm;
+    const hasActiveFilters = filterCategory || filterTipo || filterRuc || searchTerm || filterGenero;
 
-    const categories = useMemo(() => [...new Set(entrepreneurs.map(e => e.categoria_principal))].sort(), [entrepreneurs]);
+    const categories = useMemo(() => {
+        const dbCategories = entrepreneurs.map(e => e.categoria_principal).filter(Boolean);
+        const allUniqueCategories = [...new Set([...CATEGORY_ORDER, ...dbCategories])];
+        
+        return allUniqueCategories.sort((a, b) => {
+            const indexA = CATEGORY_ORDER.findIndex(o => o.toUpperCase() === a.toUpperCase());
+            const indexB = CATEGORY_ORDER.findIndex(o => o.toUpperCase() === b.toUpperCase());
+            
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            
+            return a.localeCompare(b);
+        });
+    }, [entrepreneurs]);
 
     const filteredData = useMemo(() => {
         let data = entrepreneurs.filter(e => {
@@ -224,13 +272,9 @@ export default function EntrepreneursList() {
             // Filtro por tipo de emprendedor
             if (filterTipo) {
                 const tipoEmprendedor = e.semaforizacion || 'Externo';
-                if (filterTipo === 'UNEMI') {
-                    // Incluir tanto 'Estudiante / Graduado UNEMI' como 'Graduado'
-                    if (tipoEmprendedor !== 'Estudiante / Graduado UNEMI' && tipoEmprendedor !== 'Graduado') return false;
-                } else if (filterTipo === 'Externo') {
-                    // Los que tienen null o 'Externo' son externos
-                    if (tipoEmprendedor !== 'Externo') return false;
-                }
+                if (filterTipo === 'UNEMI') return UNEMI_TYPES.includes(tipoEmprendedor);
+                if (filterTipo === 'Externo' && tipoEmprendedor === 'Externo') return true;
+                return tipoEmprendedor === filterTipo;
             }
             if (filterRuc) {
                 const hasRuc = e.ruc && String(e.ruc).trim().length > 0;
@@ -245,6 +289,10 @@ export default function EntrepreneursList() {
                     (e.telefono && e.telefono.toLowerCase().includes(term)) ||
                     (e.correo && e.correo.toLowerCase().includes(term))
                 );
+            }
+            if (filterGenero) {
+                const detected = e.genero || detectGender(e.persona_contacto);
+                if (filterGenero !== detected) return false;
             }
             return true;
         });
@@ -262,12 +310,12 @@ export default function EntrepreneursList() {
         }
 
         return data;
-    }, [entrepreneurs, filterCategory, filterTipo, filterRuc, searchTerm, sortConfig]);
+    }, [entrepreneurs, filterCategory, filterTipo, filterRuc, filterGenero, searchTerm, sortConfig]);
 
     const paginatedData = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
         return filteredData.slice(startIndex, startIndex + itemsPerPage);
-    }, [filteredData, currentPage]);
+    }, [filteredData, currentPage, itemsPerPage]);
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
@@ -486,6 +534,243 @@ Atentamente,`;
         window.open(gmailUrlWithBody, '_blank');
     };
 
+    const normalizeType = (rawType) => {
+        const normalized = (rawType || '').trim();
+        return normalized || 'Externo';
+    };
+
+    const getAffiliation = (type) => {
+        return UNEMI_TYPES.includes(type) ? 'UNEMI' : 'Externo';
+    };
+
+    const getCategorySortIndex = (category) => {
+        const idx = CATEGORY_ORDER.findIndex(c => c.toUpperCase() === (category || '').toUpperCase());
+        return idx === -1 ? Number.MAX_SAFE_INTEGER : idx;
+    };
+
+    const handleExportEntrepreneursExcel = async () => {
+        if (!entrepreneurs.length) {
+            alert('No hay emprendedores para exportar.');
+            return;
+        }
+
+        setIsExporting(true);
+
+        try {
+            const XLSX = await import('xlsx');
+            const workbook = XLSX.utils.book_new();
+            const generatedAt = new Date().toLocaleString('es-EC');
+
+            const sortedEntrepreneurs = [...entrepreneurs].sort((a, b) => {
+                const categoryA = a.categoria_principal || 'Sin categoría';
+                const categoryB = b.categoria_principal || 'Sin categoría';
+
+                const categoryIndexA = getCategorySortIndex(categoryA);
+                const categoryIndexB = getCategorySortIndex(categoryB);
+
+                if (categoryIndexA !== categoryIndexB) return categoryIndexA - categoryIndexB;
+
+                const categoryCompare = categoryA.localeCompare(categoryB, 'es', { sensitivity: 'base' });
+                if (categoryCompare !== 0) return categoryCompare;
+
+                const typeA = normalizeType(a.semaforizacion);
+                const typeB = normalizeType(b.semaforizacion);
+
+                const affiliationCompare = getAffiliation(typeA).localeCompare(getAffiliation(typeB), 'es', { sensitivity: 'base' });
+                if (affiliationCompare !== 0) return affiliationCompare;
+
+                const typeCompare = typeA.localeCompare(typeB, 'es', { sensitivity: 'base' });
+                if (typeCompare !== 0) return typeCompare;
+
+                return (a.nombre_emprendimiento || '').localeCompare((b.nombre_emprendimiento || ''), 'es', { sensitivity: 'base' });
+            });
+
+            const detailHeaders = [
+                'N°',
+                'Categoría',
+                'Tipo',
+                'Grupo',
+                'Emprendimiento',
+                'Persona de Contacto',
+                'Teléfono',
+                'Correo',
+                'Ciudad',
+                'RUC',
+                'Tiene RUC',
+                'Actividad Económica',
+                'Participaciones',
+                'Última Semana Participación',
+                'No Contestó',
+                'Red Social',
+                'URL Logo',
+                'URL RUC/PDF',
+                'Notas'
+            ];
+
+            const detailRows = sortedEntrepreneurs.map((e, index) => {
+                const type = normalizeType(e.semaforizacion);
+                const hasRuc = Boolean(String(e.ruc || '').trim());
+
+                return [
+                    index + 1,
+                    e.categoria_principal || 'Sin categoría',
+                    type,
+                    getAffiliation(type),
+                    e.nombre_emprendimiento || '',
+                    e.persona_contacto || '',
+                    e.telefono || '',
+                    e.correo || '',
+                    e.ciudad || '',
+                    e.ruc || '',
+                    hasRuc ? 'SI' : 'NO',
+                    e.actividad_economica || '',
+                    e.veces_en_stand || 0,
+                    e.ultima_semana_participacion || '',
+                    e.no_contesto ? 'SI' : 'NO',
+                    e.red_social || '',
+                    e.logo_url || '',
+                    e.pdf_url || '',
+                    e.notas || ''
+                ];
+            });
+
+            const detailSheetData = [
+                ['BASE COMPLETA DE EMPRENDEDORES'],
+                ['Generado', generatedAt],
+                [],
+                detailHeaders,
+                ...detailRows
+            ];
+
+            const detailSheet = XLSX.utils.aoa_to_sheet(detailSheetData);
+            detailSheet['!cols'] = [
+                { wch: 6 }, { wch: 24 }, { wch: 26 }, { wch: 12 }, { wch: 30 },
+                { wch: 28 }, { wch: 16 }, { wch: 32 }, { wch: 16 }, { wch: 18 },
+                { wch: 12 }, { wch: 40 }, { wch: 14 }, { wch: 24 }, { wch: 12 },
+                { wch: 24 }, { wch: 35 }, { wch: 35 }, { wch: 40 }
+            ];
+
+            detailSheet['!autofilter'] = {
+                ref: XLSX.utils.encode_range({
+                    s: { c: 0, r: 3 },
+                    e: { c: detailHeaders.length - 1, r: 3 + detailRows.length }
+                })
+            };
+
+            XLSX.utils.book_append_sheet(workbook, detailSheet, 'Base Emprendedores');
+
+            const categoryTypeMap = new Map();
+            sortedEntrepreneurs.forEach((e) => {
+                const category = e.categoria_principal || 'Sin categoría';
+                const type = normalizeType(e.semaforizacion);
+                const key = `${category}__${type}`;
+
+                if (!categoryTypeMap.has(key)) {
+                    categoryTypeMap.set(key, {
+                        category,
+                        type,
+                        affiliation: getAffiliation(type),
+                        total: 0,
+                        withRuc: 0,
+                        withEmail: 0,
+                        withParticipation: 0
+                    });
+                }
+
+                const row = categoryTypeMap.get(key);
+                row.total += 1;
+                if (String(e.ruc || '').trim()) row.withRuc += 1;
+                if (String(e.correo || '').trim()) row.withEmail += 1;
+                if ((e.veces_en_stand || 0) > 0) row.withParticipation += 1;
+            });
+
+            const categoryTypeRows = [...categoryTypeMap.values()].sort((a, b) => {
+                const indexA = getCategorySortIndex(a.category);
+                const indexB = getCategorySortIndex(b.category);
+                if (indexA !== indexB) return indexA - indexB;
+
+                const categoryCompare = a.category.localeCompare(b.category, 'es', { sensitivity: 'base' });
+                if (categoryCompare !== 0) return categoryCompare;
+
+                const affiliationCompare = a.affiliation.localeCompare(b.affiliation, 'es', { sensitivity: 'base' });
+                if (affiliationCompare !== 0) return affiliationCompare;
+
+                return a.type.localeCompare(b.type, 'es', { sensitivity: 'base' });
+            });
+
+            const categoryTypeSheetData = [
+                ['RESUMEN TIPO TABLA DINAMICA: CATEGORIA Y TIPO'],
+                ['Generado', generatedAt],
+                [],
+                ['Categoría', 'Tipo', 'Grupo', 'Total', 'Con RUC', 'Con Correo', 'Con Participación', '% Participación'],
+                ...categoryTypeRows.map(row => [
+                    row.category,
+                    row.type,
+                    row.affiliation,
+                    row.total,
+                    row.withRuc,
+                    row.withEmail,
+                    row.withParticipation,
+                    row.total > 0 ? Number(((row.withParticipation / row.total) * 100).toFixed(1)) : 0
+                ])
+            ];
+
+            const categoryTypeSheet = XLSX.utils.aoa_to_sheet(categoryTypeSheetData);
+            categoryTypeSheet['!cols'] = [
+                { wch: 26 }, { wch: 28 }, { wch: 12 }, { wch: 10 },
+                { wch: 12 }, { wch: 12 }, { wch: 18 }, { wch: 15 }
+            ];
+            XLSX.utils.book_append_sheet(workbook, categoryTypeSheet, 'Resumen Cat-Tipo');
+
+            const typeMap = new Map();
+            sortedEntrepreneurs.forEach((e) => {
+                const type = normalizeType(e.semaforizacion);
+                if (!typeMap.has(type)) {
+                    typeMap.set(type, {
+                        type,
+                        affiliation: getAffiliation(type),
+                        total: 0,
+                        withRuc: 0,
+                        withEmail: 0
+                    });
+                }
+
+                const row = typeMap.get(type);
+                row.total += 1;
+                if (String(e.ruc || '').trim()) row.withRuc += 1;
+                if (String(e.correo || '').trim()) row.withEmail += 1;
+            });
+
+            const typeRows = [...typeMap.values()].sort((a, b) => {
+                const affiliationCompare = a.affiliation.localeCompare(b.affiliation, 'es', { sensitivity: 'base' });
+                if (affiliationCompare !== 0) return affiliationCompare;
+                return a.type.localeCompare(b.type, 'es', { sensitivity: 'base' });
+            });
+
+            const typeSheetData = [
+                ['RESUMEN GENERAL POR TIPO'],
+                ['Generado', generatedAt],
+                [],
+                ['Tipo', 'Grupo', 'Total', 'Con RUC', 'Con Correo'],
+                ...typeRows.map(row => [row.type, row.affiliation, row.total, row.withRuc, row.withEmail])
+            ];
+
+            const typeSheet = XLSX.utils.aoa_to_sheet(typeSheetData);
+            typeSheet['!cols'] = [
+                { wch: 30 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 12 }
+            ];
+            XLSX.utils.book_append_sheet(workbook, typeSheet, 'Resumen Tipo');
+
+            const fileDate = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `Base_Emprendedores_${fileDate}.xlsx`);
+        } catch (error) {
+            console.error('Error al exportar Excel:', error);
+            alert('No se pudo generar el Excel. Inténtalo nuevamente.');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
 
 
     // Pagination page numbers
@@ -544,6 +829,14 @@ Atentamente,`;
                     >
                         <Mail size={18} />
                         <span>Confirmación Masiva</span>
+                    </button>
+                    <button
+                        onClick={handleExportEntrepreneursExcel}
+                        disabled={isExporting}
+                        className="btn flex-1 md:flex-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-100 dark:hover:border-primary-500/30 shadow-sm hover:shadow px-4 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                        {isExporting ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                        <span>{isExporting ? 'Exportando...' : 'Exportar Excel'}</span>
                     </button>
                     <button
                         onClick={() => {
@@ -678,7 +971,12 @@ Atentamente,`;
                         >
                             <option value="">Tipo</option>
                             <option value="Externo">Externo</option>
-                            <option value="UNEMI">UNEMI</option>
+                            <option value="UNEMI">UNEMI (Todos)</option>
+                            <option value="Estudiante de pregrado">Estudiante de pregrado</option>
+                            <option value="Graduado de pregrado">Graduado de pregrado</option>
+                            <option value="Graduado de posgrado">Graduado de posgrado</option>
+                            <option value="Egresado">Egresado</option>
+                            <option value="Retirado / exestudiante">Retirado / exestudiante</option>
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                             <ChevronDown size={14} />
@@ -709,9 +1007,31 @@ Atentamente,`;
                         )}
                     </div>
 
+                    <div className="relative flex-1 md:w-32">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <Users size={16} />
+                        </div>
+                        <select
+                            className="w-full pl-9 pr-8 py-2.5 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg outline-none transition-all appearance-none font-medium text-sm text-slate-700 dark:text-white cursor-pointer"
+                            value={filterGenero}
+                            onChange={e => { updateParams({ genero: e.target.value || null, pagina: null }); }}
+                        >
+                            <option value="">Género</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Femenino">Femenino</option>
+                            <option value="No especificado">No especificado</option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                            <ChevronDown size={14} />
+                        </div>
+                        {filterGenero && (
+                            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center">1</span>
+                        )}
+                    </div>
+
                     {hasActiveFilters && (
                         <button
-                            onClick={() => updateParams({ buscar: null, categoria: null, tipo: null, ruc: null, pagina: null })}
+                            onClick={() => updateParams({ buscar: null, categoria: null, tipo: null, ruc: null, genero: null, pagina: null })}
                             className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-100 dark:border-red-900/30 transition-all whitespace-nowrap"
                             title="Limpiar filtros"
                         >
@@ -765,7 +1085,7 @@ Atentamente,`;
 
                 {paginatedData.map((e, index) => {
                     const tipoEmprendedor = e.semaforizacion || 'Externo';
-                    const isUNEMI = tipoEmprendedor === 'Estudiante / Graduado UNEMI' || tipoEmprendedor === 'Graduado';
+                    const isUNEMI = UNEMI_TYPES.includes(tipoEmprendedor);
 
                     return (
                         <div
@@ -795,7 +1115,15 @@ Atentamente,`;
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <h3 className="font-bold text-slate-800 dark:text-white text-sm leading-tight truncate">{e.nombre_emprendimiento}</h3>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{e.persona_contacto}</p>
+                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{e.persona_contacto}</p>
+                                            {(() => {
+                                                const gender = e.genero || detectGender(e.persona_contacto);
+                                                if (gender === 'Masculino') return <Mars size={12} className="text-blue-500 shrink-0" />;
+                                                if (gender === 'Femenino') return <Venus size={12} className="text-pink-500 shrink-0" />;
+                                                return <HelpCircle size={12} className="text-slate-300 shrink-0" title="Género no detectado" />;
+                                            })()}
+                                        </div>
                                         <div className="flex items-center gap-1.5 mt-1">
                                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 truncate max-w-[120px]">
                                                 {e.categoria_principal}
@@ -1041,7 +1369,8 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
                     no_contesto: initialData.no_contesto || false,
                     ruc: initialData.ruc || '',
                     logo_url: initialData.logo_url || '',
-                    pdf_url: initialData.pdf_url || ''
+                    pdf_url: initialData.pdf_url || '',
+                    genero: initialData.genero || ''
                 });
                 setIsCustomCategory(!categories.includes(initialData.categoria_principal) && initialData.categoria_principal !== '');
             } else {
@@ -1058,7 +1387,8 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
                     ruc: '',
                     no_contesto: false,
                     logo_url: '',
-                    pdf_url: ''
+                    pdf_url: '',
+                    genero: ''
                 });
                 setIsCustomCategory(false);
             }
@@ -1287,6 +1617,35 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
                             </div>
 
                             <div className="col-span-1">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2 flex items-center justify-between">
+                                    Género
+                                    {detectGender(formData.persona_contacto) !== 'No especificado' && !formData.genero && (
+                                        <span className="text-[10px] text-primary-500 font-medium px-1.5 py-0.5 bg-primary-50 dark:bg-primary-900/30 rounded-md animate-pulse">
+                                            Auto: {detectGender(formData.persona_contacto)}
+                                        </span>
+                                    )}
+                                </label>
+                                <div className="relative group">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                                        {formData.genero === 'Masculino' ? <Mars size={20} /> : formData.genero === 'Femenino' ? <Venus size={20} /> : <Users size={20} />}
+                                    </div>
+                                    <select
+                                        className="w-full pl-12 pr-10 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none font-medium text-slate-700 dark:text-white cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-600"
+                                        value={formData.genero || ''}
+                                        onChange={(e) => setFormData({ ...formData, genero: e.target.value })}
+                                    >
+                                        <option value="">Auto-detectar</option>
+                                        <option value="Masculino">Masculino</option>
+                                        <option value="Femenino">Femenino</option>
+                                        <option value="No especificado">No especificado</option>
+                                    </select>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                        <ChevronDown size={16} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="col-span-1">
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
                                     Categoría <span className="text-red-500">*</span>
                                 </label>
@@ -1354,7 +1713,11 @@ export function EntrepreneurModal({ isOpen, onClose, onSave, categories, initial
                                         required
                                     >
                                         <option value="Externo">Emprendedor Externo</option>
-                                        <option value="Estudiante / Graduado UNEMI">Estudiante / Graduado UNEMI</option>
+                                        <option value="Estudiante de pregrado">Estudiante de pregrado</option>
+                                        <option value="Graduado de pregrado">Graduado de pregrado</option>
+                                        <option value="Graduado de posgrado">Graduado de posgrado</option>
+                                        <option value="Egresado">Egresado</option>
+                                        <option value="Retirado / exestudiante">Retirado / exestudiante</option>
                                     </select>
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                                         <ChevronDown size={16} />

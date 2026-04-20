@@ -28,7 +28,7 @@ export default function SurveysDashboard() {
             const month = dateRange.split('/')[1]; // Get MM
 
             return { year, month };
-        } catch (e) {
+        } catch {
             return { year: null, month: null };
         }
     };
@@ -87,7 +87,7 @@ export default function SurveysDashboard() {
                 try {
                     const jsonStr = a.comentarios.replace('[SURVEY]', '');
                     return JSON.parse(jsonStr);
-                } catch (e) {
+                } catch {
                     return null;
                 }
             })

@@ -12,7 +12,6 @@ export default function SurveyPage() {
     const { id } = useParams();
     const { db, isLoaded } = useData();
     const [status, setStatus] = useState('loading'); // loading, ready, submitting, success, error
-    const [assignment, setAssignment] = useState(null);
     const [formData, setFormData] = useState({
         experience: '',
         impact: '',
@@ -27,7 +26,6 @@ export default function SurveyPage() {
             // The DataProvider loads data on mount, so it should be fine.
             const found = db.asignaciones.find(a => a.id_asignacion === id);
             if (found) {
-                setAssignment(found);
                 // Check if already submitted
                 if (found.comentarios && found.comentarios.startsWith('[SURVEY]')) {
                     setStatus('already_submitted');

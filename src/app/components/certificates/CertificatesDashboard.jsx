@@ -10,7 +10,6 @@ import Calendar from 'lucide-react/dist/esm/icons/calendar';
 import Clock from 'lucide-react/dist/esm/icons/clock';
 import CheckCircle2 from 'lucide-react/dist/esm/icons/check-circle-2';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Lock from 'lucide-react/dist/esm/icons/lock';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { PDFDocument, rgb } from 'pdf-lib';
@@ -24,20 +23,6 @@ export default function CertificatesDashboard() {
     const navigate = useNavigate();
     const { customSurveys } = useData();
     const { addToast } = useToast();
-
-    const [isAuthenticated, setIsAuthenticated] = useState(true); // Password removed as requested
-    const [passwordInput, setPasswordInput] = useState('');
-    const [authError, setAuthError] = useState(false);
-
-    const handleLogin = (e) => {
-        e.preventDefault();
-        if (passwordInput === '102245') {
-            setIsAuthenticated(true);
-            setAuthError(false);
-        } else {
-            setAuthError(true);
-        }
-    };
 
     const [selectedSurvey, setSelectedSurvey] = useState(null);
     const [selectedAttendees, setSelectedAttendees] = useState(new Set());
@@ -175,7 +160,6 @@ export default function CertificatesDashboard() {
             const textStartX = textMargin + 19; // Moved 19px right
             const textMaxWidth = width - (textMargin * 2);
             let currentY = height - 343;
-            let xPos = textStartX;
 
             // Helper function to draw justified line with mixed fonts
             // Each item in words array is {text, font}

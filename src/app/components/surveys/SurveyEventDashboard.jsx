@@ -52,7 +52,7 @@ const parseSurveyNote = (noteString) => {
             return { content: parsed.content || '', group: parsed.group || '' };
         }
         return { content: noteString, group: '' };
-    } catch (e) {
+    } catch {
         return { content: noteString || '', group: '' };
     }
 };
@@ -98,7 +98,6 @@ function SurveyEventDashboard() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [view, setView] = useState('list'); // 'list' | 'create'
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
     const [copiedId, setCopiedId] = useState(null);
     const [editingId, setEditingId] = useState(null);
     const [viewingResultsId, setViewingResultsId] = useState(null);
@@ -148,7 +147,7 @@ function SurveyEventDashboard() {
     const [selectedResponses, setSelectedResponses] = useState(new Set());
     const [reminderTemplate, setReminderTemplate] = useState('taller_rentabilidad');
     const [customSubject, setCustomSubject] = useState('');
-    const [customBody, setCustomBody] = useState('');
+    const [customBody] = useState('');
 
     // Results View State
     const [searchTerm, setSearchTerm] = useState('');

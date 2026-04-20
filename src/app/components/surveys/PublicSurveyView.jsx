@@ -25,7 +25,7 @@ function PublicSurveyView() {
     const [businessName, setBusinessName] = useState(null);
 
     // Prize Wheel State
-    const [showWheel, setShowWheel] = useState(false);
+    const [showWheel] = useState(false);
     const [prize, setPrize] = useState(null);
 
     useEffect(() => {

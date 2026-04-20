@@ -4,6 +4,8 @@ import Trophy from 'lucide-react/dist/esm/icons/trophy';
 import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
 import Gift from 'lucide-react/dist/esm/icons/gift';
 
+const _MOTION = motion;
+
 // Vibrant Casino Palette (Red, Blue, Green, Yellow, Purple, Orange)
 const WHEEL_COLORS = [
     '#EF4444', // Red

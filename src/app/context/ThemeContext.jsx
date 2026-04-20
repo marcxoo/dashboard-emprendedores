@@ -26,7 +26,9 @@ export const ThemeProvider = ({ children }) => {
         }
         try {
             window.localStorage.setItem('theme', theme);
-        } catch (e) { }
+        } catch {
+            // ignore storage write errors
+        }
     }, [theme]);
 
     const toggleTheme = () => {

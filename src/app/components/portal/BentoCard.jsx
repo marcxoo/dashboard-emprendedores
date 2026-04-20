@@ -1,6 +1,8 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
-import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
+
+const _MOTION = motion;
 
 const BentoCard = ({
     title,
@@ -81,7 +83,7 @@ const BentoCard = ({
                 {/* Header Section */}
                 <div className="flex justify-between items-start mb-6">
                     <div className={`p-4 rounded-2xl ${stats?.backgroundImage ? 'bg-white/20 backdrop-blur-md border-white/20' : 'bg-white/90 dark:bg-white/10 backdrop-blur-sm border-slate-100 dark:border-white/10'} border group-hover:scale-110 transition-transform duration-300 shadow-sm ${iconColor} ${stats?.backgroundImage ? '!text-white' : ''}`}>
-                        <Icon size={32} strokeWidth={1.5} />
+                        {Icon ? React.createElement(Icon, { size: 32, strokeWidth: 1.5 }) : null}
                     </div>
 
                     {/* Hover Arrow */}

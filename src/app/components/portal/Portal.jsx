@@ -17,6 +17,8 @@ import { useData } from '@/context/DataContext';
 import BentoCard from './BentoCard';
 import { motion } from 'framer-motion';
 
+const _MOTION = motion;
+
 function Portal() {
     const navigate = useNavigate();
     const { user, logout } = useAuth();

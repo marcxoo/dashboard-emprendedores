@@ -21,7 +21,6 @@ export default function Dashboard() {
         generateAssignments,
         entrepreneurs,
         earnings,
-        clearAllData,
         setManualAssignment,
         removeAssignment,
         selectedDate,
@@ -121,17 +120,6 @@ export default function Dashboard() {
         }
     };
 
-    const getCategoryClass = (category) => {
-        if (!category) return 'cat-libre';
-        const cat = category.toLowerCase();
-        if (cat.includes('alimento') || cat.includes('comida') || cat.includes('dulce') || cat.includes('postre') || cat.includes('pastel') || cat.includes('bebida') || cat.includes('chocolate') || cat.includes('miel') || cat.includes('granizado') || cat.includes('condimento') || cat.includes('snack')) return 'cat-alimentos';
-        if (cat.includes('bisuter') || cat.includes('accesorio') || cat.includes('joya') || cat.includes('zapato') || cat.includes('ropa') || cat.includes('cosmetico') || cat.includes('belleza')) return 'cat-bisuteria';
-        if (cat.includes('servicio') || cat.includes('salud') || cat.includes('limpieza') || cat.includes('vivero') || cat.includes('mercado') || cat.includes('profesional')) return 'cat-servicios';
-        if (cat.includes('artesan') || cat.includes('manualidad') || cat.includes('arte') || cat.includes('detalle') || cat.includes('fiesta') || cat.includes('bazar') || cat.includes('anime') || cat.includes('regalo')) return 'cat-artesanias';
-        if (cat.includes('tecnolog') || cat.includes('celular') || cat.includes('comput')) return 'cat-tecnologia';
-        return 'cat-libre';
-    };
-
     const formatDateRange = (weekString, block) => {
         if (!weekString || !block) return '';
         try {
@@ -175,7 +163,9 @@ export default function Dashboard() {
                 return `${startStr} al ${endStr}`;
             }
             return startStr;
-        } catch (e) { return ''; }
+        } catch {
+            return '';
+        }
     };
 
     const formatBlockName = (block) => {

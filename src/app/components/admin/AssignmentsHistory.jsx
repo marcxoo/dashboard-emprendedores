@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import EntrepreneurDetail from './EntrepreneurDetail';
-import { getDateRangeFromWeek, sortWeeksDesc } from '@/utils/dateUtils';
+import { sortWeeksDesc } from '@/utils/dateUtils';
 import { useData } from '@/context/DataContext';
 import { STANDS } from '@/data/Database';
 import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
@@ -76,10 +76,6 @@ export default function AssignmentsHistory() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [viewingEntrepreneur, setViewingEntrepreneur] = useState(null);
-
-    if (!isLoaded) {
-        return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
-    }
 
     useEffect(() => {
         if (!Array.isArray(assignments)) {
@@ -169,24 +165,14 @@ export default function AssignmentsHistory() {
                 return `${startStr} al ${endStr} `;
             }
             return startStr;
-        } catch (e) { return ''; }
+        } catch {
+            return '';
+        }
     };
 
     const handleDelete = (id) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar esta asignación del historial?')) {
             deleteAssignment(id);
-        }
-    };
-
-    const handleAttendanceClick = (assignment) => {
-        if (assignment.asistio) {
-            // If already attended, toggle to not attended (which opens modal) or just toggle off?
-            // Logic: If currently YES, clicking means toggle to NO -> Open Modal
-            setSelectedAssignment(assignment);
-            setIsModalOpen(true);
-        } else {
-            // If currently NO, clicking means toggle to YES -> No modal needed, clear comments
-            updateAssignmentAttendance(assignment.id_asignacion, true, '');
         }
     };
 
@@ -218,6 +204,10 @@ export default function AssignmentsHistory() {
             setViewingEntrepreneur(emp);
         }
     };
+
+    if (!isLoaded) {
+        return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
+    }
 
     const exportToCSV = () => {
         const rows = assignments.map(record => {
@@ -300,15 +290,16 @@ export default function AssignmentsHistory() {
                             const emp = entrepreneurs.find(e => String(e.id) === String(assignment.id_emprendedor));
                             if (!emp) return null;
                             const type = emp.semaforizacion || 'Externo';
+                            const unemiTypes = [
+                                'Estudiante de pregrado',
+                                'Graduado de pregrado',
+                                'Graduado de posgrado',
+                                'Egresado',
+                                'Retirado / exestudiante'
+                            ];
 
-                            // Determine style based on type
-                            let styleClass = 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600'; // Default Externo
-                            if (type === 'Estudiante') {
-                                styleClass = 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-violet-100 dark:border-violet-800 hover:bg-violet-100 dark:hover:bg-violet-900/40';
-                            } else if (type === 'Graduado') {
-                                styleClass = 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40';
-                            } else if (type === 'Estudiante / Graduado UNEMI') {
-                                // Legacy support - map to Estudiante style or generic
+                            let styleClass = 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600';
+                            if (unemiTypes.includes(type)) {
                                 styleClass = 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-violet-100 dark:border-violet-800 hover:bg-violet-100 dark:hover:bg-violet-900/40';
                             }
 
@@ -325,8 +316,11 @@ export default function AssignmentsHistory() {
                                         style={{ textAlignLast: 'center' }}
                                     >
                                         <option value="Externo" className='text-black'>EXTERNO</option>
-                                        <option value="Estudiante" className='text-black'>ESTUDIANTE</option>
-                                        <option value="Graduado" className='text-black'>GRADUADO</option>
+                                        <option value="Estudiante de pregrado" className='text-black'>ESTUDIANTE PREGRADO</option>
+                                        <option value="Graduado de pregrado" className='text-black'>GRADUADO PREGRADO</option>
+                                        <option value="Graduado de posgrado" className='text-black'>GRADUADO POSGRADO</option>
+                                        <option value="Egresado" className='text-black'>EGRESADO</option>
+                                        <option value="Retirado / exestudiante" className='text-black'>RETIRADO</option>
                                     </select>
                                 </div>
                             );
@@ -470,15 +464,16 @@ export default function AssignmentsHistory() {
                                 const emp = entrepreneurs.find(e => String(e.id) === String(assignment.id_emprendedor));
                                 if (!emp) return null;
                                 const type = emp.semaforizacion || 'Externo';
+                                const unemiTypes = [
+                                    'Estudiante de pregrado',
+                                    'Graduado de pregrado',
+                                    'Graduado de posgrado',
+                                    'Egresado',
+                                    'Retirado / exestudiante'
+                                ];
 
-                                // Determine style based on type
-                                let styleClass = 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600'; // Default Externo
-                                if (type === 'Estudiante') {
-                                    styleClass = 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-violet-100 dark:border-violet-800 hover:bg-violet-100 dark:hover:bg-violet-900/40';
-                                } else if (type === 'Graduado') {
-                                    styleClass = 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40';
-                                } else if (type === 'Estudiante / Graduado UNEMI') {
-                                    // Legacy support
+                                let styleClass = 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600';
+                                if (unemiTypes.includes(type)) {
                                     styleClass = 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-violet-100 dark:border-violet-800 hover:bg-violet-100 dark:hover:bg-violet-900/40';
                                 }
 
@@ -495,8 +490,11 @@ export default function AssignmentsHistory() {
                                             style={{ textAlignLast: 'center' }}
                                         >
                                             <option value="Externo" className='text-black'>EXTERNO</option>
-                                            <option value="Estudiante" className='text-black'>ESTUDIANTE</option>
-                                            <option value="Graduado" className='text-black'>GRADUADO</option>
+                                            <option value="Estudiante de pregrado" className='text-black'>ESTUDIANTE PREGRADO</option>
+                                            <option value="Graduado de pregrado" className='text-black'>GRADUADO PREGRADO</option>
+                                            <option value="Graduado de posgrado" className='text-black'>GRADUADO POSGRADO</option>
+                                            <option value="Egresado" className='text-black'>EGRESADO</option>
+                                            <option value="Retirado / exestudiante" className='text-black'>RETIRADO</option>
                                         </select>
                                     </div>
                                 );

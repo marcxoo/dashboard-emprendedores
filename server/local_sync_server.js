@@ -186,7 +186,7 @@ app.post('/sync/full-backup', async (req, res) => {
                     e.ultima_semana_participacion, e.ruc, e.notas, e.logo_url
                 ]);
                 inserted++;
-            } catch (err) {
+            } catch {
                 // Skip duplicates
             }
         }

@@ -1,8 +1,4 @@
-import { useNavigate } from 'react-router-dom';
-
 export default function NotFound() {
-    const navigate = useNavigate();
-
     return (
         <section className="bg-white font-serif min-h-screen flex items-center justify-center p-4">
             <div className="container mx-auto">

@@ -49,7 +49,7 @@ export async function syncEntrepreneurToLocal(entrepreneur) {
             console.warn('⚠️ Error en respuesta del servidor local');
             return false;
         }
-    } catch (err) {
+    } catch {
         console.warn('⚠️ No se pudo sincronizar a local (servidor no disponible)');
         isLocalServerAvailable = false;
         return false;

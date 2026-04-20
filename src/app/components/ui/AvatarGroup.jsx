@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const _MOTION = motion;
+
 const AvatarGroup = ({
     avatars,
     maxVisible = 5,

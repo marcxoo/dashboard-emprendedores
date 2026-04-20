@@ -1,5 +1,4 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import { useNavigate } from 'react-router-dom';
 import Menu from 'lucide-react/dist/esm/icons/menu';
@@ -24,9 +23,19 @@ import { Label } from '@/components/ui/label';
 import { ShineBorder } from '@/components/ui/ShineBorder';
 import EntrepreneurDetail from '@/components/admin/EntrepreneurDetail';
 
+const CATEGORY_ORDER = [
+    "Gastronomía y Alimentos",
+    "Comercio / Retail",
+    "Servicios Profesionales y Técnicos",
+    "Producción y Manufactura",
+    "Tecnología y Digital",
+    "Turismo y Hotelería",
+    "Agroindustria",
+    "Otro"
+];
+
 export default function InvitationsDashboard() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const { user, logout } = useAuth();
     const { entrepreneurs, customSurveys, addInvitationLog, addInvitationLogBatch, invitationLogs } = useData();
     const { addToast } = useToast();
     const navigate = useNavigate();
@@ -92,14 +101,21 @@ export default function InvitationsDashboard() {
     const [confirmingEntrepreneur, setConfirmingEntrepreneur] = useState(null);
     const [isSending, setIsSending] = useState(false);
 
-    const handleLogout = async () => {
-        await logout();
-        navigate('/');
-    };
-
     const categories = useMemo(() => {
         if (!Array.isArray(entrepreneurs)) return [];
-        return [...new Set(entrepreneurs.map(e => e.categoria_principal))].sort();
+        const dbCategories = entrepreneurs.map(e => e.categoria_principal).filter(Boolean);
+        const allUniqueCategories = [...new Set([...CATEGORY_ORDER, ...dbCategories])];
+        
+        return allUniqueCategories.sort((a, b) => {
+            const indexA = CATEGORY_ORDER.findIndex(o => o.toUpperCase() === a.toUpperCase());
+            const indexB = CATEGORY_ORDER.findIndex(o => o.toUpperCase() === b.toUpperCase());
+            
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            
+            return a.localeCompare(b);
+        });
     }, [entrepreneurs]);
 
     const filteredEntrepreneurs = useMemo(() => {
