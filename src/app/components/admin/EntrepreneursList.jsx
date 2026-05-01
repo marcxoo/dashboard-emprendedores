@@ -277,9 +277,9 @@ export default function EntrepreneursList() {
                 return tipoEmprendedor === filterTipo;
             }
             if (filterRuc) {
-                const hasRuc = e.ruc && String(e.ruc).trim().length > 0;
-                if (filterRuc === 'con_ruc' && !hasRuc) return false;
-                if (filterRuc === 'sin_ruc' && hasRuc) return false;
+                const hasRucFile = e.pdf_url && String(e.pdf_url).trim().length > 0;
+                if (filterRuc === 'con_ruc' && !hasRucFile) return false;
+                if (filterRuc === 'sin_ruc' && hasRucFile) return false;
             }
             if (searchTerm) {
                 const term = searchTerm.toLowerCase();
