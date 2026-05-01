@@ -240,9 +240,12 @@ function FairsOverview({ onSelect }) {
                                     <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg sm:rounded-xl p-2.5 sm:p-3">
                                         <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold mb-0.5 sm:mb-1">FECHA</p>
                                         <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                            {fair.end_date && fair.end_date !== fair.date
-                                                ? `${new Date(fair.date + 'T12:00:00').getDate()}-${new Date(fair.end_date + 'T12:00:00').getDate()} ${new Date(fair.date + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short' })}`
-                                                : new Date(fair.date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+                                            {fair.date
+                                                ? (fair.end_date && fair.end_date !== fair.date
+                                                    ? `${new Date(fair.date + 'T12:00:00').getDate()}-${new Date(fair.end_date + 'T12:00:00').getDate()} ${new Date(fair.date + 'T12:00:00').toLocaleDateString('es-ES', { month: 'short' })}`
+                                                    : new Date(fair.date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+                                                )
+                                                : 'Pendiente'
                                             }
                                         </p>
                                     </div>
@@ -1266,17 +1269,30 @@ function FairParticipants({ fairId }) {
 
     const handleQuickRegister = async (data) => {
         try {
-            // Create Entrepreneur
+            // 1. Create in main entrepreneurs table
             const newEnt = await addEntrepreneur({
                 ...data,
                 active_status: 'active'
             });
 
             if (newEnt && newEnt.id) {
-                // Assign to Fair
-                await assignEntrepreneurToFair(fairId, newEnt.id);
-                // Set status to confirmed
-                await updateFairAssignmentStatus(fairId, newEnt.id, 'confirmed');
+                // 2. Also create a fair_entrepreneur record (fair_assignments FK points to fair_entrepreneurs, not entrepreneurs)
+                const fairEntData = {
+                    name: data.persona_contacto || data.nombre_emprendimiento,
+                    business_name: data.nombre_emprendimiento,
+                    category: data.categoria_principal,
+                    phone: data.telefono,
+                    email: data.correo,
+                    status: 'active'
+                };
+
+                // Use bulkImport for single record (it handles insert + assignment)
+                const result = await bulkImportFairEntrepreneurs(fairId, [fairEntData]);
+
+                if (result && result.length > 0) {
+                    // Set status to confirmed
+                    await updateFairAssignmentStatus(fairId, result[0].id, 'confirmed');
+                }
 
                 setIsQuickRegisterOpen(false);
             }
@@ -1528,17 +1544,21 @@ function FairParticipants({ fairId }) {
                     existingParticipants={participants} // Pass the full array of participants for name matching
                     onClose={() => setShowImport(false)}
                     onImport={async (selected) => {
+                        // Only send columns that exist in fair_entrepreneurs table schema:
+                        // id, created_at, name, business_name, category, phone, email, status
                         const newEntrepreneurs = selected.map(emp => ({
                             name: emp.persona_contacto || emp.nombre_emprendimiento,
                             business_name: emp.nombre_emprendimiento,
                             category: emp.categoria_principal,
-                            ciudad: emp.ciudad || '', // Include city
                             phone: emp.telefono,
                             email: emp.correo,
                             status: 'active'
                         }));
 
-                        await bulkImportFairEntrepreneurs(fairId, newEntrepreneurs);
+                        const result = await bulkImportFairEntrepreneurs(fairId, newEntrepreneurs);
+                        if (!result || result.length === 0) {
+                            console.warn('Import returned empty — check Supabase logs for schema errors');
+                        }
                         setShowImport(false);
                     }} />
             )}

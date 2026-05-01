@@ -1014,14 +1014,22 @@ export class Database {
   }
 
   async addFairEntrepreneur(entrepreneurData) {
+    // Sanitize: only include columns that exist in the fair_entrepreneurs table
+    const allowedColumns = ['name', 'business_name', 'category', 'phone', 'email', 'status'];
+    const sanitized = {};
+    for (const key of allowedColumns) {
+      if (entrepreneurData[key] !== undefined) sanitized[key] = entrepreneurData[key];
+    }
+
     const { data, error } = await supabase
       .from('fair_entrepreneurs')
-      .insert([entrepreneurData])
+      .insert([sanitized])
       .select()
       .single();
 
     if (error) {
       console.error('Error adding fair entrepreneur:', error);
+      console.error('Error details:', error.message, error.details, error.hint);
       return null;
     }
     this.fairEntrepreneurs.push(data);
@@ -1121,14 +1129,32 @@ export class Database {
   async bulkImportFairEntrepreneurs(fairId, entrepreneursData) {
     if (!entrepreneursData || entrepreneursData.length === 0) return [];
 
+    // Sanitize: only include columns that exist in the fair_entrepreneurs table
+    const allowedColumns = ['name', 'business_name', 'category', 'phone', 'email', 'status'];
+    const sanitizedData = entrepreneursData.map(ent => {
+      const sanitized = {};
+      for (const key of allowedColumns) {
+        if (ent[key] !== undefined) sanitized[key] = ent[key];
+      }
+      return sanitized;
+    });
+
     // 1. Bulk Insert Entrepreneurs
     const { data: createdEntrepreneurs, error: entError } = await supabase
       .from('fair_entrepreneurs')
-      .insert(entrepreneursData)
+      .insert(sanitizedData)
       .select();
 
     if (entError) {
       console.error('Error bulk adding fair entrepreneurs:', entError);
+      console.error('Error details:', entError.message, entError.details, entError.hint);
+      console.error('Attempted data sample:', JSON.stringify(sanitizedData[0]));
+      alert(`Error al importar emprendedores: ${entError.message || 'Error desconocido'}`);
+      return [];
+    }
+
+    if (!createdEntrepreneurs || createdEntrepreneurs.length === 0) {
+      console.warn('bulkImportFairEntrepreneurs: insert returned no data');
       return [];
     }
 
@@ -1150,11 +1176,14 @@ export class Database {
 
     if (assignError) {
       console.error('Error bulk assigning entrepreneurs:', assignError);
+      console.error('Assignment error details:', assignError.message, assignError.details);
       return createdEntrepreneurs;
     }
 
     // Update local state
-    this.fairAssignments.push(...createdAssignments);
+    if (createdAssignments) {
+      this.fairAssignments.push(...createdAssignments);
+    }
 
     return createdEntrepreneurs;
   }
