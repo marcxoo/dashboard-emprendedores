@@ -141,7 +141,7 @@
   }
 
   .btn-primary {
-    @apply bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 border-t border-white/20;
+    @apply bg-linear-to-br from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 border-t border-white/20;
   }
 
   .btn-outline {
@@ -184,15 +184,15 @@
 
   /* Status Badges - Dark Mode Support */
   .status-invitado {
-    @apply bg-info-bg text-info-text dark:bg-[var(--color-dark-info-bg)] dark:text-[var(--color-dark-info-text)];
+    @apply bg-info-bg text-info-text dark:bg-dark-info-bg dark:text-dark-info-text;
   }
 
   .status-confirmado {
-    @apply bg-success-bg text-success-text dark:bg-[var(--color-dark-success-bg)] dark:text-[var(--color-dark-success-text)];
+    @apply bg-success-bg text-success-text dark:bg-dark-success-bg dark:text-dark-success-text;
   }
 
   .status-rechazó {
-    @apply bg-danger-bg text-danger-text dark:bg-[var(--color-dark-danger-bg)] dark:text-[var(--color-dark-danger-text)];
+    @apply bg-danger-bg text-danger-text dark:bg-dark-danger-bg dark:text-dark-danger-text;
   }
 
   .status-asistió {

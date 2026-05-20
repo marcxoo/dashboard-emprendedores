@@ -27,6 +27,10 @@ export class Database {
   }
 
   async loadData() {
+    if (!supabase) {
+      console.warn('Supabase client not initialized. Skipping data load.');
+      return;
+    }
     try {
       const [empRes, assignRes, surveyRes, logsRes] = await Promise.all([
         supabase.from('entrepreneurs').select('*').order('id', { ascending: true }),
